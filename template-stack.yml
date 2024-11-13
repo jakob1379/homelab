@@ -1,0 +1,46 @@
+---
+
+# Portainer Template for Docker Swarm Stack
+# The mustache variables will be used to prompt for user inputs.
+
+services:
+  {{ service_name }}:
+    image: {{ image_name }}:{{ image_tag }}
+    # Uncomment ports if needed and provide default values
+    # ports:
+    #   - {{ port_external }}:{{ port_internal }}
+    # configs: 
+    #   - source: {{ config_name }}
+    #     target: {{ config_mount_path}}
+    # secrets:
+    #   - {{ secret_name }}
+    environment:
+      - TZ={{ timezone }}
+    networks:
+      - traefik_public
+    deploy:
+      labels:
+        - "traefik.enable={{ traefik_enable }}"
+        - "traefik.http.routers.{{ route_name }}.entrypoints=websecure"
+        - "traefik.http.routers.{{ route_name }}.tls=true"
+        - "traefik.http.routers.{{ route_name }}.tls.certresolver=cfresolver"
+        - "traefik.http.services.{{ route_name }}.loadbalancer.server.port=80"
+        - "traefik.http.routers.{{ route_name }}.service={{ service_name }}"
+
+# Named volumes make life easier
+volumes:
+  {{ service_name }}_data:
+
+# When in swarm use configs instead of binding volumes.
+# configs:
+#   {{ config_name }}:
+#     file: {{ config_path }}
+
+# Secrets are a nice way to load encrypted data to a file in the container
+# secrets:
+#   {{ secret_name }}:
+#     external: true
+
+networks:
+  traefik_public:
+    external: true
