@@ -27,6 +27,7 @@ services:
       - "80:80"
       - "443:443"
       - "8080:8080"
+      - "5432:5432"
     environment:
        - CF_API_EMAIL=jakob1379@gmail.com
        - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token

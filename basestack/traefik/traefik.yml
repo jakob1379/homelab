@@ -21,7 +21,8 @@ entryPoints:
           scheme: https
   websecure:
     address: ":443"
-
+  dbsecure:
+    address: ":5432"
 
 certificatesResolvers:
   cfresolver:
