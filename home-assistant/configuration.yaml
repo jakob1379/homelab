@@ -18,5 +18,5 @@ scene: !include scenes.yaml
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 10.0.2.108  # Traefik container IP
-    - 172.19.0.0/16  # Replace with the IP range of your Traefik reverse proxy-
+    - 10.0.2.0
+    - 172.19.0.0

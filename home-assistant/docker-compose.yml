@@ -10,8 +10,8 @@ configs:
 services:
   ha:
     image: "homeassistant/home-assistant:latest"
-    # ports:
-      # - 8123:8123
+    ports:
+      - 8123:8123
     volumes:
       - hass-config:/config
       - /etc/localtime:/etc/localtime:ro
