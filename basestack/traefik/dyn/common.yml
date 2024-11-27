@@ -1,0 +1,14 @@
+---
+http:
+  middlewares:
+    sablier-default:
+      plugin:
+        sablier:
+          group: default
+          dynamic:
+            displayName: service
+            refreshFrequency: 5s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 10m

@@ -34,7 +34,7 @@ providers:
     endpoint: unix:///var/run/docker.sock
     network: traefik_public
   file:
-    filename: /etc/traefik/dyn.yml
+    directory: /etc/traefik/dyn/
     watch: true
 experimental:
   plugins:

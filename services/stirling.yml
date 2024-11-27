@@ -1,0 +1,34 @@
+---
+# Portainer Template for Docker Swarm Stack
+# The mustache variables will be used to prompt for user inputs.
+services:
+  stirling:
+    image: frooodle/s-pdf:latest
+    ports: [8081:8080]
+    volumes:
+      - training_data_volume:/usr/share/tessdata  # Required for extra OCR languages
+      - extra_configs_volume:/configs
+      - custom_files_volume:/customFiles/
+      # - logs_volume:/logs/
+      # - pipeline_volume:/pipeline/
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+      - INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false
+      - LANGS="en_US,en_GB,da_DK"
+      - TZ="Europe/Copenhagen"
+    networks: [traefik_public]
+    deploy:
+      labels:
+        - traefik.docker.lbswarm=true
+        - sablier.enable=true
+        - sablier.group=default
+# Named volumes for data persistence
+volumes:
+  training_data_volume:
+  extra_configs_volume:
+  custom_files_volume:
+  logs_volume:
+  pipeline_volume:
+networks:
+  traefik_public:
+    external: true

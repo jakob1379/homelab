@@ -1,0 +1,16 @@
+---
+http:
+  routers:
+    whoami:
+      rule: Host(`whoami.jgalabs.dk`)
+      entrypoints: [websecure]
+      tls:
+        certresolver: cfresolver
+      service: whoami
+      middlewares: [sablier-default@file]
+  services:
+    whoami:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://whoami/

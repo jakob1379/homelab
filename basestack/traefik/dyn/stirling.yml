@@ -1,0 +1,15 @@
+---
+http:
+  routers:
+    stirling:
+      rule: Host(`pdf.jgalabs.dk`)
+      entrypoints: [websecure]
+      tls:
+        certresolver: cfresolver
+      service: stirling
+      middlewares: [sablier-default@file]
+  services:
+    stirling:
+      loadBalancer:
+        servers:
+          - url: http://stirling:8080/
