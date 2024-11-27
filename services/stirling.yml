@@ -18,6 +18,7 @@ services:
       - TZ="Europe/Copenhagen"
     networks: [traefik_public]
     deploy:
+      replicas: 0
       labels:
         - traefik.docker.lbswarm=true
         - sablier.enable=true

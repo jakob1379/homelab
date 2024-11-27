@@ -1,0 +1,15 @@
+---
+http:
+  routers:
+    cbeaver:
+      rule: Host(`cbeaver.jgalabs.dk`)
+      entrypoints: [websecure]
+      tls:
+        certresolver: cfresolver
+      service: cbeaver
+      middlewares: [sablier-default@file]
+  services:
+    cbeaver:
+      loadBalancer:
+        servers:
+          - url: http://cloudbeaver:8978/

@@ -1,0 +1,21 @@
+---
+volumes:
+  cbeaver_logs:
+  cbeaver_data:
+services:
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    ports: [8978:8978]
+    volumes:
+      - cbeaver_logs:/opt/cloudbeaver/logs
+      - cbeaver_data:/opt/cloudbeaver/workspace"
+    networks: [traefik_public]
+    deploy:
+      replicas: 0
+      labels:
+        - traefik.docker.lbswarm=true
+        - sablier.enable=true
+        - sablier.group=default
+networks:
+  traefik_public:
+    external: true
