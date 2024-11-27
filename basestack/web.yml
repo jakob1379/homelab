@@ -31,21 +31,24 @@ services:
       - source: traefik_static
         target: /etc/traefik/traefik.yml
       - source: traefik_dyn
-        target: /etc/traefik/dynamic-configuration.yml
+        target: /etc/traefik/dyn.yml
     networks: [traefik_public]
     secrets: [cf_dns_api_token]
+  sablier:
+    image: sablierapp/sablier:1.8.1
+    command: [start, --provider.name=swarm]
+    volumes: [/var/run/docker.sock:/var/run/docker.sock]
+    networks: [traefik_public]
   whoami:
     image: traefik/whoami
     networks: [traefik_public]
+    ports: [8888:80]
     deploy:
+      replicas: 0
       labels:
-        - traefik.enable=true
-        - traefik.http.routers.whoami.rule=Host(`whoami.jgalabs.dk`)
-        - traefik.http.routers.whoami.entrypoints=websecure
-        - traefik.http.routers.whoami.tls.certresolver=cfresolver
-        - traefik.http.routers.whoami.tls=true
-        - traefik.http.services.whoami.loadbalancer.server.port=80
-        - traefik.http.routers.whoami.service=whoami
+        - traefik.docker.lbswarm=true
+        - sablier.enable=true
+        - sablier.group=default
   adguardhome:
     image: adguard/adguardhome:latest
     ports:

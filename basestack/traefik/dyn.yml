@@ -1,2 +1,28 @@
 ---
-...
+http:
+  routers:
+    whoami:
+      rule: Host(`whoami.jgalabs.dk`)
+      entrypoints: [websecure]
+      tls:
+        certresolver: cfresolver
+      service: whoami
+      middlewares: [my-sablier@file]
+  services:
+    whoami:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://whoami/
+  middlewares:
+    my-sablier:
+      plugin:
+        sablier:
+          group: default
+          dynamic:
+            displayName: service
+            refreshFrequency: 5s
+            showDetails: 'true'
+            theme: shuffle
+          sablierUrl: http://sablier:10000
+          sessionDuration: 1m
