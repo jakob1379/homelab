@@ -4,6 +4,7 @@ services:
     image: portainer/portainer:latest
     volumes: [portainer_data:/data]
     networks: [traefik_public, portainer_agent]
+    ports: [9000:9000]
     deploy:
       mode: replicated
       replicas: 1

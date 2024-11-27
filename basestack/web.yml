@@ -1,4 +1,5 @@
 ---
+version: '3'
 configs:
   traefik_dyn:
     file: ./traefik/dyn.yml
@@ -7,7 +8,6 @@ configs:
 services:
   traefik:
     image: traefik:latest
-    # container_name: "traefik"
     deploy:
       placement:
         constraints: [node.role == manager]
@@ -20,11 +20,7 @@ services:
         - traefik.http.routers.api.tls=true
         - traefik.http.routers.api.tls.certresolver=cfresolver
         - traefik.http.services.traefik.loadbalancer.server.port=8080
-    ports:
-      - 80:80
-      - 443:443
-      # - "8080:8080"
-      - 5432:5432
+    ports: [80:80, 443:443, 8080:8080, 5432:5432]
     environment:
       - CF_API_EMAIL=jakob1379@gmail.com
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
