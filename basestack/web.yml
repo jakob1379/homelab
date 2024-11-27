@@ -1,94 +1,82 @@
 ---
-
 configs:
   traefik_dyn:
     file: ./traefik/dyn.yml
   traefik_static:
     file: ./traefik/traefik.yml
-
 services:
   traefik:
-    image: "traefik:latest"
+    image: traefik:latest
     # container_name: "traefik"
     deploy:
       placement:
-        constraints:
-          - node.role == manager
+        constraints: [node.role == manager]
       mode: global
       labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.api.rule=Host(`traefik.jgalabs.dk`)"
-        - "traefik.http.routers.api.service=api@internal"
-        - "traefik.http.routers.api.entrypoints=websecure"
-        - "traefik.http.routers.api.tls=true"
-        - "traefik.http.routers.api.tls.certresolver=cfresolver"
-        - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+        - traefik.enable=true
+        - traefik.http.routers.api.rule=Host(`traefik.jgalabs.dk`)
+        - traefik.http.routers.api.service=api@internal
+        - traefik.http.routers.api.entrypoints=websecure
+        - traefik.http.routers.api.tls=true
+        - traefik.http.routers.api.tls.certresolver=cfresolver
+        - traefik.http.services.traefik.loadbalancer.server.port=8080
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
       # - "8080:8080"
-      - "5432:5432"
+      - 5432:5432
     environment:
-       - CF_API_EMAIL=jakob1379@gmail.com
-       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
+      - CF_API_EMAIL=jakob1379@gmail.com
+      - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
     volumes:
-      - "letsencrypt:/letsencrypt"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     configs:
       - source: traefik_static
         target: /etc/traefik/traefik.yml
       - source: traefik_dyn
         target: /etc/traefik/dynamic-configuration.yml
-    networks:
-      - traefik_public
-    secrets:
-      - cf_dns_api_token
-
+    networks: [traefik_public]
+    secrets: [cf_dns_api_token]
   whoami:
-    image: "traefik/whoami"
-    networks:
-      - traefik_public
+    image: traefik/whoami
+    networks: [traefik_public]
     deploy:
       labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.whoami.rule=Host(`whoami.jgalabs.dk`)"
-        - "traefik.http.routers.whoami.entrypoints=websecure"
-        - "traefik.http.routers.whoami.tls.certresolver=cfresolver"
-        - "traefik.http.routers.whoami.tls=true"
-        - "traefik.http.services.whoami.loadbalancer.server.port=80"
-        - "traefik.http.routers.whoami.service=whoami"
-
+        - traefik.enable=true
+        - traefik.http.routers.whoami.rule=Host(`whoami.jgalabs.dk`)
+        - traefik.http.routers.whoami.entrypoints=websecure
+        - traefik.http.routers.whoami.tls.certresolver=cfresolver
+        - traefik.http.routers.whoami.tls=true
+        - traefik.http.services.whoami.loadbalancer.server.port=80
+        - traefik.http.routers.whoami.service=whoami
   adguardhome:
     image: adguard/adguardhome:latest
     ports:
       # - "3000:3000/tcp"  # Admin dashboard port
-      - "53:53/tcp"      # DNS TCP
-      - "53:53/udp"      # DNS UDP
+      - 53:53/tcp  # DNS TCP
+      - 53:53/udp  # DNS UDP
       # - "8880:80"
     volumes:
-      - "adguard_data:/opt/adguardhome/work"
-      - "adguard_conf:/opt/adguardhome/conf"
+      - adguard_data:/opt/adguardhome/work
+      - adguard_conf:/opt/adguardhome/conf
     deploy:
       labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.adguard.rule=Host(`adguard.jgalabs.dk`)"
-        - "traefik.http.routers.adguard.tls=true"
-        - "traefik.http.routers.adguard.entrypoints=websecure"
-        - "traefik.http.routers.adguard.tls.certresolver=cfresolver"
-        - "traefik.http.services.adguard.loadbalancer.server.port=80"
-        - "traefik.http.routers.adguard.service=adguard"
-    networks:
-      - traefik_public
-
+        - traefik.enable=true
+        - traefik.http.routers.adguard.rule=Host(`adguard.jgalabs.dk`)
+        - traefik.http.routers.adguard.tls=true
+        - traefik.http.routers.adguard.entrypoints=websecure
+        - traefik.http.routers.adguard.tls.certresolver=cfresolver
+        - traefik.http.services.adguard.loadbalancer.server.port=80
+        - traefik.http.routers.adguard.service=adguard
+    networks: [traefik_public]
 secrets:
   cf_dns_api_token:
     external: true
-
 volumes:
   adguard_data:
   adguard_conf:
   letsencrypt:
-
 networks:
   traefik_public:
     name: traefik_public

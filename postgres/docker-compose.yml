@@ -1,19 +1,14 @@
-
 ---
-
 volumes:
   postgres_data:
-
 networks:
   traefik_public:
     external: true
-
 secrets:
   postgres_password:
     external: true
   postgres_user:
     external: true
-
 services:
   postgres:
     image: postgres:latest
@@ -22,20 +17,16 @@ services:
       - POSTGRES_USER_FILE=/run/secrets/postgres_user
       - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
       - TZ=Europe/Copenhagen
-    secrets:
-      - postgres_user
-      - postgres_password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - traefik_public
+    secrets: [postgres_user, postgres_password]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    networks: [traefik_public]
     deploy:
       labels:
-        - "traefik.enable=true"
-        - "traefik.tcp.routers.postgres.tls.certresolver=cfresolver"
-        - "traefik.tcp.routers.postgres.service=postgres"
-        - "traefik.tcp.routers.postgres.rule=HostSNI(`psql.jgalabs.dk`)"
-        - "traefik.tcp.routers.postgres.tls=true"
-        - "traefik.tcp.services.postgres.loadbalancer.server.port=5432"
-        - "traefik.tcp.routers.postgres.entrypoints=dbsecure"
+        - traefik.enable=true
+        - traefik.tcp.routers.postgres.tls.certresolver=cfresolver
+        - traefik.tcp.routers.postgres.service=postgres
+        - traefik.tcp.routers.postgres.rule=HostSNI(`psql.jgalabs.dk`)
+        - traefik.tcp.routers.postgres.tls=true
+        - traefik.tcp.services.postgres.loadbalancer.server.port=5432
+        - traefik.tcp.routers.postgres.entrypoints=dbsecure
         # - "traefik.tcp.routers.postgres.tls.passthrough=true"

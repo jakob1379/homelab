@@ -9,7 +9,7 @@ services:
     # Uncomment ports if needed and provide default values
     # ports:
     #   - {{ port_external }}:{{ port_internal }}
-    # configs: 
+    # configs:
     #   - source: {{ config_name }}
     #     target: {{ config_mount_path}}
     # secrets:

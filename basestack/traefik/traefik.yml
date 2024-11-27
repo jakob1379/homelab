@@ -1,29 +1,24 @@
 ---
-
 log:
   level: DEBUG
-
 global:
   checkNewVersion: true
   sendAnonymousUsage: false
-
 api:
   insecure: true
   dashboard: true  # Enable Traefik's dashboard
-
 entryPoints:
   web:
-    address: ":80"
+    address: :80
     http:
       redirections:
         entryPoint:
           to: websecure
           scheme: https
   websecure:
-    address: ":443"
+    address: :443
   dbsecure:
-    address: ":5432"
-
+    address: :5432
 certificatesResolvers:
   cfresolver:
     acme:
@@ -31,16 +26,12 @@ certificatesResolvers:
       storage: /letsencrypt/acme.json
       dnsChallenge:
         provider: cloudflare
-        resolvers:
-          - "1.1.1.1:53"
-          - "1.0.0.1:53"
-
+        resolvers: [1.1.1.1:53, 1.0.0.1:53]
 providers:
   swarm:
-    defaultRule: "Host(`{{ last (splitList \"-\" .Name) }}.jgalabs.dk`)"
+    defaultRule: Host(`{{ last (splitList "-" .Name) }}.jgalabs.dk`)
     exposedByDefault: false
-    endpoint: "unix:///var/run/docker.sock"
+    endpoint: unix:///var/run/docker.sock
     network: traefik_public
   file:
-    filename: "/etc/traefik/dynamic-configuration.yml"
-
+    filename: /etc/traefik/dynamic-configuration.yml
