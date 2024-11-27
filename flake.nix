@@ -11,6 +11,7 @@
         buildInputs = with pkgs; [
           pre-commit
           gitleaks
+          yamllint
         ];
       };
     }
