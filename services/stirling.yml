@@ -22,7 +22,7 @@ services:
       labels:
         - traefik.docker.lbswarm=true
         - sablier.enable=true
-        - sablier.group=default
+        - sablier.group=stirling
 # Named volumes for data persistence
 volumes:
   training_data_volume:

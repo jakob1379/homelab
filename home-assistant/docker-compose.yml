@@ -1,49 +1,44 @@
 ---
-
 volumes:
   hass-config:
-
-configs:
-  hass_config:
-    file: ./configuration.yaml
-
+# configs:
+#  hass_config:
+#    file: ./configuration.yaml
 services:
   ha:
-    image: "homeassistant/home-assistant:latest"
-    ports:
-      - 8123:8123
+    image: homeassistant/home-assistant:latest
+    ports: [8123:8123]
     volumes:
-      - hass-config:/config
+      - ./config:/config
+      # - ./configuration.yaml:/config/configuration.yaml
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
-    configs:
-      - source: hass_config
-        target: /config/configuration.yaml
-    environment:
-      - TZ=Europe/Copenhagen
-    networks:
-      - traefik_public
+    # configs:
+    #   - source: hass_config
+    #     target: /config/configuration.yaml
+    environment: [TZ=Europe/Copenhagen]
+    networks: [traefik_public]
     deploy:
       labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.ha.rule=Host(`ha.jgalabs.dk`)"
-        - "traefik.http.routers.ha.entrypoints=websecure"
-        - "traefik.http.routers.ha.tls=true"
-        - "traefik.http.routers.ha.tls.certresolver=cfresolver"
-        - "traefik.http.services.ha.loadbalancer.server.port=8123"
-        - "traefik.http.routers.ha.service=ha"
+        - traefik.enable=true
+        - traefik.http.routers.ha.rule=Host(`ha.jgalabs.dk`)
+        - traefik.http.routers.ha.entrypoints=websecure
+        - traefik.http.routers.ha.tls=true
+        - traefik.http.routers.ha.tls.certresolver=cfresolver
+        - traefik.http.services.ha.loadbalancer.server.port=8123
+        - traefik.http.routers.ha.service=ha
 #  deconz:
 #    image: deconzcommunity/deconz:stable
 #    container_name: deconz
 #    restart: always
-#    privileged: true                # This is important! Without it, the deCONZ image won't be able to connect to Conbee II.
+#    privileged: true  # This is important! Without it, the deCONZ image won't be able to connect to Conbee II.
 #    ports:
 #      - 80:80
 #      - 443:443
 #    volumes:
 #      - /opt/deCONZ:/opt/deCONZ
 #    devices:
-#      - /dev/ttyACM0                # This is the USB device that Conbee II is running on.
+#      - /dev/ttyACM0  # This is the USB device that Conbee II is running on.
 #    environment:
 #      - TZ=Europe/Berlin
 #      - DECONZ_WEB_PORT=80
@@ -54,9 +49,8 @@ services:
 #      - DEBUG_ZDP=0
 #      - DEBUG_OTA=0
 #      - DEBUG_HTTP=0
-#      - DECONZ_DEVICE=/dev/ttyACM0   # This is the USB device that Conbee II is running on.
+#      - DECONZ_DEVICE=/dev/ttyACM0  # This is the USB device that Conbee II is running on.
 #      - DECONZ_START_VERBOSE=0
-
 networks:
   traefik_public:
     external: true

@@ -1,25 +1,25 @@
 ---
 http:
   routers:
-    cbeaver:
-      rule: Host(`cbeaver.jgalabs.dk`)
+    portainer:
+      rule: Host(`pods.jgalabs.dk`)
       entrypoints: [websecure]
       tls:
         certresolver: cfresolver
-      service: cbeaver
-      middlewares: [sablier-cbeaver@file]
+      service: portainer
+      middlewares: [sablier-portainer@file]
   services:
-    cbeaver:
+    portainer:
       loadBalancer:
         servers:
-          - url: http://cloudbeaver:8978/
+          - url: http://portainer:9000/
   middlewares:
-    sablier-cbeaver:
+    sablier-portainer:
       plugin:
         sablier:
-          group: cbeaver
+          group: portainer
           dynamic:
-            displayName: service
+            displayName: Portainer
             refreshFrequency: 2s
             showDetails: 'true'
             theme: ghost

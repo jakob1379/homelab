@@ -7,9 +7,21 @@ http:
       tls:
         certresolver: cfresolver
       service: stirling
-      middlewares: [sablier-default@file]
+      middlewares: [sablier-stirling@file]
   services:
     stirling:
       loadBalancer:
         servers:
           - url: http://stirling:8080/
+  middlewares:
+    sablier-stirling:
+      plugin:
+        sablier:
+          group: stirling
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 10m

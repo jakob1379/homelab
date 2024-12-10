@@ -1,25 +1,25 @@
 ---
 http:
   routers:
-    cbeaver:
-      rule: Host(`cbeaver.jgalabs.dk`)
+    hoarder:
+      rule: Host(`hoarder.jgalabs.dk`)
       entrypoints: [websecure]
       tls:
         certresolver: cfresolver
-      service: cbeaver
-      middlewares: [sablier-cbeaver@file]
+      service: hoarder
+      middlewares: [sablier-hoarder@file]
   services:
-    cbeaver:
+    hoarder:
       loadBalancer:
         servers:
-          - url: http://cloudbeaver:8978/
+          - url: http://hoarder:3000/
   middlewares:
-    sablier-cbeaver:
+    sablier-hoarder:
       plugin:
         sablier:
-          group: cbeaver
+          group: hoarder
           dynamic:
-            displayName: service
+            displayName: Hoarder
             refreshFrequency: 2s
             showDetails: 'true'
             theme: ghost

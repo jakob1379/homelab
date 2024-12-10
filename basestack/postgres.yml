@@ -7,17 +7,17 @@ networks:
 secrets:
   postgres_password:
     external: true
-  postgres_user:
+  postgres_admin_user:
     external: true
 services:
   postgres:
     image: postgres:latest
     # Uncomment ports if needed and provide default values
     environment:
-      - POSTGRES_USER_FILE=/run/secrets/postgres_user
+      - POSTGRES_USER_FILE=/run/secrets/postgres_admin_user
       - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
       - TZ=Europe/Copenhagen
-    secrets: [postgres_user, postgres_password]
+    secrets: [postgres_admin_user, postgres_password]
     volumes: [postgres_data:/var/lib/postgresql/data]
     networks: [traefik_public]
     deploy:

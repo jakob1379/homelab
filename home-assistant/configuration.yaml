@@ -8,9 +8,9 @@ frontend:
 # Text to speech
 tts:
   - platform: google_translate
-automation: !include automations.yaml
-script: !include scripts.yaml
-scene: !include scenes.yaml
+# automation: !include automations.yaml
+# script: !include scripts.yaml
+# scene: !include scenes.yaml
 http:
   use_x_forwarded_for: true
-  trusted_proxies: [10.0.2.0, 172.19.0.0]
+  trusted_proxies: [10.0.1.0/24, 172.19.0.0]

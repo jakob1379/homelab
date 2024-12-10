@@ -15,7 +15,7 @@ services:
       labels:
         - traefik.docker.lbswarm=true
         - sablier.enable=true
-        - sablier.group=default
+        - sablier.group=cbeaver
 networks:
   traefik_public:
     external: true

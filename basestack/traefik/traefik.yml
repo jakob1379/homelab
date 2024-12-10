@@ -1,4 +1,8 @@
 ---
+metrics:
+  datadog: {}
+accessLog: {}
+tracing: {}
 log:
   level: DEBUG
 global:

@@ -7,7 +7,7 @@ http:
           group: default
           dynamic:
             displayName: service
-            refreshFrequency: 5s
+            refreshFrequency: 2s
             showDetails: 'true'
             theme: ghost
           sablierUrl: http://sablier:10000
