@@ -24,4 +24,4 @@ http:
             showDetails: 'true'
             theme: ghost
           sablierUrl: http://sablier:10000
-          sessionDuration: 10m
+          sessionDuration: 30m
