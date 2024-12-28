@@ -5,7 +5,7 @@ volumes:
 services:
   cloudbeaver:
     image: dbeaver/cloudbeaver:latest
-    ports: [8978:8978]
+    # ports: [8978:8978]
     volumes:
       - cbeaver_logs:/opt/cloudbeaver/logs
       - cbeaver_data:/opt/cloudbeaver/workspace"

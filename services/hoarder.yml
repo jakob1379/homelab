@@ -5,18 +5,14 @@ services:
     restart: unless-stopped
     networks: [traefik, hoarder]
     volumes: [data:/data]
-    ports: [3000:3000]
+    # ports: [3000:3000]
     env_file: [.env-hoarder]
     environment:
       MEILI_ADDR: http://meilisearch:7700
       BROWSER_WEB_URL: http://chrome:9222
       DATA_DIR: /data
     deploy:
-      replicas: 0
-      labels:
-        - traefik.docker.lbswarm=true
-        - sablier.enable=true
-        - sablier.group=hoarder
+      replicas: 1
       update_config:
         parallelism: 1
         order: start-first
@@ -27,6 +23,14 @@ services:
         order: stop-first
         failure_action: pause
         delay: 10s
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.hoarder.rule=Host(`hoarder.jgalabs.dk`)
+        - traefik.http.routers.hoarder.service=hoarder
+        - traefik.http.routers.hoarder.entrypoints=websecure
+        - traefik.http.routers.hoarder.tls=true
+        - traefik.http.routers.hoarder.tls.certresolver=cfresolver
+        - traefik.http.services.hoarder.loadbalancer.server.port=3000
   chrome:
     image: gcr.io/zenika-hub/alpine-chrome:123
     networks: [hoarder]
@@ -38,8 +42,8 @@ services:
       - --remote-debugging-port=9222
       - --hide-scrollbars
     deploy:
-      replicas: 0
-      labels: [sablier.enable=true, sablier.group=hoarder]
+      replicas: 1
+      labels: [sablier.enable=false, sablier.group=hoarder]
   meilisearch:
     image: getmeili/meilisearch:v1.11.1
     networks: [hoarder]
@@ -48,8 +52,8 @@ services:
       MEILI_NO_ANALYTICS: 'true'
     volumes: [meilisearch:/meili_data]
     deploy:
-      replicas: 0
-      labels: [sablier.enable=true, sablier.group=hoarder]
+      replicas: 1
+      labels: [sablier.enable=false, sablier.group=hoarder]
 volumes:
   meilisearch:
   data:
