@@ -1,0 +1,16 @@
+---
+secrets:
+  shepherd_registry_password:
+    external: true
+services:
+  shepherd:
+    image: containrrr/shepherd
+    environment:
+      - SLEEP_TIME=48h
+      - TZ=Europe/Copenhagen
+      - REGISTRY_USER=jakob1379
+    volumes: [/var/run/docker.sock:/var/run/docker.sock]
+    secrets: [shepherd_registry_password]
+    deploy:
+      placement:
+        constraints: [node.role == manager]
