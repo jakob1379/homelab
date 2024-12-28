@@ -9,7 +9,7 @@ services:
       placement:
         constraints: [node.role == manager]
   portainer:
-    image: portainer/portainer:latest
+    image: portainer/portainer-ce:latest
     volumes: [portainer_data:/data]
     networks: [traefik_public, portainer_agent]
     # ports: [9000:9000]
