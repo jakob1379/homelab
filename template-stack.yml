@@ -23,6 +23,7 @@ services:
     deploy:
       labels:
         - "traefik.enable={{ traefik_enable }}"
+        - "traefik.http.routers.{{ route_name }}.rule=Host(`{{ service_name }}.jgalabs.dk`)"
         - "traefik.http.routers.{{ route_name }}.entrypoints=websecure"
         - "traefik.http.routers.{{ route_name }}.tls=true"
         - "traefik.http.routers.{{ route_name }}.tls.certresolver=cfresolver"
