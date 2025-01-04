@@ -1,0 +1,27 @@
+---
+http:
+  routers:
+    teable:
+      rule: Host(`teable.jgalabs.dk`)
+      entrypoints: [websecure]
+      tls:
+        certresolver: cfresolver
+      service: teable
+      middlewares: [sablier-teable@file]
+  services:
+    teable:
+      loadBalancer:
+        servers:
+          - url: http://teable:3000/
+  middlewares:
+    sablier-teable:
+      plugin:
+        sablier:
+          group: teable
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

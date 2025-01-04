@@ -1,0 +1,66 @@
+---
+version: '3.9'
+services:
+  teable:
+    image: ghcr.io/teableio/teable:latest
+    volumes: [teable-data:/app/.assets:rw]
+    env_file: [./.env-teable]
+    environment: [NEXT_ENV_IMAGES_ALL_REMOTE=true]
+    networks: [teable, traefik_public]
+    deploy:
+      replicas: 0
+      update_config:
+        parallelism: 1
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: pause
+        delay: 10s
+      labels:
+        - traefik.docker.lbswarm=true
+        - sablier.enable=true
+        - sablier.group=teable
+    healthcheck:
+      test: [CMD, curl, -f, http://localhost:3000/health]
+      start_period: 20s
+      interval: 5s
+      timeout: 5s
+      retries: 3
+  teable-cache:
+    image: redis:7.2.4
+    env_file: [./.env-teable]
+    volumes: [teable-cache:/data:rw]
+    networks: [teable]
+    command: redis-server --appendonly yes --requirepass crWXHDNorFJVoGmsGZtmuSOUIOrEb8fn3vWnaxwX4nxmmlqtzVWf4tafSUA87Vk3
+    healthcheck:
+      test: [CMD, redis-cli, --raw, incr, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    deploy:
+      replicas: 0
+      update_config:
+        parallelism: 1
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: pause
+        delay: 10s
+      labels:
+        - traefik.docker.lbswarm=true
+        - sablier.enable=true
+        - sablier.group=teable
+networks:
+  traefik_public:
+    external: true
+  teable:
+    name: teable-network
+volumes:
+  teable-data: {}
+  teable-cache: {}

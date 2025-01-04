@@ -1,0 +1,25 @@
+---
+services:
+  teable-createbuckets:
+    image: minio/mc
+    env_file: [./.env-teable]
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set teable-storage https://s3.jgalabs.dk $$MINIO_ACCESS_KEY
+      $$MINIO_SECRET_KEY;
+      /usr/bin/mc mb teable-storage/public;
+      /usr/bin/mc anonymous set public teable-storage/public;
+      /usr/bin/mc mb teable-storage/private;
+      exit 0;
+      "
+    deploy:
+      replicas: 1  # Ensures only one instance runs
+      restart_policy:
+        condition: none  # Ensures the service does not restart
+  teable-db-migrate:
+    image: ghcr.io/teableio/teable-db-migrate:latest
+    env_file: [./.env-teable]
+    deploy:
+      replicas: 1  # Ensures only one instance runs
+      restart_policy:
+        condition: none  # Ensures the service does not restart
