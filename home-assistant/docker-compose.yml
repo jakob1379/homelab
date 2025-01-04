@@ -12,6 +12,7 @@ services:
       - ./config:/config
       # - ./configuration.yaml:/config/configuration.yaml
       - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - /run/dbus:/run/dbus:ro
     # configs:
     #   - source: hass_config
