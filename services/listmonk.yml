@@ -1,0 +1,42 @@
+---
+services:
+  listmonk:
+    image: listmonk/listmonk:latest
+    # Uncomment ports if needed and provide default values
+    # ports:
+    #   - {{ port_external }}:9000
+    env_file: [.env-listmonk]
+    environment:
+      - TZ=Europe/Copenhagen
+      - LISTMONK_app__address=0.0.0.0:9000
+      - LISTMONK_db__user=listmonk
+      - LISTMONK_db__database=listmonk
+      - LISTMONK_db__host=psql.jgalabs.dk
+      - LISTMONK_db__port=5432
+      - LISTMONK_db__ssl_mode=disable
+      - LISTMONK_db__max_open=25
+      - LISTMONK_db__max_idle=25
+      - LISTMONK_db__max_lifetime=300s
+    networks: [traefik_public, listmonk]
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.listmonk.entrypoints=websecure
+        - traefik.http.routers.listmonk.tls=true
+        - traefik.http.routers.listmonk.tls.certresolver=cfresolver
+        - traefik.http.services.listmonk.loadbalancer.server.port=9000
+        - traefik.http.routers.listmonk.service=listmonk
+    command:
+      - sh
+      - -c
+      - ./listmonk --install --idempotent --yes --config '' && ./listmonk --upgrade
+        --yes --config '' && ./listmonk --config ''
+  cftunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    restart: unless-stopped
+    networks: [listmonk]
+networks:
+  listmonk:
+  traefik_public:
+    external: true
