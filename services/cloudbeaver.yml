@@ -2,13 +2,15 @@
 volumes:
   cbeaver_logs:
   cbeaver_data:
+  cbeaver_conf:
 services:
   cloudbeaver:
     image: dbeaver/cloudbeaver:latest
     # ports: [8978:8978]
     volumes:
       - cbeaver_logs:/opt/cloudbeaver/logs
-      - cbeaver_data:/opt/cloudbeaver/workspace"
+      - cbeaver_data:/opt/cloudbeaver/workspace
+      - cbeaver_conf:/opt/cloudbeaver/conf
     networks: [traefik_public]
     deploy:
       replicas: 0
