@@ -11,11 +11,7 @@ services:
       - custom_files_volume:/customFiles/
       # - logs_volume:/logs/
       # - pipeline_volume:/pipeline/
-    environment:
-      - DOCKER_ENABLE_SECURITY=false
-      - INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false
-      - LANGS="en_US,en_GB,da_DK"
-      - TZ="Europe/Copenhagen"
+    env_file: [.env-stirling]
     networks: [traefik_public]
     deploy:
       replicas: 0
