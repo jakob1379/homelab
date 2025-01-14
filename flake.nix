@@ -5,7 +5,7 @@
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ pre-commit gitleaks yamllint ];
+          buildInputs = with pkgs; [ pre-commit gitleaks yamllint yamlfix ];
         };
       });
 }
