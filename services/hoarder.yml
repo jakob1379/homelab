@@ -43,7 +43,6 @@ services:
       - --hide-scrollbars
     deploy:
       replicas: 1
-      labels: [sablier.enable=false, sablier.group=hoarder]
   meilisearch:
     image: getmeili/meilisearch:v1.11.1
     networks: [hoarder]
@@ -53,7 +52,6 @@ services:
     volumes: [meilisearch:/meili_data]
     deploy:
       replicas: 1
-      labels: [sablier.enable=false, sablier.group=hoarder]
 volumes:
   meilisearch:
   data:
