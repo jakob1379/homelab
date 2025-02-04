@@ -1,0 +1,27 @@
+---
+http:
+  routers:
+    ittools:
+      rule: Host(`it.jgalabs.dk`)
+      entrypoints: [websecure]
+      tls:
+        certresolver: cfresolver
+      service: ittools
+      middlewares: [sablier-ittools@file]
+  services:
+    ittools:
+      loadBalancer:
+        servers:
+          - url: http://ittools:80/
+  middlewares:
+    sablier-ittools:
+      plugin:
+        sablier:
+          group: ittools
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

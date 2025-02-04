@@ -1,0 +1,16 @@
+---
+# Portainer Template for Docker Swarm Stack
+# The mustache variables will be used to prompt for user inputs.
+services:
+  ittools:
+    image: corentinth/it-tools:latest
+    networks: [traefik_public]
+    deploy:
+      replicas: 0
+      labels:
+        - traefik.docker.lbswarm=true
+        - sablier.enable=true
+        - sablier.group=ittools
+networks:
+  traefik_public:
+    external: true
