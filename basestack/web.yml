@@ -31,10 +31,6 @@ services:
   traefik-forward-auth:
     image: erikespinoza/traefik-forward-auth  # thomseddon/traefik-forward-auth:2
     environment:
-      - REDACTED
-      - REDACTED
-      - REDACTED
-      - REDACTED
       - DEFAULT_PROVIDER=oidc
       - COOKIE_DOMAIN=traefik.jgalabs.dk
       - LOG_LEVEL=debug
