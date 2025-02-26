@@ -10,7 +10,7 @@ secrets:
   postgres_admin_user:
     external: true
 services:
-  postgres:
+  psql:
     image: postgres:latest
     # Uncomment ports if needed and provide default values
     environment:
@@ -20,14 +20,11 @@ services:
     secrets: [postgres_admin_user, postgres_password]
     volumes: [postgres_data:/var/lib/postgresql/data]
     networks: [traefik_public]
-    ports: [5433:5432]
+    # ports: [5433:5432]
     deploy:
       labels:
         - traefik.enable=true
-        # - traefik.tcp.routers.postgres.rule=HostSNI(`psql.jgalabs.dk`)
-        # - traefik.tcp.routers.postgres.tls=true
-        - traefik.tcp.routers.postgres.rule=HostSNI(`*`)
         - traefik.tcp.routers.postgres.tls=false
+        - traefik.tcp.routers.postgres.rule=HostSNI(`*`)
         - traefik.tcp.services.postgres.loadbalancer.server.port=5432
         - traefik.tcp.routers.postgres.entrypoints=dbsecure
-        - traefik.tcp.routers.postgres.tls.certresolver=cfresolver

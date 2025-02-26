@@ -1,7 +1,7 @@
 ---
 services:
   listmonk:
-    image: listmonk/listmonk:latest
+    image: listmonk/listmonk:latest-armv7
     # Uncomment ports if needed and provide default values
     # ports:
     #   - {{ port_external }}:9000
@@ -22,8 +22,6 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.routers.listmonk.entrypoints=websecure
-        - traefik.http.routers.listmonk.tls=true
-        - traefik.http.routers.listmonk.tls.certresolver=cfresolver
         - traefik.http.services.listmonk.loadbalancer.server.port=9000
         - traefik.http.routers.listmonk.service=listmonk
     command:

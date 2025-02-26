@@ -1,5 +1,4 @@
 ---
-version: '3'
 configs:
   traefik_static:
     file: ./traefik/traefik.yml
@@ -12,13 +11,11 @@ services:
       mode: global
       labels:
         - traefik.enable=true
-        - traefik.http.routers.api.rule=Host(`traefik.jgalabs.dk`)
         - traefik.http.routers.api.service=api@internal
         - traefik.http.routers.api.entrypoints=websecure
-        - traefik.http.routers.api.tls=true
-        - traefik.http.routers.api.tls.certresolver=cfresolver
         - traefik.http.services.traefik.loadbalancer.server.port=8080
-    ports: [80:80, 443:443, 5432:5432]
+        # - traefik.http.routers.api.middlewares=traefik-forward-auth
+    ports: [80:80, 443:443, 5432:5432, 8888:8080]
     environment:
       - CF_API_EMAIL=jakob1379@gmail.com
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
@@ -31,6 +28,24 @@ services:
         target: /etc/traefik/traefik.yml
     networks: [traefik_public]
     secrets: [cf_dns_api_token]
+  traefik-forward-auth:
+    image: erikespinoza/traefik-forward-auth  # thomseddon/traefik-forward-auth:2
+    environment:
+      - REDACTED
+      - REDACTED
+      - REDACTED
+      - REDACTED
+      - DEFAULT_PROVIDER=oidc
+      - COOKIE_DOMAIN=traefik.jgalabs.dk
+      - LOG_LEVEL=debug
+      - LOG_FORMAT=pretty
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.middlewares.traefik-forward-auth.forwardauth.address=http://traefik-forward-auth:4181
+        - traefik.http.middlewares.traefik-forward-auth.forwardauth.authResponseHeaders=X-Forwarded-User
+        - traefik.http.services.traefik-forward-auth.loadbalancer.server.port=4181
+    networks: [traefik_public]
   sablier:
     image: sablierapp/sablier:1.8.1
     command: [start, --provider.name=swarm]
@@ -42,28 +57,24 @@ services:
     deploy:
       replicas: 0
       labels:
-        - traefik.docker.lbswarm=true
+        - traefik.swarm.lbswarm=true
         - sablier.enable=true
         - sablier.group=default
-  adguardhome:
+  adguard:
     image: adguard/adguardhome:latest
     ports:
       # - "3000:3000/tcp"  # Admin dashboard port
       - 53:53/tcp  # DNS TCP
       - 53:53/udp  # DNS UDP
-      # - "8880:80"
+      # - "8880:80/tcp"
     volumes:
       - adguard_data:/opt/adguardhome/work
       - adguard_conf:/opt/adguardhome/conf
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.adguard.rule=Host(`adguard.jgalabs.dk`)
-        - traefik.http.routers.adguard.tls=true
         - traefik.http.routers.adguard.entrypoints=websecure
-        - traefik.http.routers.adguard.tls.certresolver=cfresolver
         - traefik.http.services.adguard.loadbalancer.server.port=80
-        - traefik.http.routers.adguard.service=adguard
     networks: [traefik_public]
 secrets:
   cf_dns_api_token:
