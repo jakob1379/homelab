@@ -154,4 +154,3 @@ The home-assistant/ directory contains a docker-compose.yml and configuration.ya
 
 Full documentation and notes are maintained on DeepWiki:
 - https://deepwiki.com/jakob1379/homelab
-
