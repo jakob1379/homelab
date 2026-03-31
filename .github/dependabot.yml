@@ -1,0 +1,25 @@
+---
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      docker-images:
+        patterns: ['*']
+    commit-message:
+      prefix: chore(deps)
+    labels: [dependencies, docker]
+    open-pull-requests-limit: 10
+  - package-ecosystem: docker
+    directory: /services
+    schedule:
+      interval: monthly
+    groups:
+      docker-images-services:
+        patterns: ['*']
+    commit-message:
+      prefix: chore(deps)
+    labels: [dependencies, docker]
+    open-pull-requests-limit: 10

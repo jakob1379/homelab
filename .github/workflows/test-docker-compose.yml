@@ -1,0 +1,30 @@
+---
+name: Test Docker Compose Configuration
+on:
+  push:
+    branches: [main, refactor/**]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Allow manual triggering
+jobs:
+  validate-config:
+    name: Validate Compose and Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v5
+      - name: Validate setup script syntax
+        run: |
+          bash -n setup-dev.sh
+      - name: Run setup-dev script
+        run: |
+          bash setup-dev.sh
+      - name: Validate Docker Compose configuration (profile all)
+        run: |
+          DOMAIN=test.traefik.me docker compose --profile all config
+      - name: Validate referenced images exist (dry run)
+        run: |-
+          set -euo pipefail
+          DOMAIN=test.traefik.me docker compose --profile all pull --dry-run
