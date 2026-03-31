@@ -1,0 +1,117 @@
+---
+# Docker Compose Override for Local Development
+# This file sets restart: unless-stopped for all services
+# Place this file in the same directory as your main docker-compose.yml
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
+# Or if using profiles: docker compose --profile all up -d
+#
+services:
+  # networking.yml
+  traefik:
+    restart: unless-stopped
+  sablier:
+    restart: unless-stopped
+  whoami:
+    restart: unless-stopped
+  adguard:
+    restart: unless-stopped
+  netalertx:
+    restart: unless-stopped
+    env_file: [services/.env-netalertx]
+
+  # rustfs.yml
+  rustfs:
+    restart: unless-stopped
+    env_file: [services/.env-rustfs]
+
+  # monitoring.yml
+  dozzle:
+    restart: unless-stopped
+
+  # omni-tools.yml
+  omni-tools:
+    restart: unless-stopped
+
+  # listmonk.yml
+  listmonk-postgres:
+    restart: unless-stopped
+  listmonk:
+    restart: unless-stopped
+    env_file: [services/.env-listmonk]
+  cftunnel:
+    restart: unless-stopped
+
+  # karakeep.yml
+  keep:
+    restart: unless-stopped
+    env_file: [services/.env-karakeep]
+  chrome:
+    restart: unless-stopped
+  meilisearch:
+    restart: unless-stopped
+
+  # portainer.yml
+  portainer:
+    restart: unless-stopped
+  agent:
+    restart: unless-stopped
+
+  # immich.yml
+  immich-postgres:
+    restart: unless-stopped
+  immich-server:
+    restart: unless-stopped
+    env_file: [services/.env-immich]
+  immich-microservices:
+    restart: unless-stopped
+    env_file: [services/.env-immich]
+  immich-machine-learning:
+    restart: unless-stopped
+  redis:
+    restart: unless-stopped
+  immich-queue-monitor:
+    restart: unless-stopped
+
+  # paperless-ngx.yml
+  paperless-postgres:
+    restart: unless-stopped
+  paperless-web:
+    restart: unless-stopped
+    env_file: [services/.env-paperless]
+  paperless-consumer:
+    restart: unless-stopped
+    env_file: [services/.env-paperless]
+  paperless-redis:
+    restart: unless-stopped
+  paperless-gotenberg:
+    restart: unless-stopped
+  paperless-tika:
+    restart: unless-stopped
+
+  # media.yml
+  gluetun:
+    restart: unless-stopped
+  jellyfin:
+    restart: unless-stopped
+  seerr:
+    restart: unless-stopped
+  qbittorrent:
+    restart: unless-stopped
+  sonarr:
+    restart: unless-stopped
+  radarr:
+    restart: unless-stopped
+
+  # tools.yml
+  ittools:
+    restart: unless-stopped
+  cloudbeaver:
+    restart: unless-stopped
+  bentopdf:
+    restart: unless-stopped
+    env_file: [services/.env-bentopdf]
+
+  # homepage.yml
+  home:
+    restart: unless-stopped

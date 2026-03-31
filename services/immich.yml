@@ -1,0 +1,213 @@
+---
+services:
+  immich-postgres:
+    profiles: [apps, all]
+    image: pgvector/pgvector:pg17
+    environment:
+      - POSTGRES_USER=${DB_USERNAME:-immich}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-immich}
+      - POSTGRES_DB=${DB_DATABASE_NAME:-immich}
+      - TZ=Europe/Copenhagen
+    volumes: [immich_postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [immich]
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Web UI/API - Always on
+  immich-server:
+    profiles: [apps, all]
+    depends_on:
+      immich-postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    image: ghcr.io/immich-app/immich-server:release
+    command: [start.sh, immich]
+    volumes: [immich_library:/usr/src/app/upload]
+    environment:
+      - DB_HOSTNAME=immich-postgres
+      - DB_USERNAME=${DB_USERNAME:-immich}
+      - DB_PASSWORD=${DB_PASSWORD:-immich}
+      - DB_DATABASE_NAME=${DB_DATABASE_NAME:-immich}
+      - REDIS_HOSTNAME=redis
+      - IMMICH_WORKERS_INCLUDE=api
+    networks: [traefik_public, immich]
+    labels:
+      - traefik.enable=true
+      - homepage.group=Media & Files
+      - homepage.name=Immich
+      - homepage.icon=immich.png
+      - homepage.href=https://photos.${DOMAIN:-traefik.me}
+      - homepage.description=Family photo and video library
+    healthcheck:
+      test: [CMD, curl, -f, http://localhost:2283/api/server/ping]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Background workers - Sablier-managed group (queue wake is experimental)
+  immich-microservices:
+    profiles: [apps, all]
+    depends_on:
+      immich-postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    image: ghcr.io/immich-app/immich-server:release
+    command: [start.sh, microservices]
+    volumes: [immich_library:/usr/src/app/upload]
+    environment:
+      - DB_HOSTNAME=immich-postgres
+      - DB_USERNAME=${DB_USERNAME:-immich}
+      - DB_PASSWORD=${DB_PASSWORD:-immich}
+      - DB_DATABASE_NAME=${DB_DATABASE_NAME:-immich}
+      - REDIS_HOSTNAME=redis
+      - IMMICH_WORKERS_EXCLUDE=api
+    networks: [immich]
+    labels: [sablier.enable=true, sablier.group=immich-workers]
+    healthcheck:
+      test: [CMD-SHELL, pgrep -f microservices || exit 1]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # ML processing - Sablier-managed group (queue wake is experimental)
+  immich-machine-learning:
+    profiles: [apps, all]
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    volumes: [immich_model_cache:/cache]
+    environment: [REDIS_HOSTNAME=redis]
+    networks: [immich]
+    labels: [sablier.enable=true, sablier.group=immich-workers]
+    healthcheck:
+      test: [CMD, curl, -f, http://localhost:3003/health]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # Queue storage - Always on
+  redis:
+    profiles: [apps, all]
+    image: redis:7-alpine
+    volumes: [immich_redis:/data]
+    networks: [immich]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # Queue monitor (experimental) - Polls Redis, pings Sablier API
+  immich-queue-monitor:
+    profiles: [experimental]
+    image: alpine:latest
+    depends_on: [redis]
+    environment:
+      - REDIS_HOST=redis
+      - SABLIER_URL=http://sablier:10000
+      - QUEUE_PREFIX=immich_bull
+      - CHECK_INTERVAL=15
+      - EXTEND_DURATION=10m
+      - BLOCKING_TIMEOUT=4m
+    networks: [immich, traefik_public]
+    command: |
+      sh -c '
+        apk add --no-cache redis curl
+        while true; do
+          TOTAL_JOBS=0
+          for STATUS in wait active delayed prioritized waiting-children; do
+            for KEY in $$(redis-cli -h $$REDIS_HOST --scan --pattern "$$QUEUE_PREFIX:*:$$STATUS" 2>/dev/null); do
+              TYPE=$$(redis-cli -h $$REDIS_HOST TYPE "$$KEY" 2>/dev/null | tr -d "\r")
+              case "$$TYPE" in
+                list)
+                  COUNT=$$(redis-cli -h $$REDIS_HOST LLEN "$$KEY" 2>/dev/null || echo 0)
+                  ;;
+                zset)
+                  COUNT=$$(redis-cli -h $$REDIS_HOST ZCARD "$$KEY" 2>/dev/null || echo 0)
+                  ;;
+                *)
+                  COUNT=0
+                  ;;
+              esac
+              TOTAL_JOBS=$$((TOTAL_JOBS + COUNT))
+            done
+          done
+          if [ "$$TOTAL_JOBS" -gt 0 ]; then
+            echo "$$(date): Found $$TOTAL_JOBS jobs, extending Sablier session"
+            curl -fsS --max-time 10 "$$SABLIER_URL/api/strategies/blocking?group=immich-workers&session_duration=$$EXTEND_DURATION&timeout=$$BLOCKING_TIMEOUT" > /dev/null || true
+          fi
+          sleep $$CHECK_INTERVAL
+        done
+      '
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 64M
+networks:
+  immich:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  immich_library:
+  immich_postgres_data:
+  immich_model_cache:
+  immich_redis:

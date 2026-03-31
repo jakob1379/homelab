@@ -1,0 +1,51 @@
+---
+services:
+  portainer:
+    profiles: [apps, all]
+    image: portainer/portainer-ce:2.25.1
+    volumes: [portainer_data:/data]
+    networks: [traefik_public, portainer_agent]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.portainer.entrypoints=websecure
+      - traefik.http.services.portainer.loadbalancer.server.port=9000
+      - sablier.enable=true
+      - sablier.group=portainer
+      - homepage.group=Developer
+      - homepage.name=Portainer
+      - homepage.icon=portainer.png
+      - homepage.href=https://pods.${DOMAIN:-traefik.me}
+      - homepage.description=View and manage what's running on the server
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  agent:
+    profiles: [apps, all]
+    image: portainer/agent:2.25.1
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    networks: [portainer_agent]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+networks:
+  portainer_agent:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  portainer_data:

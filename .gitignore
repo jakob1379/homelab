@@ -1,2 +1,14 @@
 .direnv/
 flake.lock
+.droid
+.env
+services/.env-*
+services/secrets/*
+traefik-config/secrets/*
+site/
+*~
+services/config/**/logs/
+home-assistant/config/
+services/config/homepage/custom.css
+services/config/homepage/custom.js
+services/config/homepage/kubernetes.yaml

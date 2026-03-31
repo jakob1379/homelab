@@ -1,0 +1,48 @@
+---
+http:
+  # ============================================
+  # WEB UI ROUTER (User-facing)
+  # ============================================
+  routers:
+    immich:
+      rule: Host(`photos.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      service: immich
+      middlewares:
+        - startup-retry@file
+
+    # Dummy router for workers (never accessed by users, needed for Sablier)
+    immich-workers-dummy:
+      rule: Host(`immich-workers.{{ env "DOMAIN" }}`)
+      entrypoints: [internal]
+      service: immich-workers
+      middlewares:
+        - immich-workers-sablier
+
+  # ============================================
+  # SERVICES
+  # ============================================
+  services:
+    immich:
+      loadBalancer:
+        servers:
+          - url: http://immich-server:2283/
+    immich-workers:
+      loadBalancer:
+        servers:
+          - url: http://immich-microservices:3002/
+
+  # ============================================
+  # SABLIER MIDDLEWARES
+  # ============================================
+  middlewares:
+    immich-workers-sablier:
+      plugin:
+        sablier:
+          group: immich-workers
+          sablierUrl: http://sablier:10000
+          sessionDuration: 5m
+          dynamic:
+            displayName: Immich Workers
+            showDetails: true
+            theme: ghost

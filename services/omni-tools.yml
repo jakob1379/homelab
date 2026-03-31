@@ -1,0 +1,29 @@
+---
+services:
+  omni-tools:
+    profiles: [apps, all]
+    image: iib0011/omni-tools:0.1.0
+    restart: always
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - sablier.enable=true
+      - sablier.group=omni-tools
+      - homepage.group=Utilities
+      - homepage.name=Omni Tools
+      - homepage.icon=omni-tools.png
+      - homepage.href=https://omni.${DOMAIN:-traefik.me}
+      - homepage.description=General utilities for everyday tasks
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true

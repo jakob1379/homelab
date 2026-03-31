@@ -1,0 +1,80 @@
+---
+services:
+  keep:
+    profiles: [apps, all]
+    image: ghcr.io/karakeep-app/karakeep:release
+    restart: always
+    depends_on:
+      chrome:
+        condition: service_started
+      meilisearch:
+        condition: service_started
+    networks: [traefik_public, keep]
+    volumes: [karakeep_data:/data]
+    environment:
+      MEILI_ADDR: http://meilisearch:7700
+      BROWSER_WEB_URL: http://chrome:9222
+      DATA_DIR: /data
+    labels:
+      - sablier.enable=true
+      - sablier.group=keep
+      - homepage.group=Media & Files
+      - homepage.name=Karakeep
+      - homepage.icon=karakeep.png
+      - homepage.href=https://keep.${DOMAIN:-traefik.me}
+      - homepage.description=Save and organize interesting web links
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  chrome:
+    profiles: [apps, all]
+    image: gcr.io/zenika-hub/alpine-chrome:124
+    restart: always
+    networks: [keep]
+    command:
+      - --no-sandbox
+      - --disable-gpu
+      - --disable-dev-shm-usage
+      - --remote-debugging-address=0.0.0.0
+      - --remote-debugging-port=9222
+      - --hide-scrollbars
+    labels: [sablier.enable=true, sablier.group=keep]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  meilisearch:
+    profiles: [apps, all]
+    image: getmeili/meilisearch:v1.13.3
+    restart: always
+    networks: [keep]
+    environment:
+      MEILI_NO_ANALYTICS: 'true'
+    volumes: [meilisearch_data:/meili_data]
+    labels: [sablier.enable=true, sablier.group=keep]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+networks:
+  keep:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  karakeep_data:
+  meilisearch_data:

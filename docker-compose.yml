@@ -1,0 +1,39 @@
+---
+# Root Docker Compose configuration for homelab
+# Includes all stacks with clear separation of concerns
+include:
+  # Core infrastructure
+  - services/networking.yml  # Traefik, Sablier, Whoami, AdGuard
+  - services/rustfs.yml  # RustFS S3-compatible storage
+  - services/monitoring.yml  # Dozzle
+
+  # Developer tools
+  - services/tools.yml  # IT Tools, CloudBeaver, BentoPDF
+  - services/omni-tools.yml  # Omni Tools - self-hosted utilities
+
+  # Applications with their dependencies
+  - services/listmonk.yml  # Listmonk with Cloudflare tunnel
+  - services/karakeep.yml  # Karakeep (formerly Hoarder) with Chrome and Meilisearch
+  - services/portainer.yml  # Portainer with agent
+  - services/immich.yml  # Immich photo management (optional experimental worker queue scaling)
+  - services/paperless-ngx.yml  # Paperless-ngx document management
+  - services/media.yml  # Jellyfin + media automation stack
+  - services/homepage.yml  # Homepage dashboard
+secrets:
+  cf_dns_api_token:
+    file: services/secrets/cf_dns_api_token
+# Log rotation configuration to prevent disk fill
+# Reference in services with: <<: *x-logging
+x-logging:
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+# Alternative: Configure log rotation globally in /etc/docker/daemon.json:
+# {
+#   "log-driver": "json-file",
+#   "log-opts": {
+#     "max-size": "10m",
+#     "max-file": "3"
+#   }
+# }

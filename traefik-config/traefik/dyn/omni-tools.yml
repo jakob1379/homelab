@@ -1,0 +1,25 @@
+---
+http:
+  routers:
+    omni-tools:
+      rule: Host(`omni.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      service: omni-tools
+      middlewares: [sablier-omni-tools@file, startup-retry@file]
+  services:
+    omni-tools:
+      loadBalancer:
+        servers:
+          - url: http://omni-tools:80/
+  middlewares:
+    sablier-omni-tools:
+      plugin:
+        sablier:
+          group: omni-tools
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

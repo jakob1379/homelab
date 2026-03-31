@@ -1,0 +1,178 @@
+---
+services:
+  traefik:
+    profiles: [infra, all]
+    image: traefik:3.6.9
+    ports: [80:80, 443:443]
+    environment:
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
+      - DOMAIN=${DOMAIN:-traefik.me}
+      - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${CF_API_EMAIL}
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ../traefik-config/traefik/dyn:/etc/traefik/dyn
+      - ../traefik-config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+    secrets: [cf_dns_api_token]
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      # Traefik dashboard
+      - traefik.http.routers.api.rule=Host(`traefik.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.api.service=api@internal
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
+      - homepage.group=Developer
+      - homepage.name=Traefik
+      - homepage.icon=traefik.png
+      - homepage.href=https://traefik.${DOMAIN:-traefik.me}
+      - homepage.description=Reverse proxy and routing dashboard
+      - homepage.siteMonitor=http://traefik:8081/ping
+    restart: always
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://localhost:8081/ping
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+  sablier:
+    profiles: [infra, all]
+    image: sablierapp/sablier:1.8.1
+    command: [start, --provider.name=docker]
+    depends_on:
+      traefik:
+        condition: service_healthy
+    volumes: [/var/run/docker.sock:/var/run/docker.sock]
+    networks: [traefik_public]
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 64M
+  whoami:
+    profiles: [infra, all]
+    image: traefik/whoami:v1.10
+    depends_on:
+      traefik:
+        condition: service_healthy
+      sablier:
+        condition: service_started
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.whoami.entrypoints=websecure
+      - traefik.http.services.whoami.loadbalancer.server.port=80
+      - sablier.enable=true
+      - sablier.group=default
+      - homepage.group=Developer
+      - homepage.name=Whoami
+      - homepage.icon=whoami.png
+      - homepage.href=https://whoami.${DOMAIN:-traefik.me}
+      - homepage.description=Check your connection details
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 64M
+  adguard:
+    profiles: [infra, all]
+    image: adguard/adguardhome:v0.107.55
+    depends_on:
+      traefik:
+        condition: service_healthy
+    ports:
+      - ${ADGUARD_DNS_PORT:-1053}:53/tcp
+      - ${ADGUARD_DNS_PORT:-1053}:53/udp
+    volumes:
+      - adguard_data:/opt/adguardhome/work
+      - adguard_conf:/opt/adguardhome/conf
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.adguard.entrypoints=websecure
+      - traefik.http.services.adguard.loadbalancer.server.port=80
+      - homepage.group=Networking
+      - homepage.name=AdGuard
+      - homepage.icon=adguard-home.png
+      - homepage.href=https://dns.${DOMAIN:-traefik.me}
+      - homepage.description=Block ads across the whole network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+  netalertx:
+    profiles: [infra, all]
+    image: ghcr.io/jokob-sk/netalertx:latest
+    network_mode: host
+    depends_on:
+      traefik:
+        condition: service_healthy
+    volumes: [netalertx_data:/data, /etc/localtime:/etc/localtime:ro]
+    tmpfs: ['/tmp:uid=20211,gid=20211,mode=1700']
+    read_only: true
+    # Environment variables configured in Portainer UI for production
+    env_file: [.env-netalertx]
+    environment: [PORT=20211, TZ=Europe/Copenhagen]
+    cap_drop: [ALL]
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - NET_ADMIN
+      - NET_RAW
+      - NET_BIND_SERVICE
+    labels:
+      - homepage.group=Networking
+      - homepage.name=NetAlertX
+      - homepage.icon=netalertx.png
+      - homepage.href=http://localhost:20211
+      - homepage.description=See what devices are connected to the network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  adguard_data:
+  adguard_conf:
+  letsencrypt:
+  netalertx_data:

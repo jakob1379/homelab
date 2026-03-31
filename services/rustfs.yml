@@ -1,0 +1,43 @@
+---
+services:
+  rustfs:
+    profiles: [infra, all]
+    image: rustfs/rustfs:latest
+    depends_on:
+      traefik:
+        condition: service_healthy
+    volumes: [rustfs_data:/data]
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - homepage.group=Storage & Data
+      - homepage.name=RustFS
+      - homepage.icon=rustfs.png
+      - homepage.href=https://rustfs-console.${DOMAIN:-traefik.me}
+      - homepage.description=Cloud file storage for backups
+    restart: always
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:9001/rustfs/console/index.html
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  rustfs_data:

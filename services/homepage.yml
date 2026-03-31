@@ -1,0 +1,31 @@
+---
+services:
+  home:
+    profiles: [apps, all]
+    image: ghcr.io/gethomepage/homepage:v0.10.9
+    container_name: home
+    networks: [traefik_public]
+    environment: [TZ=Europe/Copenhagen]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/homepage:/app/config
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.home.entrypoints=websecure
+      - traefik.http.services.home.loadbalancer.server.port=3000
+      - sablier.enable=true
+      - sablier.group=home
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true

@@ -1,0 +1,41 @@
+---
+http:
+  middlewares:
+    # IP-based access control for admin services
+    # Configure ADMIN_IPS and USER_IPS in .env file
+    admin-only:
+      ipAllowList:
+        sourceRange:
+          - 127.0.0.1/32
+          - 172.16.0.0/12
+          - 10.0.0.0/8
+          - 192.168.0.0/16
+    users-only:
+      ipAllowList:
+        sourceRange:
+          - 127.0.0.1/32
+          - 172.16.0.0/12
+          - 10.0.0.0/8
+          - 192.168.0.0/16
+    sablier-default:
+      plugin:
+        sablier:
+          group: default
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 10m
+    default-cache:
+      plugin:
+        httpCache:
+          maxTtl: 300
+          memory:
+            limit: 100M
+          excludedResponseCodes: 500-599
+    startup-retry:
+      retry:
+        attempts: 30
+        initialInterval: 1s

@@ -1,0 +1,24 @@
+---
+http:
+  routers:
+    rustfs-api:
+      rule: Host(`rustfs.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: rustfs-api
+      middlewares: [startup-retry@file]
+    rustfs-console:
+      rule: Host(`rustfs-console.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: rustfs-console
+      middlewares: [startup-retry@file]
+  services:
+    rustfs-api:
+      loadBalancer:
+        servers:
+          - url: http://rustfs:9000/
+    rustfs-console:
+      loadBalancer:
+        servers:
+          - url: http://rustfs:9001/

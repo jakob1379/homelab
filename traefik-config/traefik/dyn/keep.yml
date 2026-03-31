@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    keep:
+      rule: Host(`keep.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: keep
+      middlewares: [sablier-keep@file, startup-retry@file]
+  services:
+    keep:
+      loadBalancer:
+        servers:
+          - url: http://keep:3000/
+  middlewares:
+    sablier-keep:
+      plugin:
+        sablier:
+          group: keep
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 15m

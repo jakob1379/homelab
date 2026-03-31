@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    home:
+      rule: Host(`home.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: home
+      middlewares: [sablier-home@file, startup-retry@file]
+  services:
+    home:
+      loadBalancer:
+        servers:
+          - url: http://home:3000/
+  middlewares:
+    sablier-home:
+      plugin:
+        sablier:
+          group: home
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

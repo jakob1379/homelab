@@ -1,40 +1,90 @@
 ---
 services:
+  listmonk-postgres:
+    profiles: [apps, all]
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=${LISTMONK_db__user:-listmonk}
+      - POSTGRES_PASSWORD=${LISTMONK_db__password:-dummy_password}
+      - POSTGRES_DB=${LISTMONK_db__database:-listmonk}
+      - TZ=Europe/Copenhagen
+    volumes: [listmonk_postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U listmonk -d listmonk]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [listmonk]
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
   listmonk:
-    image: listmonk/listmonk:latest-armv7
-    # Uncomment ports if needed and provide default values
-    # ports:
-    #   - {{ port_external }}:9000
-    env_file: [.env-listmonk]
+    profiles: [apps, all]
+    image: listmonk/listmonk:latest
+    depends_on:
+      listmonk-postgres:
+        condition: service_healthy
     environment:
       - TZ=Europe/Copenhagen
       - LISTMONK_app__address=0.0.0.0:9000
       - LISTMONK_db__user=listmonk
+      - LISTMONK_db__password=${LISTMONK_db__password:-dummy_password}
       - LISTMONK_db__database=listmonk
-      - LISTMONK_db__host=psql.jgalabs.dk
+      - LISTMONK_db__host=listmonk-postgres
       - LISTMONK_db__port=5432
       - LISTMONK_db__ssl_mode=disable
       - LISTMONK_db__max_open=25
       - LISTMONK_db__max_idle=25
       - LISTMONK_db__max_lifetime=300s
     networks: [traefik_public, listmonk]
-    deploy:
-      labels:
-        - traefik.enable=true
-        - traefik.http.routers.listmonk.entrypoints=websecure
-        - traefik.http.services.listmonk.loadbalancer.server.port=9000
-        - traefik.http.routers.listmonk.service=listmonk
+    labels:
+      - sablier.enable=true
+      - sablier.group=listmonk
+      - homepage.group=Communication
+      - homepage.name=Listmonk
+      - homepage.icon=listmonk.png
+      - homepage.href=https://listmonk.${DOMAIN:-traefik.me}
+      - homepage.description=Send email newsletters to groups
     command:
       - sh
       - -c
       - ./listmonk --install --idempotent --yes --config '' && ./listmonk --upgrade
         --yes --config '' && ./listmonk --config ''
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
   cftunnel:
-    image: cloudflare/cloudflared:latest
+    profiles: [tunnel]
+    image: cloudflare/cloudflared:2025.1.0
     command: tunnel --no-autoupdate run
-    restart: unless-stopped
+    restart: always
     networks: [listmonk]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+volumes:
+  listmonk_postgres_data:
 networks:
   listmonk:
   traefik_public:
-    external: true
+    name: traefik_public
+    driver: bridge
+    attachable: true
