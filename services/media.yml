@@ -1,0 +1,162 @@
+---
+services:
+  gluetun:
+    profiles: [apps, all]
+    image: qmcgaw/gluetun:latest
+    cap_add: [NET_ADMIN]
+    devices: [/dev/net/tun:/dev/net/tun]
+    networks: [media]
+    environment:
+      - TZ=Europe/Copenhagen
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER=${OPENVPN_USER:-change_me}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:-change_me}
+      - SERVER_COUNTRIES=${VPN_SERVER_COUNTRIES:-Netherlands}
+      - FIREWALL_INPUT_PORTS=8080,7878,8989,6881
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  jellyfin:
+    profiles: [apps, all]
+    image: jellyfin/jellyfin:latest
+    networks: [traefik_public, media]
+    volumes:
+      - jellyfin_config:/config
+      - jellyfin_cache:/cache
+      - media_data:/data
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jellyfin.entrypoints=websecure
+      - traefik.http.services.jellyfin.loadbalancer.server.port=8096
+      - sablier.enable=true
+      - sablier.group=jellyfin
+      - homepage.group=Media & Files
+      - homepage.name=Jellyfin
+      - homepage.icon=jellyfin.png
+      - homepage.href=https://jellyfin.${DOMAIN:-traefik.me}
+      - homepage.description=Stream movies and series
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+  seerr:
+    profiles: [apps, all]
+    image: ghcr.io/seerr-team/seerr:latest
+    init: true
+    networks: [traefik_public, media]
+    environment: [TZ=Europe/Copenhagen, LOG_LEVEL=info, PORT=5055]
+    volumes: [seerr_config:/app/config]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.seerr.entrypoints=websecure
+      - traefik.http.services.seerr.loadbalancer.server.port=5055
+      - sablier.enable=true
+      - sablier.group=seerr
+      - homepage.group=Media & Files
+      - homepage.name=Seerr
+      - homepage.icon=jellyseerr.png
+      - homepage.href=https://requests.${DOMAIN:-traefik.me}
+      - homepage.description=Request movies and shows on demand
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status
+          || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  qbittorrent:
+    profiles: [apps, all]
+    image: lscr.io/linuxserver/qbittorrent:latest
+    network_mode: service:gluetun
+    depends_on: [gluetun]
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=Europe/Copenhagen
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    volumes: [qbittorrent_config:/config, media_data:/data]
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+  sonarr:
+    profiles: [apps, all]
+    image: lscr.io/linuxserver/sonarr:latest
+    network_mode: service:gluetun
+    depends_on: [gluetun, qbittorrent]
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=Europe/Copenhagen
+    volumes: [sonarr_config:/config, media_data:/data]
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  radarr:
+    profiles: [apps, all]
+    image: lscr.io/linuxserver/radarr:latest
+    network_mode: service:gluetun
+    depends_on: [gluetun, qbittorrent]
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=Europe/Copenhagen
+    volumes: [radarr_config:/config, media_data:/data]
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+networks:
+  media:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  jellyfin_config:
+  jellyfin_cache:
+  media_data:
+  seerr_config:
+  qbittorrent_config:
+  sonarr_config:
+  radarr_config:

@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    bentopdf:
+      rule: Host(`pdf.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: bentopdf
+      middlewares: [sablier-bentopdf@file, startup-retry@file]
+  services:
+    bentopdf:
+      loadBalancer:
+        servers:
+          - url: http://bentopdf:8080/
+  middlewares:
+    sablier-bentopdf:
+      plugin:
+        sablier:
+          group: bentopdf
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

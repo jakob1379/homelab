@@ -1,0 +1,89 @@
+---
+services:
+  ittools:
+    profiles: [apps, all]
+    image: corentinth/it-tools:latest
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ittools.entrypoints=websecure
+      - traefik.http.services.ittools.loadbalancer.server.port=80
+      - sablier.enable=true
+      - sablier.group=ittools
+      - homepage.group=Utilities
+      - homepage.name=IT Tools
+      - homepage.icon=it-tools.png
+      - homepage.href=https://it.${DOMAIN:-traefik.me}
+      - homepage.description=Technical calculators and converters
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+  cloudbeaver:
+    profiles: [apps, all]
+    image: dbeaver/cloudbeaver:24.3.0
+    volumes:
+      - cbeaver_logs:/opt/cloudbeaver/logs
+      - cbeaver_data:/opt/cloudbeaver/workspace
+      - cbeaver_conf:/opt/cloudbeaver/conf
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cloudbeaver.entrypoints=websecure
+      - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
+      - sablier.enable=true
+      - sablier.group=cbeaver
+      - homepage.group=Storage & Data
+      - homepage.name=CloudBeaver
+      - homepage.icon=cloudbeaver.png
+      - homepage.href=https://cbeaver.${DOMAIN:-traefik.me}
+      - homepage.description=Database editor for managing data tables
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  bentopdf:
+    # Environment variables configured in Portainer UI for production
+    profiles: [apps, all]
+    image: bentopdf/bentopdf:1.2.0
+    restart: always
+    env_file: [.env-bentopdf]
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.bentopdf.entrypoints=websecure
+      - traefik.http.services.bentopdf.loadbalancer.server.port=8080
+      - sablier.enable=true
+      - sablier.group=bentopdf
+      - homepage.group=Utilities
+      - homepage.name=BentoPDF
+      - homepage.icon=bentopdf.png
+      - homepage.href=https://pdf.${DOMAIN:-traefik.me}
+      - homepage.description=Merge, split, or convert PDF files
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  cbeaver_logs:
+  cbeaver_data:
+  cbeaver_conf:

@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    dozzle:
+      rule: Host(`dozzle.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: dozzle
+      middlewares: [sablier-dozzle@file, startup-retry@file]
+  services:
+    dozzle:
+      loadBalancer:
+        servers:
+          - url: http://dozzle:8080/
+  middlewares:
+    sablier-dozzle:
+      plugin:
+        sablier:
+          group: dozzle
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

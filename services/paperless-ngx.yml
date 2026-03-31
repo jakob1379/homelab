@@ -1,0 +1,177 @@
+---
+services:
+  paperless-postgres:
+    profiles: [apps, all]
+    image: postgres:17-alpine
+    restart: always
+    networks: [paperless]
+    volumes: [paperless_postgres_data:/var/lib/postgresql/data]
+    environment:
+      - POSTGRES_DB=${PAPERLESS_DBNAME:-paperless}
+      - POSTGRES_USER=${PAPERLESS_DBUSER:-paperless}
+      - POSTGRES_PASSWORD=${PAPERLESS_DBPASS:-paperless}
+      - TZ=Europe/Copenhagen
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U paperless -d paperless]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  paperless-web:
+    profiles: [apps, all]
+    image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
+    restart: always
+    depends_on:
+      paperless-redis:
+        condition: service_healthy
+      paperless-gotenberg:
+        condition: service_started
+      paperless-tika:
+        condition: service_started
+      paperless-postgres:
+        condition: service_healthy
+    networks: [traefik_public, paperless]
+    volumes:
+      - paperless_data:/usr/src/paperless/data
+      - paperless_media:/usr/src/paperless/media
+      - paperless_export:/usr/src/paperless/export
+      - paperless_consume:/usr/src/paperless/consume
+    environment:
+      - PAPERLESS_REDIS=redis://paperless-redis:6379
+      - PAPERLESS_DBHOST=paperless-postgres
+      - PAPERLESS_DBPORT=5432
+      - PAPERLESS_DBNAME=${PAPERLESS_DBNAME:-paperless}
+      - PAPERLESS_DBUSER=${PAPERLESS_DBUSER:-paperless}
+      - PAPERLESS_DBPASS=${PAPERLESS_DBPASS:-paperless}
+      - PAPERLESS_TIKA_ENABLED=1
+      - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://paperless-gotenberg:3000
+      - PAPERLESS_TIKA_ENDPOINT=http://paperless-tika:9998
+    labels:
+      - traefik.enable=true
+      - sablier.enable=true
+      - sablier.group=paperless
+      - homepage.group=Media & Files
+      - homepage.name=Paperless-ngx
+      - homepage.icon=paperless-ngx.png
+      - homepage.href=https://paperless.${DOMAIN:-traefik.me}
+      - homepage.description=Scan, store, and search all your documents
+    healthcheck:
+      test: [CMD, curl, -fs, http://localhost:8000/api/health/]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Background consumer for document processing
+  paperless-consumer:
+    profiles: [apps, all]
+    image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
+    restart: always
+    depends_on:
+      paperless-redis:
+        condition: service_healthy
+      paperless-web:
+        condition: service_healthy
+    command: [document_consumer]
+    networks: [paperless]
+    volumes:
+      - paperless_data:/usr/src/paperless/data
+      - paperless_media:/usr/src/paperless/media
+      - paperless_export:/usr/src/paperless/export
+      - paperless_consume:/usr/src/paperless/consume
+    environment:
+      - PAPERLESS_REDIS=redis://paperless-redis:6379
+      - PAPERLESS_DBHOST=paperless-postgres
+      - PAPERLESS_DBPORT=5432
+      - PAPERLESS_DBNAME=${PAPERLESS_DBNAME:-paperless}
+      - PAPERLESS_DBUSER=${PAPERLESS_DBUSER:-paperless}
+      - PAPERLESS_DBPASS=${PAPERLESS_DBPASS:-paperless}
+      - PAPERLESS_CONSUMER_POLLING=30
+    healthcheck:
+      disable: true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+  paperless-redis:
+    profiles: [apps, all]
+    image: redis:7-alpine
+    restart: always
+    networks: [paperless]
+    volumes: [paperless_redis:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+  paperless-gotenberg:
+    profiles: [apps, all]
+    image: gotenberg/gotenberg:8
+    restart: always
+    networks: [paperless]
+    command:
+      - gotenberg
+      - --chromium-disable-javascript=true
+      - --chromium-allow-list=file:///tmp/.*
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  paperless-tika:
+    profiles: [apps, all]
+    image: apache/tika:3.1.0.0
+    restart: always
+    networks: [paperless]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+networks:
+  paperless:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  paperless_data:
+  paperless_media:
+  paperless_export:
+  paperless_consume:
+  paperless_postgres_data:
+  paperless_redis:

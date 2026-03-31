@@ -1,0 +1,15 @@
+---
+http:
+  routers:
+    whoami:
+      rule: Host(`whoami.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: whoami
+      middlewares: [sablier-default@file, startup-retry@file]
+  services:
+    whoami:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://whoami/

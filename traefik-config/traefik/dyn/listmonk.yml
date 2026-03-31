@@ -1,0 +1,12 @@
+---
+http:
+  routers:
+    listmonk:
+      rule: Host(`listmonk.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      service: listmonk
+  services:
+    listmonk:
+      loadBalancer:
+        servers:
+          - url: http://listmonk:9000/

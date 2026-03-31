@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    jellyfin:
+      rule: Host(`jellyfin.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: jellyfin
+      middlewares: [sablier-jellyfin@file, startup-retry@file]
+  services:
+    jellyfin:
+      loadBalancer:
+        servers:
+          - url: http://jellyfin:8096/
+  middlewares:
+    sablier-jellyfin:
+      plugin:
+        sablier:
+          group: jellyfin
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

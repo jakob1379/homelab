@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    ittools:
+      rule: Host(`it.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: ittools
+      middlewares: [sablier-ittools@file, startup-retry@file]
+  services:
+    ittools:
+      loadBalancer:
+        servers:
+          - url: http://ittools:80/
+  middlewares:
+    sablier-ittools:
+      plugin:
+        sablier:
+          group: ittools
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

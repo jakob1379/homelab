@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    cbeaver:
+      rule: Host(`cbeaver.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: cbeaver
+      middlewares: [sablier-cbeaver@file, startup-retry@file]
+  services:
+    cbeaver:
+      loadBalancer:
+        servers:
+          - url: http://cloudbeaver:8978/
+  middlewares:
+    sablier-cbeaver:
+      plugin:
+        sablier:
+          group: cbeaver
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

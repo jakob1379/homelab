@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    seerr:
+      rule: Host(`requests.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: seerr
+      middlewares: [sablier-seerr@file, startup-retry@file]
+  services:
+    seerr:
+      loadBalancer:
+        servers:
+          - url: http://seerr:5055/
+  middlewares:
+    sablier-seerr:
+      plugin:
+        sablier:
+          group: seerr
+          dynamic:
+            displayName: Seerr
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m
