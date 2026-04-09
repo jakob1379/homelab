@@ -26,7 +26,7 @@ This PR updates the homelab Docker Compose setup with improvements to service co
    - Uses `${DOMAIN:-traefik.me}` domain configuration across all files
    - Default Traefik rule uses `${DOMAIN:-traefik.me}`
    - `DOMAIN` environment variable supported for Traefik and traefik-forward-auth services
-   - All dyn configs (`traefik-config/traefik/dyn/*.yml`) use `${DOMAIN:-traefik.me}`
+   - All dyn configs (`config/traefik/dyn/*.yml`) use `${DOMAIN:-traefik.me}`
 
 4. **Declarative Network Setup**
    - `traefik_public` network is defined declaratively in Docker Compose files

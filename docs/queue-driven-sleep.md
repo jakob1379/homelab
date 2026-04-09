@@ -140,7 +140,7 @@ This cycle only works safely when:
 - Queue monitor: `services/immich.yml`
   - `immich-queue-monitor`
   - Calls Sablier API with `group=immich-workers`
-- Worker router middleware: `traefik-config/traefik/dyn/immich.yml`
+- Worker router middleware: `config/traefik/dyn/immich.yml`
   - `immich-workers-sablier`
 
 ## Tuning Knobs

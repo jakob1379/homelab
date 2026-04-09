@@ -7,8 +7,9 @@ services/secrets/*
 traefik-config/secrets/*
 site/
 *~
-services/config/**/logs/
 home-assistant/config/
-services/config/homepage/custom.css
-services/config/homepage/custom.js
-services/config/homepage/kubernetes.yaml
+config/homepage/logs/
+services/config/homepage/logs/
+config/homepage/custom.css
+config/homepage/custom.js
+config/homepage/kubernetes.yaml

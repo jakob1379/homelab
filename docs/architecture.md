@@ -202,7 +202,7 @@ screwdriver is much easier when you have a dedicated toolbox.
     Dynamic configs in `dyn/` are hot-reloaded by **Traefik**—no restart needed when adding routes. This separation means you can modify proxy behavior without touching service definitions.
 
     ```yaml
-    # traefik-config/traefik/dyn/immich.yml
+    # config/traefik/dyn/immich.yml
     http:
       routers:
         immich:
@@ -227,8 +227,8 @@ Traefik configuration comes from three places in this repo, each with a differen
 
 | Location | Purpose | Typical content |
 |---|---|---|
-| `traefik-config/traefik/traefik.yml` | Static bootstrap config | EntryPoints, providers, ACME resolver, plugin loading |
-| `traefik-config/traefik/dyn/*.yml` | Dynamic routing behavior | Routers, services, middlewares (including Sablier middleware) |
+| `config/traefik/traefik.yml` | Static bootstrap config | EntryPoints, providers, ACME resolver, plugin loading |
+| `config/traefik/dyn/*.yml` | Dynamic routing behavior | Routers, services, middlewares (including Sablier middleware) |
 | Service labels in `services/*.yml` | Service metadata and discovery hints | `traefik.enable=true`, homepage labels, optional `sablier.*` group labels |
 
 How we use them:
@@ -239,8 +239,8 @@ How we use them:
 
 Practical rule:
 
-- If you are changing **how traffic is routed**, edit `traefik-config/traefik/dyn/*.yml`.
-- If you are changing **Traefik platform behavior**, edit `traefik-config/traefik/traefik.yml`.
+- If you are changing **how traffic is routed**, edit `config/traefik/dyn/*.yml`.
+- If you are changing **Traefik platform behavior**, edit `config/traefik/traefik.yml`.
 - If you are adding a service and want Traefik to discover it, add `traefik.enable=true` in service labels.
 
 ---
@@ -405,7 +405,7 @@ If DNS is provided through a VPN sidecar network (for example NetBird), the AdGu
 DNS challenge enables wildcard certificates (`*.yourdomain.com`). Instead of requesting a certificate for each subdomain individually, you get one certificate that covers everything.
 
 ```yaml
-# traefik-config/traefik/traefik.yml
+# config/traefik/traefik.yml
 certificatesResolvers:
   cfresolver:
     acme:
@@ -496,7 +496,7 @@ The sequence diagram shows the three phases:
 The inline code that enables this:
 
 ```yaml
-# traefik-config/traefik/dyn/portainer.yml
+# config/traefik/dyn/portainer.yml
 http:
   middlewares:
     sablier-portainer:
@@ -520,7 +520,7 @@ of manually writing URLs for every service, we use one line in **Traefik's** con
 them automatically:
 
 ```yaml
-# traefik-config/traefik/traefik.yml
+# config/traefik/traefik.yml
 defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\" | default .Name }}.{{ env \"DOMAIN\" }}`)"
 ```
 
@@ -561,10 +561,10 @@ labels:
 
 That is enough for URL generation. `https://myapp.yourdomain.com` is generated automatically from the service name.
 
-For sleep-on-request behavior in this repo, add a Sablier middleware to the router (usually in `traefik-config/traefik/dyn/*.yml`) and keep `sablier.enable=true` on the service so Sablier can manage it.
+For sleep-on-request behavior in this repo, add a Sablier middleware to the router (usually in `config/traefik/dyn/*.yml`) and keep `sablier.enable=true` on the service so Sablier can manage it.
 
 ```yaml
-# traefik-config/traefik/dyn/myapp.yml
+# config/traefik/dyn/myapp.yml
 http:
   routers:
     myapp:

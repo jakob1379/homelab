@@ -146,7 +146,7 @@ Hostname: homelab-whoami-1
 - Restrict inbound firewall rules so app access comes from VPN/internal networks only.
 - Keep admin UIs behind `admin-only@file` middleware where applicable.
 
-This project already supports internal network allowlists in `traefik-config/traefik/dyn/common.yml`.
+This project already supports internal network allowlists in `config/traefik/dyn/common.yml`.
 
 ## Troubleshooting
 

@@ -12,8 +12,8 @@ services:
     volumes:
       - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ../traefik-config/traefik/dyn:/etc/traefik/dyn
-      - ../traefik-config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ../config/traefik/dyn:/etc/traefik/dyn
+      - ../config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
     secrets: [cf_dns_api_token]
     networks: [traefik_public]
     labels:

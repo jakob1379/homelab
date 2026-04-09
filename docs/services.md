@@ -35,7 +35,7 @@ Complete list of services and configuration points.
 - **Access:** `https://traefik.${DOMAIN}`
 - **Profile:** infra
 - **Ports:** 80, 443
-- **Config:** `traefik-config/traefik/traefik.yml`
+- **Config:** `config/traefik/traefik.yml`
 
 ### Sablier: Sleep Controller
 - **What it does:** Stops sleep-enabled apps when idle and wakes them on request in about 2 seconds. Services not wired to Sablier (for example, Immich API/UI) stay running.

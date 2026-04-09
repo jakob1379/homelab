@@ -31,7 +31,7 @@ The labels in step 1 only mark the service as Traefik/Sablier-managed. Sleep-on-
 
 ```bash
 # 2. Create the router config
-$ cat > traefik-config/traefik/dyn/demo.yml << 'EOF'
+$ cat > config/traefik/dyn/demo.yml << 'EOF'
 http:
   routers:
     demo:
@@ -129,7 +129,7 @@ services:
 
 ### Step 2: Create the Traefik Router Configuration
 
-**Location:** `traefik-config/traefik/dyn/myapp.yml`
+**Location:** `config/traefik/dyn/myapp.yml`
 
 This file tells **Traefik** how to route traffic. If you're wondering "what's a reverse proxy?", think of it like a smart receptionist. When someone visits `myapp.yourdomain.com`, **Traefik** is the one who receives that request and forwards it to the right container.
 
@@ -289,7 +289,7 @@ There are two different mechanisms in this stack:
    - `${DOMAIN}` and `${DOMAIN:-traefik.me}` are expanded by Compose before containers start.
    - Example: Homepage labels in `services/*.yml`.
 
-3. **Traefik file-provider templates** (for `traefik-config/traefik/dyn/*.yml`):
+3. **Traefik file-provider templates** (for `config/traefik/dyn/*.yml`):
    - Use Go templating with Sprig's `env` function.
    - Example: `rule: 'Host(`myapp.{{ env "DOMAIN" }}`)'`
 
@@ -359,7 +359,7 @@ services:
     environment:
       - TZ=America/New_York
     volumes:
-      - ./config/homepage:/app/config
+      - ../config/homepage:/app/config
     labels:
       - traefik.enable=true
       - sablier.enable=true
@@ -367,7 +367,7 @@ services:
 ```
 
 ```yaml
-# traefik-config/traefik/dyn/homepage.yml
+# config/traefik/dyn/homepage.yml
 http:
   routers:
     homepage:
@@ -438,7 +438,7 @@ services:
 | Traefik labels | Yes (`traefik.enable=true`) | No |
 | Sablier labels | Yes | No |
 | Sablier group | Yes (`sablier.group=myapp`) | N/A |
-| Router config | Yes (`traefik-config/traefik/dyn/myapp.yml`) | No |
+| Router config | Yes (`config/traefik/dyn/myapp.yml`) | No |
 
 The router config only needs entries for the application, not the database.
 
@@ -497,7 +497,7 @@ $ docker compose logs sablier --tail 20
 ```bash
 # These must match:
 # 1. services/custom.yml: sablier.group=myapp
-# 2. traefik-config/traefik/dyn/myapp.yml: middlewares.sablier-myapp.plugin.sablier.group=myapp
+# 2. config/traefik/dyn/myapp.yml: middlewares.sablier-myapp.plugin.sablier.group=myapp
 ```
 
 **Check:** Container actually starts
@@ -524,8 +524,8 @@ $ docker compose logs traefik --tail 100 | grep -i "rate\|error"
 
 **Did you change static or dynamic config?**
 ```bash
-# Dynamic files in traefik-config/traefik/dyn/ are hot-reloaded automatically.
-# Restart Traefik only if you changed static config (traefik-config/traefik/traefik.yml).
+# Dynamic files in config/traefik/dyn/ are hot-reloaded automatically.
+# Restart Traefik only if you changed static config (config/traefik/traefik.yml).
 $ docker compose restart traefik
 ```
 
@@ -547,7 +547,7 @@ $ docker compose up -d  # Re-reads docker-compose.yml includes
 | File | Purpose | Edit When |
 |------|---------|-----------|
 | `services/custom.yml` | Container definition | Adding/removing services |
-| `traefik-config/traefik/dyn/*.yml` | Routing rules | Changing domains, ports, middleware |
+| `config/traefik/dyn/*.yml` | Routing rules | Changing domains, ports, middleware |
 | `docker-compose.yml` | Include list | Adding new service files |
 | `.env` | Environment variables | Changing domain, secrets |
 
@@ -575,7 +575,7 @@ $ docker compose up -d
 
 ## Modifying Sablier Timeout
 
-Edit `traefik-config/traefik/dyn/common.yml`:
+Edit `config/traefik/dyn/common.yml`:
 
 ```yaml
 middlewares:
@@ -622,7 +622,7 @@ http:
 ## Adding IP Restrictions
 
 ```yaml
-# traefik-config/traefik/dyn/common.yml
+# config/traefik/dyn/common.yml
 http:
   middlewares:
     admin-only:
