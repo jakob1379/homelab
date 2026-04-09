@@ -23,7 +23,7 @@ services:
       - traefik.http.routers.api.service=api@internal
       - traefik.http.routers.api.entrypoints=websecure
       - traefik.http.services.traefik.loadbalancer.server.port=8080
-      - homepage.group=Developer
+      - homepage.group=Networking
       - homepage.name=Traefik
       - homepage.icon=traefik.png
       - homepage.href=https://traefik.${DOMAIN:-traefik.me}
