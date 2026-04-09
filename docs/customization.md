@@ -332,8 +332,8 @@ For widgets that need authentication, keep credentials in environment variables 
 
 - **Developer**: Admin and diagnostics tools like **Portainer**, **Dozzle**, **Traefik**, **Whoami**
 - **Media & Files**: Photo, video, document, and content tools (**Immich**, **Jellyfin**, **Karakeep**, **Paperless**)
-- **Utilities**: General utilities (**IT Tools**, **Omni Tools**, **BentoPDF**)
-- **Networking**: DNS and network services (**AdGuard**, **NetAlertX**)
+- **Utilities**: General utilities (**IT Tools**, **Omni Tools**, **BentoPDF**, **VERT**)
+- **Networking**: DNS and network services (**AdGuard**, **NetAlertX**, **Speedtest Tracker**)
 - **Storage & Data**: Storage and data interfaces (**RustFS**, **CloudBeaver**)
 - **Communication**: Messaging and campaigns (**Listmonk**)
 - **Smart Home**: Home automation services (**Home Assistant**)

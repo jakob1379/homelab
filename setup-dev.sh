@@ -10,6 +10,17 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+MANAGED_ENV_FILES=(
+    ".env-listmonk"
+    ".env-karakeep"
+    ".env-immich"
+    ".env-netalertx"
+    ".env-rustfs"
+    ".env-bentopdf"
+    ".env-paperless"
+    ".env-speedtest-tracker"
+)
+
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $*"
 }
@@ -20,6 +31,10 @@ log_warn() {
 
 log_error() {
     echo -e "${RED}[ERROR]${NC} $*"
+}
+
+generate_base64_secret() {
+    head -c 32 /dev/urandom | base64 | tr -d '\n'
 }
 
 show_usage() {
@@ -33,7 +48,7 @@ Options:
 
 This script creates:
 - services/secrets/* dummy secret files (1 file)
-- services/.env-* dummy environment files (7 files)
+- services/.env-* dummy environment files (${#MANAGED_ENV_FILES[@]} files)
 - Optional: .env from .env.example if missing
 - Reminder: set VPN credentials in .env for media downloads
 
@@ -170,6 +185,38 @@ PAPERLESS_OCR_LANGUAGE=eng
 EOF
 else
     log_info "Environment file $env_paperless already exists"
+fi
+
+# .env-speedtest-tracker
+env_speedtest="$ENV_FILES_DIR/.env-speedtest-tracker"
+if [[ ! -f "$env_speedtest" ]]; then
+    log_warn "Creating dummy environment file: $env_speedtest"
+    cat > "$env_speedtest" <<EOF
+# Speedtest Tracker internet monitoring
+APP_KEY=base64:$(generate_base64_secret)
+SPEEDTEST_SCHEDULE=0 */6 * * *
+DISPLAY_TIMEZONE=Europe/Copenhagen
+PRUNE_RESULTS_OLDER_THAN=0
+EOF
+else
+    log_info "Environment file $env_speedtest already exists"
+fi
+
+# Verify that all env_file references used by the root compose include set exist.
+missing_env_files=()
+while IFS= read -r included_file; do
+    while IFS= read -r env_ref; do
+        env_name=${env_ref#./}
+        env_path="$ENV_FILES_DIR/$env_name"
+        if [[ ! -f "$env_path" ]]; then
+            missing_env_files+=("$env_path")
+        fi
+    done < <(grep -hoE '\.?/\.env-[A-Za-z0-9_-]+' "$included_file" || true)
+done < <(sed -n 's/^  - \(services\/[^ ]*\.yml\).*/\1/p' docker-compose.yml)
+
+if (( ${#missing_env_files[@]} > 0 )); then
+    log_warn "Some env_file references from docker-compose.yml are still missing:"
+    printf ' - %s\n' "${missing_env_files[@]}"
 fi
 
 # Optional: Create .env from .env.example if missing

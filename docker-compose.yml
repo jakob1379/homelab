@@ -10,6 +10,8 @@ include:
   # Developer tools
   - services/tools.yml  # IT Tools, CloudBeaver, BentoPDF
   - services/omni-tools.yml  # Omni Tools - self-hosted utilities
+  - services/speedtest-tracker.yml  # Speedtest Tracker internet monitoring
+  - services/vert.yml  # VERT local file converter
 
   # Applications with their dependencies
   - services/anythingllm.yml  # AnythingLLM private AI workspace

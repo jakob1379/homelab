@@ -1,0 +1,40 @@
+---
+services:
+  speedtest-tracker:
+    profiles: [apps, all]
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    restart: always
+    env_file: [.env-speedtest-tracker]
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=Europe/Copenhagen
+      - APP_URL=https://speed.${DOMAIN:-traefik.me}
+      - ASSET_URL=https://speed.${DOMAIN:-traefik.me}
+      - DB_CONNECTION=sqlite
+    volumes: [speedtest_tracker_data:/config]
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - sablier.enable=true
+      - sablier.group=speedtest
+      - homepage.group=Networking
+      - homepage.name=Speedtest Tracker
+      - homepage.icon=mdi-speedometer
+      - homepage.href=https://speed.${DOMAIN:-traefik.me}
+      - homepage.description=Track internet speed and uptime history
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  speedtest_tracker_data:

@@ -1,0 +1,32 @@
+---
+services:
+  vert:
+    profiles: [apps, all]
+    image: ghcr.io/vert-sh/vert:latest
+    restart: always
+    environment:
+      - PUB_HOSTNAME=vert.${DOMAIN:-traefik.me}
+      - PUB_ENV=production
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - sablier.enable=true
+      - sablier.group=vert
+      - homepage.group=Utilities
+      - homepage.name=VERT
+      - homepage.icon=mdi-file-sync
+      - homepage.href=https://vert.${DOMAIN:-traefik.me}
+      - homepage.description=Convert files locally in your browser
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true

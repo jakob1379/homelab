@@ -182,6 +182,21 @@ Complete list of services and configuration points.
 - **Env:** `.env-bentopdf`
 - **Sablier:** Yes
 
+### Speedtest Tracker
+- **Purpose:** Track internet speed, latency, and uptime over time
+- **Access:** `https://speed.${DOMAIN}`
+- **Profile:** apps
+- **Env:** `.env-speedtest-tracker`
+- **Sablier:** Yes
+- **Storage:** `speedtest_tracker_data` named volume with SQLite in `/config`
+
+### VERT
+- **Purpose:** Browser-based local file converter using WebAssembly
+- **Access:** `https://vert.${DOMAIN}`
+- **Profile:** apps
+- **Sablier:** Yes
+- **Notes:** Follows the upstream container defaults; browser-local conversions work directly and optional hosted video conversion can use VERT's default backend
+
 ### Immich
 - **Purpose:** Photo and video management with AI features
 - **Access:** `https://photos.${DOMAIN}`
@@ -228,6 +243,8 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | Portainer | `pods` |
 | CloudBeaver | `cbeaver` |
 | BentoPDF | `pdf` |
+| Speedtest Tracker | `speed` |
+| VERT | `vert` |
 | Immich | `photos` |
 | Paperless-ngx | `paperless` |
 | Jellyfin | `jellyfin` |
@@ -253,6 +270,7 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | `.env-rustfs` | RustFS | S3 access/secret keys |
 | `.env-netalertx` | NetAlertX | Scan subnets, notifications |
 | `.env-paperless` | Paperless-ngx | OCR language, admin credentials, secret key |
+| `.env-speedtest-tracker` | Speedtest Tracker | App key, schedule, UI retention settings |
 
 ## Secrets Reference
 

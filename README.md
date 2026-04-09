@@ -160,7 +160,7 @@ IP: 172.20.0.2
 | **whoami** | Debug endpoint | `https://whoami.${DOMAIN}` |
 | **Dozzle** | Docker log viewer | `https://dozzle.${DOMAIN}` |
 
-### Apps (Mostly 💤 On-Demand) - 13 apps
+### Apps (Mostly 💤 On-Demand) - 15 apps
 
 | Service | Purpose | Access |
 |---------|---------|--------|
@@ -174,6 +174,8 @@ IP: 172.20.0.2
 | **IT Tools** | Dev utilities | `https://it.${DOMAIN}` |
 | **CloudBeaver** | Database UI | `https://cbeaver.${DOMAIN}` |
 | **BentoPDF** | PDF tools | `https://pdf.${DOMAIN}` |
+| **Speedtest Tracker** | Internet speed history | `https://speed.${DOMAIN}` |
+| **VERT** | Local file converter | `https://vert.${DOMAIN}` |
 | **Immich** | Photo management | `https://photos.${DOMAIN}` |
 | **Jellyfin** | Media streaming | `https://jellyfin.${DOMAIN}` |
 | **Seerr** | Media requests | `https://requests.${DOMAIN}` |
@@ -359,10 +361,12 @@ $ docker compose up -d portainer
 |------|---------|----------|
 | `.env-listmonk` | Listmonk | DB credentials |
 | `.env-karakeep` | Karakeep | Admin password, search key |
+| `.env-immich` | Immich | Database credentials |
 | `.env-rustfs` | RustFS | S3 keys |
 | `.env-netalertx` | NetAlertX | Scan subnets |
 | `.env-paperless` | Paperless-ngx | OCR language, secret key |
 | `.env-bentopdf` | BentoPDF | PDF options |
+| `.env-speedtest-tracker` | Speedtest Tracker | App key, schedule, retention |
 
 ### Secrets (`services/secrets/`)
 

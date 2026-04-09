@@ -149,11 +149,14 @@ screwdriver is much easier when you have a dedicated toolbox.
     **What's happening here:**
     The main `docker-compose.yml` uses an `include:` directive to pull in service definitions. This keeps the root file clean while each service evolves independently.
 
-    ```yaml title="docker-compose.yml"
+    ```yaml title="docker-compose.yml (excerpt)"
     # docker-compose.yml
     include:
-      - services/networking.yml  # Traefik, Sablier, AdGuard
-      - services/portainer.yml   # Docker management
+      - services/networking.yml         # Traefik, Sablier, Whoami, AdGuard, NetAlertX
+      - services/tools.yml              # IT Tools, CloudBeaver, BentoPDF
+      - services/speedtest-tracker.yml  # Internet speed history
+      - services/vert.yml               # Local file converter
+      - services/portainer.yml          # Docker management
     ```
 
 === "Services"
@@ -173,7 +176,9 @@ screwdriver is much easier when you have a dedicated toolbox.
     ├── paperless-ngx.yml       # Document management
     ├── portainer.yml           # Docker management UI
     ├── rustfs.yml              # S3-compatible object storage
-    └── tools.yml               # IT Tools, CloudBeaver, BentoPDF
+    ├── speedtest-tracker.yml   # Internet speed and uptime history
+    ├── tools.yml               # IT Tools, CloudBeaver, BentoPDF
+    └── vert.yml                # Browser-based file conversion
     ```
 
     **What's happening here:**
@@ -194,6 +199,8 @@ screwdriver is much easier when you have a dedicated toolbox.
         │   ├── bentopdf.yml    # Per-service routing rules
         │   ├── immich.yml
         │   ├── portainer.yml
+        │   ├── speedtest.yml
+        │   ├── vert.yml
         │   └── ...             # One file per external service
         └── traefik.yml         # Static Traefik configuration
     ```

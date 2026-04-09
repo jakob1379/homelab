@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    vert:
+      rule: Host(`vert.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: vert
+      middlewares: [sablier-vert@file, startup-retry@file]
+  services:
+    vert:
+      loadBalancer:
+        servers:
+          - url: http://vert:80/
+  middlewares:
+    sablier-vert:
+      plugin:
+        sablier:
+          group: vert
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m
