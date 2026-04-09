@@ -4,7 +4,7 @@ title: Architecture
 
 # Homelab Architecture
 
-This page explains how requests flow from your browser to your containers, how service stacks are organized, and how sleep-on-demand works. Read this before editing [services](services.md), [customization](customization.md), [Portainer](portainer.md), or [production](production.md).
+This page explains how requests flow from your browser to your containers, how service stacks are organized, and how sleep-on-demand works. Read this before editing [services](services.md), [customization](customization.md), or [Deployment](portainer.md).
 
 ---
 
@@ -22,18 +22,18 @@ homelab-rustfs-1    rustfs/rustfs:latest Up 2 hours (healthy)
 
 ```bash
 # View the Traefik dashboard API
-$ curl -s https://traefik.traefik.me/api/version | jq
+$ curl -sk https://traefik.traefik.me/api/version | jq
 {
-  "version": "3.0.0"
+  "version": "3.6.9"
 }
 ```
 
 ```bash
 # List configured routers
-$ curl -s https://traefik.traefik.me/api/http/routers | jq -r '.[].name'
+$ curl -sk https://traefik.traefik.me/api/http/routers | jq -r '.[].name'
 immich@file
 portainer@file
-homepage@file
+home@file
 ...
 ```
 
@@ -107,7 +107,7 @@ When you type `https://pods.traefik.me` in your browser:
 4. **Middleware Chain**: **Sablier** middleware intercepts the request for sleep-enabled routes
 5. **State Check**: If the container is stopped, **Sablier** scales it to 1 replica via Docker API
 6. **Startup Delay**: Container boots (~2 seconds), then passes health check
-7. **Proxy**: **Traefik** forwards your request to the now-running container
+7. **Proxy**: **Traefik** forwards your request to the running container
 8. **Response**: Container replies, **Traefik** sends it back to your browser
 
 The inline code for this flow:
@@ -162,7 +162,7 @@ screwdriver is much easier when you have a dedicated toolbox.
     services/
     ├── secrets/                # Docker secrets (excluded from git)
     │   └── cf_dns_api_token
-    ├── homepage.yml            # Dashboard/landing page
+    ├── homepage.yml            # Homepage dashboard stack
     ├── immich.yml              # Photo management
     ├── karakeep.yml            # Bookmark manager
     ├── listmonk.yml            # Newsletter/mailing lists
@@ -187,7 +187,7 @@ screwdriver is much easier when you have a dedicated toolbox.
 === "Routes"
 
     ```
-    traefik-config/
+    config/
     └── traefik/
         ├── dyn/                # Dynamic router configurations
         │   ├── common.yml      # Shared middlewares (auth, headers, Sablier)
@@ -263,20 +263,34 @@ Total CPU: 23%
 
 ### The Solution
 
-This homelab uses **three profiles** to control what starts when:
+This homelab uses **five profiles** to control what starts when:
 
 | Profile        | Purpose                            | When to Use                      |
 |----------------|------------------------------------|----------------------------------|
+| `pods`         | Portainer bootstrap control plane  | First host bootstrap and recovery |
 | `infra`        | Always-on foundation services      | Run this first, leave it running |
 | `apps`         | On-demand applications             | Start only when needed           |
 | `all`          | Convenience profile                | Development or full testing      |
 | `experimental` | Things that most likely will break | Development only                 |
 
-**Infra services** (always running) include **Traefik**, **Sablier**, **RustFS**, and **AdGuard**. Stateful apps run app-local databases (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) in the `apps` profile.
+**Pods bootstrap** includes **Portainer** and its **agent** only. **Infra services** include **Traefik**, **Sablier**, **RustFS**, and **AdGuard**. Stateful apps run app-local databases (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) in the `apps` profile.
 
 **Most app services** start on-demand via **Sablier** when you access them. You can also wake groups via cron pre-warm or queue-monitor triggers where needed. **Immich API/UI** is the exception and stays online by default; only its worker wake flow is optional via the `experimental` profile.
 
 For queue-backed workloads, use the dedicated [Queue-Driven Sleep Pattern](queue-driven-sleep.md).
+
+### Start Only The Bootstrap Control Plane
+
+Use this when you want **Portainer** to deploy the full stack from Git:
+
+```bash
+$ docker compose --profile pods up -d
+[+] Running 2/2
+ ✔ Container homelab-agent-1      Started
+ ✔ Container homelab-portainer-1  Started
+```
+
+This is the deployment path described in [Deployment](portainer.md). You access Portainer directly on `https://localhost:9443` until the full stack deploy brings up **Traefik**.
 
 ### Start Only Infrastructure
 
@@ -526,7 +540,7 @@ defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\" | default .N
 
 **What's happening here?**
 
-Think of it like a mail sorting system. When **Traefik** sees a new container, it reads the label
+Think of it like a mail sorting system. When **Traefik** sees a container, it reads the label
 `com.docker.compose.service` (which **Docker Compose** sets automatically). If your service is named
 `myapp`, **Traefik** can route `myapp.yourdomain.com` to that container without manual router
 labels.

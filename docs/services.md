@@ -1,6 +1,6 @@
 # Service Reference
 
-This page lists every service, its purpose, and how to access it. If you need the system model first, read [Architecture](architecture.md). For deployment and changes, use [Configuration](customization.md) and [Portainer GitOps](portainer.md).
+This page lists every service, its purpose, and how to access it. If you need the system model first, read [Architecture](architecture.md). For deployment and changes, use [Configuration](customization.md) and [Deployment](portainer.md).
 
 ## Try It Now
 
@@ -16,8 +16,9 @@ $ docker compose --profile infra up -d
  ✔ Container homelab-traefik-1  Started
  ...
 
-$ docker compose --profile apps up -d portainer ittools
-[+] Running 2/2
+$ docker compose --profile apps up -d portainer agent ittools
+[+] Running 3/3
+ ✔ Container homelab-agent-1      Started
  ✔ Container homelab-portainer-1  Started
  ✔ Container homelab-ittools-1    Started
 ```
@@ -76,11 +77,17 @@ Complete list of services and configuration points.
 
 ### Portainer
 - **Purpose:** Docker container management UI
-- **Access:** `https://pods.${DOMAIN}`
-- **Profile:** apps
+- **Access:** `https://pods.${DOMAIN}` after the full stack deploy, or `https://localhost:9443` during `pods` bootstrap
+- **Profile:** apps, pods
 - **Sablier:** Yes
-- **Notes:** Has built-in authentication
-- **Guide:** [Portainer GitOps](portainer.md)
+- **Notes:** Has built-in authentication and an emergency direct host port on `9443`
+- **Guide:** [Deployment](portainer.md)
+
+### Portainer Agent
+- **Purpose:** Local Docker endpoint used by Portainer
+- **Access:** Internal only
+- **Profile:** apps, pods
+- **Notes:** Required for the `--profile pods` bootstrap flow
 
 ### Karakeep
 - **Purpose:** Bookmark manager with AI tagging
@@ -104,8 +111,8 @@ Complete list of services and configuration points.
 - **Purpose:** Service dashboard with quick links to all services
 - **Access:** `https://home.${DOMAIN}`
 - **Profile:** apps
-- **Sablier:** No (always running for dashboard access)
-- **Notes:** Auto-discovers services via Docker labels
+- **Sablier:** Yes
+- **Notes:** Auto-discovers services via Docker labels and uses the `home` Sablier group
 
 ### Jellyfin
 - **Purpose:** Media server for movies and shows

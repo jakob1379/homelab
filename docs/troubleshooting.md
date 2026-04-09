@@ -1,6 +1,26 @@
 # Troubleshooting
 
-Use this page when a service does not start, does not wake, or does not resolve. Start with [Architecture](architecture.md) to understand the request path, then match the symptom below.
+Use this page when a service does not start, does not wake, or does not resolve. Start with [Architecture](architecture.md) to understand the request path, then match the symptom below. For the deployment flow, read [Deployment](portainer.md).
+
+## Try It Now
+
+Run these two checks before you dig into a specific failure:
+
+```bash
+# 1. Check the bootstrap or full-stack containers
+$ docker compose ps
+NAME                    IMAGE                          STATUS
+homelab-portainer-1     portainer/portainer-ce:2.25.1 Up
+homelab-agent-1         portainer/agent:2.25.1        Up
+```
+
+```bash
+# 2. Check whether you are still on bootstrap or already on routed traffic
+$ curl -sk https://localhost:9443/api/status | jq '.Version'
+"2.25.1"
+```
+
+If the direct `9443` endpoint works but `https://pods.${DOMAIN}` does not, you are still in bootstrap mode. That is expected until Portainer deploys the full stack.
 
 ## The "Starting..." Screen That Never Ends
 
@@ -36,7 +56,7 @@ abc123def456   traefik_public    bridge    local
 - Click "Advanced" → "Proceed anyway" (Chrome)
 - Or add `-k` flag to curl: `curl -k https://...`
 
-For production, ensure the Cloudflare token is valid and NetBird DNS points clients to AdGuard wildcard records that resolve hostnames to your server VPN IP. See [VPN Deployment](production.md).
+For production, ensure the Cloudflare token is valid and NetBird DNS points clients to AdGuard wildcard records that resolve hostnames to your server VPN IP. See [Deployment](portainer.md).
 
 ## Sablier "Starting..." Forever
 
@@ -198,12 +218,15 @@ $ docker network create traefik_public
 traefik_public
 
 # In home-assistant/docker-compose.yml, the network is marked external: true
-# So you must start the main stack first to create the network
+# So you must let the main stack create the network first
 $ docker compose --profile infra up -d
 [+] Running 6/6
  ✔ Container homelab-traefik-1   Started
  ✔ Container homelab-sablier-1   Started
  ...
+
+# If you deploy through Portainer, let Portainer deploy the full
+# stack before starting Home Assistant.
 
 # Then start Home Assistant
 $ cd home-assistant

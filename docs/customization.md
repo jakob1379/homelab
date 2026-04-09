@@ -4,7 +4,7 @@ title: Configuration
 
 # Add a Custom Service
 
-Use this page to add your own Docker services to the stack. The path is simple: define the container, add the router, include the file in `docker-compose.yml`, then verify it works. For the architecture behind the pattern, read [Architecture](architecture.md). For deployment, see [Portainer GitOps](portainer.md). For failures, use [Troubleshooting](troubleshooting.md).
+Use this page to add your own Docker services to the stack. The path is simple: define the container, add the router, include the file in `docker-compose.yml`, then verify it works. For the architecture behind the pattern, read [Architecture](architecture.md). For deployment, see [Deployment](portainer.md). For failures, use [Troubleshooting](troubleshooting.md).
 
 ---
 
@@ -35,7 +35,7 @@ $ cat > config/traefik/dyn/demo.yml << 'EOF'
 http:
   routers:
     demo:
-      rule: Host(`demo.${DOMAIN:-traefik.me}`)
+      rule: Host(`demo.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
       service: demo
       middlewares: [sablier-demo@file]
@@ -137,7 +137,7 @@ This file tells **Traefik** how to route traffic. If you're wondering "what's a 
 http:
   routers:
     myapp:  # Router name (unique, matches service name usually)
-      rule: Host(`myapp.${DOMAIN:-traefik.me}`)  # Domain matching rule
+      rule: Host(`myapp.{{ env "DOMAIN" }}`)  # Domain matching rule
       entrypoints: [websecure]  # Listen on HTTPS (port 443)
       service: myapp  # Which service definition to use (below)
       middlewares: [sablier-myapp@file]  # Enable on-demand loading
@@ -168,13 +168,13 @@ http:
 
 **Location:** `docker-compose.yml` (root directory)
 
-Add your new service file to the includes list so Docker Compose knows to load it:
+Add your service file to the includes list so Docker Compose knows to load it:
 
 ```yaml
 include:
   - services/networking.yml      # Traefik, Sablier, AdGuard
   - services/portainer.yml       # Docker management
-  - services/custom.yml          # Your new services
+  - services/custom.yml          # Your custom services
 ```
 
 ---
@@ -190,7 +190,7 @@ $ docker compose config > /dev/null && echo "✓ Config valid"
 ```
 
 ```bash
-# 2. Pull the new image
+# 2. Pull the image
 $ docker compose pull myapp
 [+] Pulling 1/1
  ✔ myapp Pulled
@@ -367,28 +367,28 @@ services:
 ```
 
 ```yaml
-# config/traefik/dyn/homepage.yml
+# config/traefik/dyn/home.yml
 http:
   routers:
-    homepage:
-      rule: Host(`home.${DOMAIN:-traefik.me}`)
+    home:
+      rule: Host(`home.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      service: homepage
-      middlewares: [sablier-homepage@file]
+      service: home
+      middlewares: [sablier-home@file]
       tls:
         certResolver: cfresolver
 
   services:
-    homepage:
+    home:
       loadBalancer:
         servers:
-          - url: http://homepage:3000/
+          - url: http://home:3000/
 
   middlewares:
-    sablier-homepage:
+    sablier-home:
       plugin:
         sablier:
-          group: homepage
+          group: home
           sablierUrl: http://sablier:10000
           sessionDuration: 30m
 ```
@@ -468,7 +468,7 @@ $ docker network inspect traefik_public | grep myapp
 ```bash
 # In your container:
 $ docker exec myapp netstat -tlnp
-# Port here must match the URL in traefik-config (e.g., :8080)
+# Port here must match the URL in config/traefik/dyn/myapp.yml (for example `:8080`)
 ```
 
 **If 502 only happens on the first request after wake-up:** Add a retry middleware and include it after your Sablier middleware.
@@ -548,7 +548,7 @@ $ docker compose up -d  # Re-reads docker-compose.yml includes
 |------|---------|-----------|
 | `services/custom.yml` | Container definition | Adding/removing services |
 | `config/traefik/dyn/*.yml` | Routing rules | Changing domains, ports, middleware |
-| `docker-compose.yml` | Include list | Adding new service files |
+| `docker-compose.yml` | Include list | Adding service files |
 | `.env` | Environment variables | Changing domain, secrets |
 
 | Label | Purpose | Required? |
