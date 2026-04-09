@@ -15,7 +15,7 @@
 
 Run these commands to get a fully working homelab on your local machine:
 
-```bash
+```bash title="Local quick start"
 # 1. Clone the repository
 $ git clone https://github.com/jakob1379/homelab.git && cd homelab
 Cloning into 'homelab'...
@@ -38,7 +38,7 @@ $ docker compose up -d
  ...
 ```
 
-```bash
+```bash title="Verify the default whoami route"
 # 4. Test it works (accept the self-signed certificate warning)
 $ curl -k https://whoami.traefik.me
 Hostname: homelab-whoami-1
@@ -120,7 +120,7 @@ flowchart LR
 
 **Prerequisites:** Docker + Docker Compose v2+
 
-```bash
+```bash title="Quick start commands"
 # 1. Clone & setup
 $ git clone https://github.com/jakob1379/homelab.git && cd homelab
 $ ./setup-dev.sh
@@ -186,7 +186,7 @@ For movie/series request automation (`Seerr` + `Radarr` + `Sonarr` + `qBittorren
 
 **Home Assistant** runs as a separate compose project and joins `traefik_public`.
 
-```bash
+```bash title="Start the Home Assistant stack"
 $ cd home-assistant
 $ docker compose --profile service up -d
 [+] Running 1/1
@@ -207,7 +207,7 @@ Access: `https://ha.${DOMAIN}`
 | **Setup** | `./setup-dev.sh` | Cloudflare token + AdGuard wildcard record |
 
 **Development** (default, zero config):
-```bash
+```bash title="Development smoke test"
 # Already works after Quick Start
 $ curl -k https://whoami.traefik.me
 Hostname: homelab-whoami-1
@@ -215,7 +215,7 @@ IP: 172.20.0.2
 ```
 
 **Production** (your domain, valid certs):
-```bash
+```bash title="Production bootstrap values"
 # 1. Set domain and Cloudflare email
 $ printf 'DOMAIN=yourdomain.com\nCF_API_EMAIL=you@example.com\n' > .env
 
@@ -236,7 +236,7 @@ See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and 
 
 Deploy the stack through **Portainer**:
 
-```bash
+```bash title="Bootstrap Portainer and verify the local endpoint"
 # 1. Bootstrap only Portainer + agent
 $ docker compose --profile pods up -d
 [+] Running 2/2
@@ -261,7 +261,7 @@ See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and 
 
 ## Common Commands
 
-```bash
+```bash title="Common Docker Compose commands"
 # View all services
 $ docker compose ps
 NAME                IMAGE                STATUS
@@ -287,7 +287,7 @@ $ docker compose restart portainer
 
 ### "Bad Gateway" or 502 Error
 
-```bash
+```bash title="Check a 502 or missing env file"
 # Check service is running
 $ docker compose ps | grep portainer
 homelab-portainer-1   portainer/portainer-ce   Up 5 minutes
@@ -306,7 +306,7 @@ Click "Advanced" → "Proceed anyway" in browser, or use `curl -k`.
 
 ### Port 53 Conflict (AdGuard)
 
-```bash
+```bash title="Resolve an AdGuard port 53 conflict"
 # Default dev value is ADGUARD_DNS_PORT=1053, so this only applies
 # if you set ADGUARD_DNS_PORT=53.
 # Find conflict
@@ -323,7 +323,7 @@ $ echo "ADGUARD_DNS_PORT=1053" >> .env
 
 ### Sablier "Starting..." Forever
 
-```bash
+```bash title="Inspect a Sablier-managed service that will not wake"
 # Check service health
 $ docker compose ps portainer
 NAME                STATUS
