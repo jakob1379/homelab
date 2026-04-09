@@ -13,3 +13,4 @@ services/config/homepage/logs/
 config/homepage/custom.css
 config/homepage/custom.js
 config/homepage/kubernetes.yaml
+.codex
