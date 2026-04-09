@@ -41,8 +41,7 @@ uvx pre-commit run -a
 Type-check:
 # > TODO: No dedicated type-check command is defined in this repo.
 Docs build:
-pip install zensical
-zensical build --clean
+uv run zensical build --clean
 Debug:
 docker compose ps
 docker compose logs -f traefik
