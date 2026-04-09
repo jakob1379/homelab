@@ -119,7 +119,9 @@ Complete list of services and configuration points.
 - **Access:** `https://llm.${DOMAIN}`
 - **Profile:** apps
 - **Sablier:** Yes
+- **Recommended host baseline:** 2 GB RAM, 2 CPU cores, 5 GB storage
 - **Notes:** Uses the official Docker image with persistent storage at `/app/server/storage`
+- **Notes:** Keeps `SYS_ADMIN` for upstream Docker compatibility with browser-backed features
 - **Notes:** Includes `host.docker.internal` mapping so host-run services such as Ollama can be reached from the container
 
 ### Jellyfin

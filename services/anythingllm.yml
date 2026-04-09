@@ -21,10 +21,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: '2'
           memory: 2G
         reservations:
-          cpus: '0.25'
+          cpus: '0.5'
           memory: 512M
 networks:
   traefik_public:
