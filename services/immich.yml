@@ -46,7 +46,6 @@ services:
       - IMMICH_WORKERS_INCLUDE=api
     networks: [traefik_public, immich]
     labels:
-      - traefik.enable=true
       - homepage.group=Media & Files
       - homepage.name=Immich
       - homepage.icon=immich.png

@@ -171,7 +171,7 @@ Complete list of services and configuration points.
 - **Profile:** apps
 - **Env:** `.env-immich`
 - **Sablier:** Partial (API/UI always on; workers can be queue-woken)
-- **Notes:** `immich-server` is pinned to API-only workers; `immich-microservices` and `immich-machine-learning` are grouped as `immich-workers`
+- **Notes:** `immich-server` is routed by `config/traefik/dyn/immich.yml` at `photos.${DOMAIN}`; `immich-microservices` and `immich-machine-learning` are grouped as `immich-workers`
 - **Notes:** Queue-based wake logic is experimental via profile `experimental` (not included in `all`)
 - **Dependencies:** `immich-postgres`, `redis`
 - **Enable experimental mode:** `docker compose --profile all --profile experimental up -d`

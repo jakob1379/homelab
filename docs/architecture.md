@@ -229,7 +229,7 @@ Traefik configuration comes from three places in this repo, each with a differen
 |---|---|---|
 | `config/traefik/traefik.yml` | Static bootstrap config | EntryPoints, providers, ACME resolver, plugin loading |
 | `config/traefik/dyn/*.yml` | Dynamic routing behavior | Routers, services, middlewares (including Sablier middleware) |
-| Service labels in `services/*.yml` | Service metadata and discovery hints | `traefik.enable=true`, homepage labels, optional `sablier.*` group labels |
+| Service labels in `services/*.yml` | Service metadata and discovery hints | homepage labels, optional `traefik.enable=true` for Docker-discovered apps, optional `sablier.*` group labels |
 
 How we use them:
 
@@ -241,7 +241,7 @@ Practical rule:
 
 - If you are changing **how traffic is routed**, edit `config/traefik/dyn/*.yml`.
 - If you are changing **Traefik platform behavior**, edit `config/traefik/traefik.yml`.
-- If you are adding a service and want Traefik to discover it, add `traefik.enable=true` in service labels.
+- If you are adding a service and want Traefik to auto-discover it via the Docker provider, add `traefik.enable=true` in service labels. If routing is defined in a file-provider config, keep service labels for metadata only.
 
 ---
 

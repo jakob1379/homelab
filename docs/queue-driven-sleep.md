@@ -59,6 +59,8 @@ Never sleep these components:
 
 If you sleep these, jobs either never trigger or wake-up logic cannot run.
 
+The public Immich route stays `photos.${DOMAIN}` via `config/traefik/dyn/immich.yml`; `immich-server` is not exposed through Docker-provider routing.
+
 ### 2) Put only workers in a Sablier group
 
 Workers should share a dedicated group (`immich-workers`) so they start and stop together.

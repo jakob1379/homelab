@@ -176,7 +176,7 @@ IP: 172.20.0.2
 | **Jellyfin** | Media streaming | `https://jellyfin.${DOMAIN}` |
 | **Seerr** | Media requests | `https://requests.${DOMAIN}` |
 
-**First visit** to on-demand apps shows "Starting..." for ~2 seconds, then loads. **Immich** is served directly by default.
+**First visit** to on-demand apps shows "Starting..." for ~2 seconds, then loads. **Immich** is routed by Traefik file-provider config at `https://photos.${DOMAIN}`.
 
 For movie/series request automation (`Seerr` + `Radarr` + `Sonarr` + `qBittorrent`), set `OPENVPN_USER` and `OPENVPN_PASSWORD` in `.env` so Gluetun can establish the ProtonVPN tunnel.
 
