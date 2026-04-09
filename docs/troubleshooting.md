@@ -6,7 +6,7 @@ Use this page when a service does not start, does not wake, or does not resolve.
 
 Run these two checks before you dig into a specific failure:
 
-```bash
+```bash title="Check the current container state"
 # 1. Check the bootstrap or full-stack containers
 $ docker compose ps
 NAME                    IMAGE                          STATUS
@@ -14,7 +14,7 @@ homelab-portainer-1     portainer/portainer-ce:2.25.1 Up
 homelab-agent-1         portainer/agent:2.25.1        Up
 ```
 
-```bash
+```bash title="Check whether Portainer is still in bootstrap mode"
 # 2. Check whether you are still on bootstrap or already on routed traffic
 $ curl -sk https://localhost:9443/api/status | jq '.Version'
 "2.25.1"
@@ -28,7 +28,7 @@ If the direct `9443` endpoint works but `https://pods.${DOMAIN}` does not, you a
 
 **What's happening:** Traefik cannot reach the app because the container is stopped, unhealthy, or not on the right network.
 
-```bash
+```bash title="Debug a stuck wake-up flow"
 # 1. Check if service is running
 $ docker compose ps | grep immich
 homelab-immich-server-1   ghcr.io/immich-app/immich-server:release   Up 2 hours (healthy)
@@ -62,7 +62,7 @@ For production, ensure the Cloudflare token is valid and NetBird DNS points clie
 
 **Symptom:** Service never becomes ready.
 
-```bash
+```bash title="Inspect Sablier and app readiness"
 # Check Sablier logs
 $ docker compose logs sablier
 sablier  | INFO[0001] Successfully registered provider: Docker
@@ -92,7 +92,7 @@ $ docker compose up -d karakeep
 **Symptom:** `Bind for 0.0.0.0:53 failed: port is already allocated`
 
 **Fix:**
-```bash
+```bash title="Resolve an AdGuard port binding conflict"
 # Default dev setup uses ADGUARD_DNS_PORT=1053 to avoid this.
 # If you explicitly set ADGUARD_DNS_PORT=53, check conflicts with:
 # Find what's using port 53
@@ -113,7 +113,7 @@ $ echo "ADGUARD_DNS_PORT=1053" >> .env
 **Symptom:** `whoami.traefik.me` doesn't resolve or connection refused.
 
 **Checklist:**
-```bash
+```bash title="Check routing, DNS, and Traefik state"
 # 1. Is Traefik running?
 $ docker compose ps traefik
 NAME                IMAGE                STATUS
@@ -149,7 +149,7 @@ $ curl -k https://traefik.traefik.me/api/rawdata 2>/dev/null | jq '.routers | ke
 
 **Symptom:** One app starts, but logs show database connection errors.
 
-```bash
+```bash title="Inspect app-local database connectivity"
 # Check app-local database containers
 $ docker compose ps immich-postgres listmonk-postgres paperless-postgres
 NAME                         IMAGE                    STATUS
@@ -174,7 +174,7 @@ $ docker compose config | grep -E "DB_HOSTNAME|PAPERLESS_DBHOST|LISTMONK_db__hos
 
 If one database is unhealthy, restart only that app stack:
 
-```bash
+```bash title="Restart only the affected Immich stack"
 $ docker compose up -d immich-postgres immich-server immich-microservices
 ```
 
@@ -182,7 +182,7 @@ $ docker compose up -d immich-postgres immich-server immich-microservices
 
 **Symptom:** You request a movie/show in `requests.${DOMAIN}` but nothing starts downloading.
 
-```bash
+```bash title="Check media automation prerequisites"
 # 1. Check VPN tunnel status
 $ docker compose logs gluetun --tail 50
 gluetun  | ERROR VPN settings: OPENVPN_USER is not set
@@ -203,7 +203,7 @@ homelab-radarr-1        lscr.io/linuxserver/radarr         Up
 
 If credentials were missing, set them in `.env` and restart media automation:
 
-```bash
+```bash title="Restart the media automation stack"
 $ docker compose up -d gluetun qbittorrent sonarr radarr
 ```
 
@@ -212,7 +212,7 @@ $ docker compose up -d gluetun qbittorrent sonarr radarr
 **Symptom:** Home Assistant can't connect to `traefik_public`.
 
 **Fix:**
-```bash
+```bash title="Repair the Home Assistant shared network"
 # Create the network if it doesn't exist
 $ docker network create traefik_public
 traefik_public

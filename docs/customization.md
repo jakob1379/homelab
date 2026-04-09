@@ -12,7 +12,7 @@ Use this page to add your own Docker services to the stack. The path is simple: 
 
 Add a custom service to your homelab:
 
-```bash
+```bash title="Create a custom service definition"
 # 1. Create the service definition
 $ cat > services/custom.yml << 'EOF'
 services:
@@ -29,7 +29,7 @@ EOF
 
 The labels in step 1 only mark the service as Traefik/Sablier-managed. Sleep-on-request behavior is activated in step 2 by adding the Sablier middleware to the router.
 
-```bash
+```bash title="Create the matching Traefik router"
 # 2. Create the router config
 $ cat > config/traefik/dyn/demo.yml << 'EOF'
 http:
@@ -56,12 +56,12 @@ http:
 EOF
 ```
 
-```bash
+```bash title="Include the custom stack in docker-compose.yml"
 # 3. Include in root compose
 $ sed -i 's|include:|include:\n  - services/custom.yml          # Your custom services|' docker-compose.yml
 ```
 
-```bash
+```bash title="Validate and start the demo service"
 # 4. Validate and deploy
 $ docker compose config > /dev/null && echo "✓ Config valid"
 ✓ Config valid
@@ -92,7 +92,7 @@ Here's how to add any Docker-based app in four steps. We'll use a fictional app 
 
 This file defines your Docker container: what image to use, **environment variables**, volumes, and which network it joins.
 
-```yaml
+```yaml title="services/custom.yml"
 services:
   myapp:  # Service name (used in Traefik config and Docker commands)
     profiles: [apps]  # Groups services; 'apps' for applications
@@ -133,7 +133,7 @@ services:
 
 This file tells **Traefik** how to route traffic. If you're wondering "what's a reverse proxy?", think of it like a smart receptionist. When someone visits `myapp.yourdomain.com`, **Traefik** is the one who receives that request and forwards it to the right container.
 
-```yaml
+```yaml title="config/traefik/dyn/myapp.yml"
 http:
   routers:
     myapp:  # Router name (unique, matches service name usually)
@@ -170,7 +170,7 @@ http:
 
 Add your service file to the includes list so Docker Compose knows to load it:
 
-```yaml
+```yaml title="docker-compose.yml"
 include:
   - services/networking.yml      # Traefik, Sablier, AdGuard
   - services/portainer.yml       # Docker management
@@ -183,27 +183,27 @@ include:
 
 Run these commands in order:
 
-```bash
+```bash title="Validate the combined Compose config"
 # 1. Validate configuration (catches syntax errors)
 $ docker compose config > /dev/null && echo "✓ Config valid"
 ✓ Config valid
 ```
 
-```bash
+```bash title="Pull the app image"
 # 2. Pull the image
 $ docker compose pull myapp
 [+] Pulling 1/1
  ✔ myapp Pulled
 ```
 
-```bash
+```bash title="Start the app"
 # 3. Start the service
 $ docker compose up -d myapp
 [+] Running 2/2
  ✔ Container homelab-myapp-1  Started
 ```
 
-```bash
+```bash title="Inspect the app logs"
 # 4. Check logs for errors
 $ docker compose logs myapp --tail 50
 INFO:     Started server process [1]
@@ -211,14 +211,14 @@ INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ```
 
-```bash
+```bash title="Verify the app is running"
 # 5. Verify it's running
 $ docker compose ps myapp
 NAME              IMAGE         STATUS
 homelab-myapp-1   myapp:latest  Up 30 seconds
 ```
 
-```bash
+```bash title="Test the routed app endpoint"
 # 6. Test access (should see Sablier loading page or your app)
 $ curl -k https://myapp.${DOMAIN:-traefik.me}
 <!DOCTYPE html>
@@ -236,7 +236,7 @@ Labels are how containers send notes to **Traefik** and **Sablier**. You know ho
 
 ### What Each Label Does
 
-```yaml
+```yaml title="Required Traefik and Sablier labels"
 labels:
   # Required: Tells Traefik this container should receive traffic
   - traefik.enable=true
@@ -254,7 +254,7 @@ labels:
 
 You'll see this pattern in some **Traefik** configurations:
 
-```yaml
+```yaml title="Dynamic host rule template"
 # Using template syntax (dynamic)
 rule: 'Host(`{{ index .Labels "com.docker.compose.service" }}.{{ env "DOMAIN" }}`)'
 
@@ -281,7 +281,7 @@ This stack uses **hardcoded** values in router configs because they're easier to
 There are two different mechanisms in this stack:
 
 1. **Set your domain** in a `.env` file at the project root:
-   ```bash
+   ```bash title="Create a root .env file"
    $ echo "DOMAIN=example.com" > .env
    ```
 
@@ -300,7 +300,7 @@ There are two different mechanisms in this stack:
 
 If you want services to appear on the **[Homepage](https://gethomepage.dev)** dashboard automatically, add these labels:
 
-```yaml
+```yaml title="Homepage discovery labels"
 labels:
   - traefik.enable=true
   - sablier.enable=true
@@ -316,7 +316,7 @@ Use `homepage.siteMonitor` and `homepage.statusStyle` only for always-on service
 
 Widget definitions can also live in labels:
 
-```yaml
+```yaml title="Homepage widget labels"
 labels:
   - homepage.group=Developer
   - homepage.name=Traefik
@@ -349,7 +349,7 @@ For widgets that need authentication, keep credentials in environment variables 
 
 Services without databases or persistent storage (like a dashboard or simple web app):
 
-```yaml
+```yaml title="services/custom.yml"
 # services/custom.yml
 services:
   homepage:
@@ -366,7 +366,7 @@ services:
       - sablier.group=homepage
 ```
 
-```yaml
+```yaml title="config/traefik/dyn/home.yml"
 # config/traefik/dyn/home.yml
 http:
   routers:
@@ -397,7 +397,7 @@ http:
 
 Services that need a database get two entries in the same file:
 
-```yaml
+```yaml title="services/custom.yml"
 # services/custom.yml
 services:
   myapp:  # The main application
@@ -449,7 +449,7 @@ The router config only needs entries for the application, not the database.
 ### "Service Unavailable" or 502 Error
 
 **Check:** Container is running
-```bash
+```bash title="Check whether the app container is running"
 $ docker compose ps myapp
 NAME              IMAGE         STATUS
 homelab-myapp-1   myapp:latest  Up 5 minutes
@@ -459,20 +459,20 @@ $ docker compose logs myapp --tail 50
 ```
 
 **Check:** Container joined the network
-```bash
+```bash title="Check whether the app joined traefik_public"
 $ docker network inspect traefik_public | grep myapp
 # Should show both myapp and traefik containers
 ```
 
 **Check:** Port matches
-```bash
+```bash title="Check the app port inside the container"
 # In your container:
 $ docker exec myapp netstat -tlnp
 # Port here must match the URL in config/traefik/dyn/myapp.yml (for example `:8080`)
 ```
 
 **If 502 only happens on the first request after wake-up:** Add a retry middleware and include it after your Sablier middleware.
-```yaml
+```yaml title="config/traefik/dyn/myapp.yml"
 http:
   middlewares:
     startup-retry:
@@ -488,20 +488,20 @@ http:
 ### Sablier Shows "Starting..." Forever
 
 **Check:** Sablier can see the container
-```bash
+```bash title="Check Sablier logs for group errors"
 $ docker compose logs sablier --tail 20
 # Look for errors about group 'myapp'
 ```
 
 **Check:** Labels match exactly
-```bash
+```bash title="Verify the Sablier group names match"
 # These must match:
 # 1. services/custom.yml: sablier.group=myapp
 # 2. config/traefik/dyn/myapp.yml: middlewares.sablier-myapp.plugin.sablier.group=myapp
 ```
 
 **Check:** Container actually starts
-```bash
+```bash title="Run the app in the foreground"
 $ docker compose up myapp  # Run without -d to see real-time logs
 # Look for crash loops or port conflicts
 ```
@@ -509,13 +509,13 @@ $ docker compose up myapp  # Run without -d to see real-time logs
 ### SSL Certificate Errors
 
 **Check:** Domain resolves correctly
-```bash
+```bash title="Check DNS for the app domain"
 $ nslookup myapp.${DOMAIN}
 # Should return your server's IP
 ```
 
 **Check:** Let's Encrypt isn't rate-limited
-```bash
+```bash title="Check for Let's Encrypt rate limiting"
 $ docker compose logs traefik --tail 100 | grep -i "rate\|error"
 # Too many failed attempts = temporary ban (wait 1 hour)
 ```
@@ -523,20 +523,20 @@ $ docker compose logs traefik --tail 100 | grep -i "rate\|error"
 ### Changes Not Taking Effect
 
 **Did you change static or dynamic config?**
-```bash
+```bash title="Restart Traefik after static config changes"
 # Dynamic files in config/traefik/dyn/ are hot-reloaded automatically.
 # Restart Traefik only if you changed static config (config/traefik/traefik.yml).
 $ docker compose restart traefik
 ```
 
 **Is the config file valid YAML?**
-```bash
+```bash title="Validate the YAML and Compose syntax"
 $ docker compose config  # Validates all included files
 ✓ Config valid
 ```
 
 **Did you reload Docker Compose?**
-```bash
+```bash title="Reload the full Compose project"
 $ docker compose up -d  # Re-reads docker-compose.yml includes
 ```
 
@@ -561,7 +561,7 @@ $ docker compose up -d  # Re-reads docker-compose.yml includes
 
 ## Changing Domain
 
-```bash
+```bash title="Change the domain from the shell or .env"
 # Option 1: Set environment variable
 $ export DOMAIN=mydomain.com
 $ docker compose up -d
@@ -577,7 +577,7 @@ $ docker compose up -d
 
 Edit `config/traefik/dyn/common.yml`:
 
-```yaml
+```yaml title="config/traefik/dyn/common.yml"
 middlewares:
   sablier-default:
     plugin:
@@ -587,7 +587,7 @@ middlewares:
 
 Changes in `dyn/` are hot-reloaded. Restart **Traefik** only if you changed static config:
 
-```bash
+```bash title="Restart Traefik after changing static config"
 $ docker compose restart traefik
 ```
 
@@ -597,7 +597,7 @@ $ docker compose restart traefik
 
 Remove **Sablier** labels and middleware:
 
-```yaml
+```yaml title="Remove Sablier labels from a service"
 services:
   portainer:
     labels:
@@ -609,7 +609,7 @@ services:
 
 And update the router:
 
-```yaml
+```yaml title="Remove the Sablier middleware from the router"
 http:
   routers:
     portainer:
@@ -621,7 +621,7 @@ http:
 
 ## Adding IP Restrictions
 
-```yaml
+```yaml title="config/traefik/dyn/common.yml"
 # config/traefik/dyn/common.yml
 http:
   middlewares:
@@ -647,7 +647,7 @@ http:
 
 ### Backup Volumes
 
-```bash
+```bash title="Back up the main named volumes"
 # Backup Immich database
 $ docker run --rm -v homelab_immich_postgres_data:/data -v $(pwd):/backup alpine \
   tar czf /backup/immich-postgres-backup.tar.gz -C /data .
@@ -673,7 +673,7 @@ done
 
 ### Restore Volumes
 
-```bash
+```bash title="Restore a named volume from a backup archive"
 # Restore Listmonk database (example)
 $ docker run --rm -v homelab_listmonk_postgres_data:/data -v $(pwd):/backup alpine \
   sh -c "cd /data && tar xzf /backup/listmonk-postgres-backup.tar.gz"
@@ -688,7 +688,7 @@ Use a systemd timer instead of cron for predictable startup behavior, status vis
 
 Create backup script:
 
-```bash
+```bash title="Create the backup script"
 $ sudo tee /usr/local/bin/homelab-backup.sh > /dev/null <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -710,7 +710,7 @@ $ sudo chmod +x /usr/local/bin/homelab-backup.sh
 
 Create one-shot service:
 
-```bash
+```bash title="Create the systemd backup service"
 $ sudo tee /etc/systemd/system/homelab-backup.service > /dev/null <<'EOF'
 [Unit]
 Description=Homelab volume backup
@@ -725,7 +725,7 @@ EOF
 
 Create daily timer:
 
-```bash
+```bash title="Create the systemd backup timer"
 $ sudo tee /etc/systemd/system/homelab-backup.timer > /dev/null <<'EOF'
 [Unit]
 Description=Run homelab backup daily
@@ -741,7 +741,7 @@ EOF
 
 Enable and verify:
 
-```bash
+```bash title="Enable the timer and verify the schedule"
 $ sudo systemctl daemon-reload
 $ sudo systemctl enable --now homelab-backup.timer
 Created symlink /etc/systemd/system/timers.target.wants/homelab-backup.timer -> /etc/systemd/system/homelab-backup.timer.
@@ -753,7 +753,7 @@ NEXT                         LEFT     LAST   PASSED  UNIT                  ACTIV
 
 View backup logs:
 
-```bash
+```bash title="Inspect backup logs"
 $ journalctl -u homelab-backup.service --since today
 ```
 
@@ -763,7 +763,7 @@ $ journalctl -u homelab-backup.service --since today
 
 ### Prek Hooks (Preferred)
 
-```bash
+```bash title="Install and run pre-commit hooks"
 # Preferred in this repo
 $ prek install
 
@@ -777,7 +777,7 @@ $ pre-commit run -a
 
 ### Nix Development Shell
 
-```bash
+```bash title="Enter the Nix development shell"
 # If you have Nix + direnv
 $ direnv allow
 
@@ -787,7 +787,7 @@ $ nix develop
 
 ### Running Tests
 
-```bash
+```bash title="Run the repo's validation commands"
 # Validate Docker Compose files
 $ docker compose config > /dev/null && echo "✓ Config valid"
 ✓ Config valid

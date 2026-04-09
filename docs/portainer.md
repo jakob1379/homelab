@@ -12,7 +12,7 @@ Use this guide for the full deployment path in this repo. Start only the `pods` 
 
 This is the shortest working path from a fresh clone to a fully deployed stack:
 
-```bash
+```bash title="Fresh-host deployment path"
 # 1. Clone and create the local bootstrap files
 $ git clone https://github.com/jakob1379/homelab.git && cd homelab
 Cloning into 'homelab'...
@@ -35,7 +35,7 @@ $ docker compose --profile pods up -d
  ✔ Container homelab-portainer-1  Started
 ```
 
-```bash
+```bash title="Verify the Portainer bootstrap endpoint"
 # 5. Verify the bootstrap control plane
 $ curl -sk https://localhost:9443/api/status | jq '.Version'
 "2.25.1"
@@ -43,7 +43,7 @@ $ curl -sk https://localhost:9443/api/status | jq '.Version'
 
 Open `https://localhost:9443`, create the admin user, then create a **Repository** stack that points back to this repo. After Portainer finishes the full deploy, verify the routed stack:
 
-```bash
+```bash title="Verify the routed stack after the full deploy"
 # 6. Verify the full stack after Portainer deploys it
 $ curl -k https://whoami.lab.example.com
 Hostname: homelab-whoami-1
@@ -78,7 +78,7 @@ You need three things before the full deploy works:
 - A Cloudflare token file at `services/secrets/cf_dns_api_token`
 - Any optional app credentials you plan to use later, such as `OPENVPN_USER` and `OPENVPN_PASSWORD`
 
-```bash
+```bash title="Create the root deployment files"
 # Create the main environment file
 $ cat > .env <<'EOF'
 DOMAIN=lab.example.com
@@ -95,7 +95,7 @@ your_cf_api_token
 
 If you want media automation, add the ProtonVPN credentials before deployment:
 
-```bash
+```bash title="Optional ProtonVPN credentials"
 # Optional: enable Gluetun + Arr download traffic later
 $ cat >> .env <<'EOF'
 OPENVPN_USER=your_proton_openvpn_username
@@ -106,7 +106,7 @@ EOF
 
 If you skip the VPN credentials, the media stack will boot later with an explicit error:
 
-```bash
+```bash title="Expected Gluetun error when VPN credentials are missing"
 $ docker compose logs gluetun --tail 20
 gluetun  | ERROR VPN settings: OPENVPN_USER is not set
 ```
@@ -117,7 +117,7 @@ gluetun  | ERROR VPN settings: OPENVPN_USER is not set
 
 The `pods` profile exists specifically for the deployment control plane.
 
-```bash
+```bash title="Start the bootstrap control plane"
 # Start only the Portainer bootstrap services
 $ docker compose --profile pods up -d
 [+] Running 2/2
@@ -125,7 +125,7 @@ $ docker compose --profile pods up -d
  ✔ Container homelab-portainer-1  Started
 ```
 
-```bash
+```bash title="Confirm Portainer is answering on port 9443"
 # Confirm Portainer is answering on the direct host port
 $ curl -sk https://localhost:9443/api/status | jq
 {
@@ -161,14 +161,14 @@ Recommended stack settings:
 
 Add these **environment variables** in the stack editor:
 
-```text
+```text title="Portainer stack variables"
 DOMAIN=lab.example.com
 CF_API_EMAIL=you@example.com
 ```
 
 If you plan to use media downloads, also add:
 
-```text
+```text title="Optional media variables"
 OPENVPN_USER=your_proton_openvpn_username
 OPENVPN_PASSWORD=your_proton_openvpn_password
 VPN_SERVER_COUNTRIES=Netherlands
@@ -180,13 +180,13 @@ VPN_SERVER_COUNTRIES=Netherlands
 
 Typical host-side setup:
 
-```bash
+```bash title="Create the Cloudflare token in Portainer's stack checkout"
 # Example path used by Portainer for a stack checkout
 $ mkdir -p /data/compose/homelab/services/secrets
 $ echo -n 'your_cf_api_token' > /data/compose/homelab/services/secrets/cf_dns_api_token
 ```
 
-```bash
+```bash title="Verify the secret file path Portainer will read"
 # Verify the file exists where Portainer will read it
 $ ls -l /data/compose/homelab/services/secrets/cf_dns_api_token
 -rw------- 1 root root 19 Apr  9 12:00 /data/compose/homelab/services/secrets/cf_dns_api_token
@@ -242,7 +242,7 @@ Your Cloudflare token needs:
 
 Point your wildcard and apex records to the homelab host's VPN IP:
 
-```text
+```text title="AdGuard wildcard records"
 A  *.lab.example.com  100.90.12.34
 A  lab.example.com    100.90.12.34
 ```
@@ -262,7 +262,7 @@ If you skip this step, certificate issuance may still succeed through **Cloudfla
 
 After Portainer finishes the full deploy, confirm routing, DNS, and TLS.
 
-```bash
+```bash title="Check the Traefik API after deployment"
 # Check that the routed entrypoint is alive
 $ curl -sk https://traefik.lab.example.com/api/version | jq
 {
@@ -270,21 +270,21 @@ $ curl -sk https://traefik.lab.example.com/api/version | jq
 }
 ```
 
-```bash
+```bash title="Check DNS from a VPN-connected client"
 # Check DNS from a VPN-connected client
 $ nslookup whoami.lab.example.com
 Name: whoami.lab.example.com
 Address: 100.90.12.34
 ```
 
-```bash
+```bash title="Check the routed whoami service"
 # Check the routed whoami service
 $ curl -k https://whoami.lab.example.com
 Hostname: homelab-whoami-1
 IP: 172.20.0.2
 ```
 
-```bash
+```bash title="Confirm the issued certificate"
 # Check certificate issuer
 $ curl -vkI https://whoami.lab.example.com 2>&1 | grep -E "(subject:|issuer:)"
 *  subject: CN=whoami.lab.example.com
@@ -320,7 +320,7 @@ That is intentional. Bootstrap gets you into the UI. The first full deploy recon
 
 Confirm both bootstrap services are running:
 
-```bash
+```bash title="Confirm the bootstrap services exist"
 $ docker compose --profile pods ps
 NAME                 IMAGE                       STATUS
 homelab-agent-1      portainer/agent:2.25.1     Up
@@ -329,7 +329,7 @@ homelab-portainer-1  portainer/portainer-ce:2.25.1 Up
 
 If `agent` is missing, restart the bootstrap profile:
 
-```bash
+```bash title="Restart the bootstrap profile"
 $ docker compose --profile pods up -d
 [+] Running 2/2
  ✔ Container homelab-agent-1      Started
@@ -340,14 +340,14 @@ $ docker compose --profile pods up -d
 
 The most common cause is a missing secret file inside Portainer's stack checkout:
 
-```bash
+```bash title="Check for the missing Cloudflare token file"
 $ ls /data/compose/homelab/services/secrets/cf_dns_api_token
 ls: cannot access '/data/compose/homelab/services/secrets/cf_dns_api_token': No such file or directory
 ```
 
 Create it and redeploy:
 
-```bash
+```bash title="Create the missing token file and redeploy"
 $ mkdir -p /data/compose/homelab/services/secrets
 $ echo -n 'your_cf_api_token' > /data/compose/homelab/services/secrets/cf_dns_api_token
 ```
@@ -356,7 +356,7 @@ $ echo -n 'your_cf_api_token' > /data/compose/homelab/services/secrets/cf_dns_ap
 
 Check **Traefik** logs after the full deploy:
 
-```bash
+```bash title="Check Traefik ACME and Cloudflare errors"
 $ docker compose logs traefik --tail 100 | grep -i "acme\\|cloudflare\\|error"
 traefik  | error renewing certificate for domain lab.example.com
 ```
@@ -371,7 +371,7 @@ Most common causes:
 
 From a VPN-connected client:
 
-```bash
+```bash title="Check whether DNS resolves the VPN IP"
 $ nslookup whoami.lab.example.com
 Name: whoami.lab.example.com
 Address: 203.0.113.10
@@ -396,7 +396,7 @@ Use this cycle for ongoing changes:
 
 For one-off validation before pushing, run:
 
-```bash
+```bash title="Validate the compose configuration before pushing"
 $ docker compose config > /dev/null && echo "config ok"
 config ok
 ```

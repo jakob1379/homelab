@@ -14,7 +14,7 @@ This is not one-size-fits-all. You must tune it per stack.
 
 This verifies the wake-up path without waiting for user traffic.
 
-```bash
+```bash title="Verify the Immich worker wake path"
 # 1. Start stack with experimental queue monitor
 $ docker compose --profile all --profile experimental up -d
 [+] Running ...
@@ -100,7 +100,7 @@ Use one or more of these triggers per group:
 
 Use scheduled wakeups for predictable usage windows, imports, or nightly tasks.
 
-```bash
+```bash title="Trigger a worker session manually"
 # Wake workers for 20 minutes
 $ curl -i "http://localhost:10000/api/strategies/blocking?group=immich-workers&session_duration=20m&timeout=4m"
 HTTP/1.1 200 OK
@@ -109,7 +109,7 @@ X-Sablier-Session-Status: ready
 
 Host cron example:
 
-```bash
+```bash title="Host cron pre-warm example"
 # Every day at 21:00, pre-warm Immich workers
 $ crontab -l
 0 21 * * * curl -fsS "http://localhost:10000/api/strategies/blocking?group=immich-workers&session_duration=30m&timeout=4m" >/dev/null
@@ -160,7 +160,7 @@ Use different values per stack. Do not reuse Immich values for every workload.
 
 ## Failure Modes and Fast Checks
 
-```bash
+```bash title="Fast checks for the queue-driven wake path"
 # Queue monitor running?
 $ docker compose ps immich-queue-monitor
 

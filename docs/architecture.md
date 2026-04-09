@@ -12,7 +12,7 @@ This page explains how requests flow from your browser to your containers, how s
 
 Explore your running system with these commands:
 
-```bash
+```bash title="Check the running foundation services"
 # Check that services are healthy
 $ docker compose ps
 NAME                IMAGE                STATUS
@@ -20,7 +20,7 @@ homelab-traefik-1   traefik:3.6.9        Up 2 hours (healthy)
 homelab-rustfs-1    rustfs/rustfs:latest Up 2 hours (healthy)
 ```
 
-```bash
+```bash title="Query the Traefik API version"
 # View the Traefik dashboard API
 $ curl -sk https://traefik.traefik.me/api/version | jq
 {
@@ -28,7 +28,7 @@ $ curl -sk https://traefik.traefik.me/api/version | jq
 }
 ```
 
-```bash
+```bash title="List active Traefik routers"
 # List configured routers
 $ curl -sk https://traefik.traefik.me/api/http/routers | jq -r '.[].name'
 immich@file
@@ -112,7 +112,7 @@ When you type `https://pods.traefik.me` in your browser:
 
 The inline code for this flow:
 
-```yaml
+```yaml title="Traefik routing and Sablier labels"
 # Traefik router matches the Host header
 rule: Host(`pods.${DOMAIN}`)
 
@@ -139,7 +139,7 @@ screwdriver is much easier when you have a dedicated toolbox.
 
 === "Entry Point"
 
-    ```
+    ```text title="Repo root"
     .
     ├── docker-compose.yml      # Main compose - includes all services/*.yml
     ├── setup-dev.sh            # One-time development environment setup
@@ -149,7 +149,7 @@ screwdriver is much easier when you have a dedicated toolbox.
     **What's happening here:**
     The main `docker-compose.yml` uses an `include:` directive to pull in service definitions. This keeps the root file clean while each service evolves independently.
 
-    ```yaml
+    ```yaml title="docker-compose.yml"
     # docker-compose.yml
     include:
       - services/networking.yml  # Traefik, Sablier, AdGuard
@@ -158,7 +158,7 @@ screwdriver is much easier when you have a dedicated toolbox.
 
 === "Services"
 
-    ```
+    ```text title="services/"
     services/
     ├── secrets/                # Docker secrets (excluded from git)
     │   └── cf_dns_api_token
@@ -179,14 +179,14 @@ screwdriver is much easier when you have a dedicated toolbox.
     **What's happening here:**
     Each file defines a complete stack (volumes, networks, environment). The `secrets/` subdirectory holds sensitive values as plain files, never committed to git.
 
-    ```bash
+    ```bash title="Create a development secret file"
     # Create a dummy secret for development
     $ echo -n "dummy_token" > services/secrets/cf_dns_api_token
     ```
 
 === "Routes"
 
-    ```
+    ```text title="config/traefik/"
     config/
     └── traefik/
         ├── dyn/                # Dynamic router configurations
@@ -201,7 +201,7 @@ screwdriver is much easier when you have a dedicated toolbox.
     **What's happening here:**
     Dynamic configs in `dyn/` are hot-reloaded by **Traefik**—no restart needed when adding routes. This separation means you can modify proxy behavior without touching service definitions.
 
-    ```yaml
+    ```yaml title="config/traefik/dyn/immich.yml"
     # config/traefik/dyn/immich.yml
     http:
       routers:
@@ -213,7 +213,7 @@ screwdriver is much easier when you have a dedicated toolbox.
 
 === "Standalone"
 
-    ```
+    ```text title="home-assistant/"
     home-assistant/
     └── docker-compose.yml      # Separate compose stack (uses named volume ha_config for /config)
     ```
@@ -255,7 +255,7 @@ Here's a common problem: run `docker compose up` on this stack and it starts 15+
 
 Running everything at once wastes resources, since each idle container still consumes RAM and CPU:
 
-```bash
+```bash title="Why profiles matter: starting everything at once"
 $ docker compose up -d  # Starts everything
 $ docker stats --no-stream | awk 'NR>1 {sum+=$3} END {print "Total CPU: " sum"%"}'
 Total CPU: 23%
@@ -283,7 +283,7 @@ For queue-backed workloads, use the dedicated [Queue-Driven Sleep Pattern](queue
 
 Use this when you want **Portainer** to deploy the full stack from Git:
 
-```bash
+```bash title="Start only the Portainer bootstrap profile"
 $ docker compose --profile pods up -d
 [+] Running 2/2
  ✔ Container homelab-agent-1      Started
@@ -296,7 +296,7 @@ This is the deployment path described in [Deployment](portainer.md). You access 
 
 Run the foundation services without any apps:
 
-```bash
+```bash title="Start only the infrastructure profile"
 $ docker compose --profile infra up -d
 [+] Running 6/6
  ✔ Container traefik    Started
@@ -306,7 +306,7 @@ $ docker compose --profile infra up -d
 
 Verify only infra services are running:
 
-```bash
+```bash title="Verify only infrastructure services are running"
 $ docker compose ps --services
 rustfs
 traefik
@@ -319,7 +319,7 @@ whoami
 
 Start individual apps on top of the running infra:
 
-```bash
+```bash title="Start specific apps on top of infra"
 $ docker compose --profile infra up -d  # Foundation already running
 $ docker compose --profile apps up -d portainer ittools
 [+] Running 2/2
@@ -331,14 +331,14 @@ $ docker compose --profile apps up -d portainer ittools
 
 For development or when you want everything (not including *experimental*):
 
-```bash
+```bash title="Use the all profile from the shell"
 $ export COMPOSE_PROFILES=all
 $ docker compose up -d  # Starts both infra and apps
 ```
 
 Or in your `.env` file:
 
-```bash
+```bash title="Use the all profile from .env"
 COMPOSE_PROFILES=all
 ```
 
@@ -346,7 +346,7 @@ COMPOSE_PROFILES=all
 
 List services by profile:
 
-```bash
+```bash title="List services by profile"
 $ docker compose ps --services --filter "profile=infra"
 rustfs
 traefik
@@ -382,7 +382,7 @@ The separation keeps your baseline resource usage low while giving you access to
 
 **Traefik** and all web-facing services connect to `traefik_public`. This is the only network that bridges to the outside world. Other networks isolate service groups for security:
 
-```yaml
+```yaml title="services/karakeep.yml"
 # services/karakeep.yml
 services:
   keep:
@@ -418,7 +418,7 @@ If DNS is provided through a VPN sidecar network (for example NetBird), the AdGu
 
 DNS challenge enables wildcard certificates (`*.yourdomain.com`). Instead of requesting a certificate for each subdomain individually, you get one certificate that covers everything.
 
-```yaml
+```yaml title="config/traefik/traefik.yml"
 # config/traefik/traefik.yml
 certificatesResolvers:
   cfresolver:
@@ -509,7 +509,7 @@ The sequence diagram shows the three phases:
 
 The inline code that enables this:
 
-```yaml
+```yaml title="config/traefik/dyn/portainer.yml"
 # config/traefik/dyn/portainer.yml
 http:
   middlewares:
@@ -533,7 +533,7 @@ That got repetitive quickly. Most of those labels can be generated from sensible
 of manually writing URLs for every service, we use one line in **Traefik's** config that generates
 them automatically:
 
-```yaml
+```yaml title="config/traefik/traefik.yml"
 # config/traefik/traefik.yml
 defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\" | default .Name }}.{{ env \"DOMAIN\" }}`)"
 ```
@@ -558,7 +558,7 @@ labels.
 
 Without `defaultRule`, every service needs four labels just to get a URL:
 
-```yaml
+```yaml title="Manual labels without defaultRule"
 labels:
   - traefik.enable=true
   - traefik.http.routers.myapp.rule=Host(`myapp.yourdomain.com`)
@@ -568,7 +568,7 @@ labels:
 
 With `defaultRule`, the minimum label for exposure is:
 
-```yaml
+```yaml title="Minimum label with defaultRule"
 labels:
   - traefik.enable=true        # Required: expose this container to Traefik
 ```
@@ -577,7 +577,7 @@ That is enough for URL generation. `https://myapp.yourdomain.com` is generated a
 
 For sleep-on-request behavior in this repo, add a Sablier middleware to the router (usually in `config/traefik/dyn/*.yml`) and keep `sablier.enable=true` on the service so Sablier can manage it.
 
-```yaml
+```yaml title="config/traefik/dyn/myapp.yml"
 # config/traefik/dyn/myapp.yml
 http:
   routers:
@@ -590,7 +590,7 @@ http:
 
 Looking at `services/networking.yml`, `whoami` sets an explicit host rule instead of relying on `defaultRule`:
 
-```yaml
+```yaml title="services/networking.yml"
 services:
   whoami:
     labels:
@@ -605,7 +605,7 @@ That override keeps the URL stable and human-friendly.
 
 Sometimes you want a cleaner URL than the service name. Override per-service:
 
-```yaml
+```yaml title="Custom host override"
 labels:
   - traefik.enable=true
   - traefik.http.routers.myapp.rule=Host(`photos.yourdomain.com`)  # Custom URL

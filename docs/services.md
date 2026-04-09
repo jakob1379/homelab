@@ -10,7 +10,7 @@ Start with these three services:
 2. **Portainer**, Docker management UI
 3. **IT Tools**, Developer utilities
 
-```bash
+```bash title="Start a minimal sample set"
 $ docker compose --profile infra up -d
 [+] Running 6/6
  ✔ Container homelab-traefik-1  Started
