@@ -114,6 +114,14 @@ Complete list of services and configuration points.
 - **Sablier:** Yes
 - **Notes:** Auto-discovers services via Docker labels and uses the `home` Sablier group
 
+### AnythingLLM
+- **Purpose:** Private AI workspace for chat, document Q&A, and agent tooling
+- **Access:** `https://llm.${DOMAIN}`
+- **Profile:** apps
+- **Sablier:** Yes
+- **Notes:** Uses the official Docker image with persistent storage at `/app/server/storage`
+- **Notes:** Includes `host.docker.internal` mapping so host-run services such as Ollama can be reached from the container
+
 ### Jellyfin
 - **Purpose:** Media server for movies and shows
 - **Access:** `https://jellyfin.${DOMAIN}`
@@ -214,6 +222,7 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | Traefik Dashboard | `traefik` |
 | Whoami | `whoami` |
 | IT Tools | `it` |
+| AnythingLLM | `llm` |
 | Portainer | `pods` |
 | CloudBeaver | `cbeaver` |
 | BentoPDF | `pdf` |

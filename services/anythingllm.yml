@@ -1,0 +1,35 @@
+---
+services:
+  anythingllm:
+    profiles: [apps, all]
+    image: mintplexlabs/anythingllm:1.11.1
+    restart: always
+    cap_add: [SYS_ADMIN]
+    extra_hosts: [host.docker.internal:host-gateway]
+    environment: [STORAGE_DIR=/app/server/storage, DISABLE_TELEMETRY=true]
+    networks: [traefik_public]
+    volumes: [anythingllm_storage:/app/server/storage]
+    labels:
+      - traefik.enable=true
+      - sablier.enable=true
+      - sablier.group=anythingllm
+      - homepage.group=Utilities
+      - homepage.name=AnythingLLM
+      - homepage.icon=anythingllm.png
+      - homepage.href=https://llm.${DOMAIN:-traefik.me}
+      - homepage.description=Private AI workspace for chat and document Q&A
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true
+volumes:
+  anythingllm_storage:

@@ -12,6 +12,7 @@ include:
   - services/omni-tools.yml  # Omni Tools - self-hosted utilities
 
   # Applications with their dependencies
+  - services/anythingllm.yml  # AnythingLLM private AI workspace
   - services/listmonk.yml  # Listmonk with Cloudflare tunnel
   - services/karakeep.yml  # Karakeep (formerly Hoarder) with Chrome and Meilisearch
   - services/portainer.yml  # Portainer with agent

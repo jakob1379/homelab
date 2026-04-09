@@ -1,0 +1,25 @@
+---
+http:
+  routers:
+    anythingllm:
+      rule: Host(`llm.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      service: anythingllm
+      middlewares: [sablier-anythingllm@file, startup-retry@file]
+  services:
+    anythingllm:
+      loadBalancer:
+        servers:
+          - url: http://anythingllm:3001/
+  middlewares:
+    sablier-anythingllm:
+      plugin:
+        sablier:
+          group: anythingllm
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

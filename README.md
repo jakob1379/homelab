@@ -160,11 +160,12 @@ IP: 172.20.0.2
 | **whoami** | Debug endpoint | `https://whoami.${DOMAIN}` |
 | **Dozzle** | Docker log viewer | `https://dozzle.${DOMAIN}` |
 
-### Apps (Mostly 💤 On-Demand) - 12 apps
+### Apps (Mostly 💤 On-Demand) - 13 apps
 
 | Service | Purpose | Access |
 |---------|---------|--------|
 | **Homepage** | Service dashboard | `https://home.${DOMAIN}` |
+| **AnythingLLM** | Private AI workspace | `https://llm.${DOMAIN}` |
 | **Portainer** | Docker management | `https://pods.${DOMAIN}` |
 | **Karakeep** | Bookmark manager | `https://keep.${DOMAIN}` |
 | **Listmonk** | Newsletters | `https://listmonk.${DOMAIN}` |
