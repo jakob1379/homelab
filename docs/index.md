@@ -56,21 +56,13 @@ hide:
 
     [→ Get unstuck](troubleshooting.md)
 
--   🚀 **Production**
+-   🐳 **Deployment**
 
     ---
 
-    Deploy privately on VPN with your own domain and valid HTTPS certificates.
+    Bootstrap with `--profile pods`, then let Portainer deploy Traefik, AdGuard, and the rest of the stack from Git, including the production DNS and TLS checklist.
 
-    [→ Deploy on VPN](production.md)
-
--   🐳 **Portainer**
-
-    ---
-
-    Deploy and manage via Portainer GitOps for automatic updates.
-
-    [→ Use Portainer](portainer.md)
+    [→ Deploy the stack](portainer.md)
 
 </div>
 
@@ -101,7 +93,9 @@ hide:
     Hostname: homelab-whoami-1
     ```
 
-    **Done!** Your homelab is now running locally - check it out at https://traefik.traefik.me.
+    **Done!** Your homelab is running locally - check it out at https://traefik.traefik.me.
+
+    For the GitOps deployment path, use [Deployment](portainer.md) instead of starting `infra` manually.
 
 ---
 

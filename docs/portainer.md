@@ -1,510 +1,404 @@
 ---
-title: Portainer GitOps
+title: Deployment
 ---
 
-# Deploy with Portainer GitOps
+# Deploy Through Portainer
 
-Use **Portainer GitOps** when you want Git to be the source of truth for deployments. Push a change, and Portainer redeploys the stack. For the service layout used here, read [Service Reference](services.md). For custom service files, see [Configuration](customization.md). For production DNS and TLS, see [VPN Deployment](production.md).
+Use this guide for the full deployment path in this repo. Start only the `pods` profile, open **Portainer** on port `9443`, then let **Portainer** deploy **Traefik**, **AdGuard**, and the rest of the stack from Git. For service layout, read [Service Reference](services.md). For routing and profiles, read [Architecture](architecture.md). For custom stacks, read [Configuration](customization.md). For failures, use [Troubleshooting](troubleshooting.md).
 
 ---
 
 ## Try It Now
 
-Deploy your homelab using **Portainer GitOps**:
+This is the shortest working path from a fresh clone to a fully deployed stack:
 
 ```bash
-# 1. Start the infrastructure (if not already running)
-$ docker compose --profile infra up -d
-[+] Running 6/6
- ✔ Container homelab-traefik-1    Started
- ✔ Container homelab-sablier-1    Started
- ✔ Container homelab-rustfs-1     Started
- ...
-```
+# 1. Clone and create the local bootstrap files
+$ git clone https://github.com/jakob1379/homelab.git && cd homelab
+Cloning into 'homelab'...
+done.
 
-```bash
-# 2. Start Portainer
-$ docker compose up -d portainer agent
+$ ./setup-dev.sh
+[INFO] Setting up dummy files for homelab development...
+[INFO] Setup complete!
+
+# 2. Set your real deployment domain and Cloudflare email
+$ printf 'DOMAIN=lab.example.com\nCF_API_EMAIL=you@example.com\n' > .env
+
+# 3. Add the Cloudflare DNS token Traefik will use later
+$ echo -n 'your_cf_api_token' > services/secrets/cf_dns_api_token
+
+# 4. Bootstrap only Portainer + agent
+$ docker compose --profile pods up -d
 [+] Running 2/2
- ✔ Container homelab-portainer-1  Started
  ✔ Container homelab-agent-1      Started
+ ✔ Container homelab-portainer-1  Started
 ```
 
 ```bash
-# 3. Wait for Portainer to be ready (30 seconds)
-$ sleep 30
-
-# 4. Verify Portainer is accessible
-$ curl -k https://pods.traefik.me/api/status 2>/dev/null | jq '.Version'
+# 5. Verify the bootstrap control plane
+$ curl -sk https://localhost:9443/api/status | jq '.Version'
 "2.25.1"
 ```
 
-Open `https://pods.traefik.me` in your browser and continue with the setup steps below.
+Open `https://localhost:9443`, create the admin user, then create a **Repository** stack that points back to this repo. After Portainer finishes the full deploy, verify the routed stack:
+
+```bash
+# 6. Verify the full stack after Portainer deploys it
+$ curl -k https://whoami.lab.example.com
+Hostname: homelab-whoami-1
+IP: 172.20.0.2
+```
 
 !!! note
-    On first access, **Portainer** will ask you to create an admin account. Use a strong password—this interface has full control over your Docker environment.
+    During bootstrap, **Traefik** is not running yet, so `https://pods.${DOMAIN}` does not exist. Use `https://localhost:9443` or `https://<server-ip>:9443` until Portainer deploys the full stack.
 
 ---
 
-## What Is GitOps?
+## Why The Bootstrap Uses `pods`
 
-**GitOps** means your Git repository is the single source of truth for your infrastructure. Instead of manually editing files on the server, you:
+The `pods` profile provides a small control plane:
 
-1. Edit your `docker-compose.yml` locally
-2. Push to GitHub
-3. **Portainer** automatically pulls and redeploys
+1. Start **Portainer** and its **agent** with `docker compose --profile pods up -d`.
+2. Use **Portainer** to deploy the repo as the real homelab stack.
+3. Let that Portainer-managed stack create **Traefik**, **AdGuard**, **RustFS**, the app stacks, and the routed `pods.${DOMAIN}` endpoint.
 
-Benefits:
-- **Version control**: Every change is tracked
-- **Rollback**: Revert to any previous state
-- **Collaboration**: Multiple people can contribute via pull requests
-- **Audit trail**: See who changed what and when
+This matters for two reasons:
+
+- You do not need **Traefik** running before you can manage the host.
+- The deployment story matches the repo: **Portainer** becomes the system entrypoint, not a service you must manually route first.
 
 ---
 
-## Step 1: Prepare Your Repository
+## Step 1: Prepare The Repo
 
-Before **Portainer** can pull your stack, make sure your repository is ready:
+You need three things before the full deploy works:
 
-### Required Files
-
-Your repository must contain these files at minimum:
-
-```
-.
-├── docker-compose.yml          # Main compose file (required)
-├── .env.example                # Template for environment variables
-├── services/
-│   ├── secrets/              # Will be created by Portainer
-│   └── .env-*              # Service-specific env files
-└── traefik-config/             # Traefik dynamic configs
-    └── traefik/
-        ├── traefik.yml         # Static config
-        └── dyn/
-            └── *.yml         # Router configs
-```
-
-### Set Up Git Repository
-
-If you haven't already:
+- A root `.env` with at least `DOMAIN` and `CF_API_EMAIL`
+- A Cloudflare token file at `services/secrets/cf_dns_api_token`
+- Any optional app credentials you plan to use later, such as `OPENVPN_USER` and `OPENVPN_PASSWORD`
 
 ```bash
-# 1. Initialize Git (if not already done)
-$ git init
-Initialized empty Git repository in /home/user/homelab/.git/
+# Create the main environment file
+$ cat > .env <<'EOF'
+DOMAIN=lab.example.com
+CF_API_EMAIL=you@example.com
+EOF
 
-# 2. Add your files
-$ git add .
+# Add the Cloudflare token with no trailing newline
+$ echo -n 'your_cf_api_token' > services/secrets/cf_dns_api_token
 
-# 3. Commit
-$ git commit -m "Initial homelab setup"
-[main (root-commit) abc1234] Initial homelab setup
- 42 files changed, 1234 insertions(+)
+# Confirm the secret file is clean
+$ cat -A services/secrets/cf_dns_api_token
+your_cf_api_token
 ```
 
-```bash
-# 4. Add remote (replace with your repo URL)
-$ git remote add origin https://github.com/yourusername/homelab.git
+If you want media automation, add the ProtonVPN credentials before deployment:
 
-# 5. Push
-$ git push -u origin main
-Enumerating objects: 50, done.
-Counting objects: 100% (50/50), done.
-Delta compression using up to 8 threads
-Compressing objects: 100% (42/42), done.
-Writing objects: 100% (50/50), 12.34 KiB/s, done.
-Total 50 (delta 5), reused 0 (delta 0), pack-reused 0
-To https://github.com/yourusername/homelab.git
- * [new branch]      main -> main
+```bash
+# Optional: enable Gluetun + Arr download traffic later
+$ cat >> .env <<'EOF'
+OPENVPN_USER=your_proton_openvpn_username
+OPENVPN_PASSWORD=your_proton_openvpn_password
+VPN_SERVER_COUNTRIES=Netherlands
+EOF
+```
+
+If you skip the VPN credentials, the media stack will boot later with an explicit error:
+
+```bash
+$ docker compose logs gluetun --tail 20
+gluetun  | ERROR VPN settings: OPENVPN_USER is not set
 ```
 
 ---
 
-## Step 2: Configure Portainer
+## Step 2: Bootstrap Portainer
 
-### Access Portainer
+The `pods` profile exists specifically for the deployment control plane.
 
-1. Open `https://pods.${DOMAIN}` in your browser (e.g., `https://pods.traefik.me`)
-2. Create your admin account on first visit
-3. Select "Get Started" to use the local Docker environment
+```bash
+# Start only the Portainer bootstrap services
+$ docker compose --profile pods up -d
+[+] Running 2/2
+ ✔ Container homelab-agent-1      Started
+ ✔ Container homelab-portainer-1  Started
+```
 
-### Add Your Git Repository
+```bash
+# Confirm Portainer is answering on the direct host port
+$ curl -sk https://localhost:9443/api/status | jq
+{
+  "Version": "2.25.1",
+  "Edition": "CE"
+}
+```
 
-1. In **Portainer**, go to **Stacks** → **Add Stack**
-2. Select **Repository** as the build method
-3. Configure the stack:
+Open `https://localhost:9443` and complete the first-login flow:
 
-| Setting | Value | Description |
-|---------|-------|-------------|
-| **Name** | `homelab` | Stack identifier in Portainer |
-| **Repository URL** | `https://github.com/yourusername/homelab` | Your Git repo |
-| **Repository Reference** | `refs/heads/main` | Branch to track |
-| **Compose path** | `docker-compose.yml` | Path to compose file |
-| **Authentication** | (Optional) | For private repos, add credentials or deploy key |
+1. Create the **Portainer** admin user.
+2. Choose the local environment backed by the bundled **agent**.
+3. Go to **Stacks** and select **Add stack**.
+4. Choose **Repository** as the deployment method.
+
+---
+
+## Step 3: Let Portainer Deploy The Homelab
+
+Use the same repository as the source of truth.
+
+Recommended stack settings:
+
+| Setting | Value |
+|---------|-------|
+| **Name** | `homelab` |
+| **Build method** | `Repository` |
+| **Repository URL** | `https://github.com/yourusername/homelab` |
+| **Repository reference** | `refs/heads/main` |
+| **Compose path** | `docker-compose.yml` |
+| **GitOps update mechanism** | `Webhook` |
+| **Poll fallback** | `5m` |
+
+Add these **environment variables** in the stack editor:
+
+```text
+DOMAIN=lab.example.com
+CF_API_EMAIL=you@example.com
+```
+
+If you plan to use media downloads, also add:
+
+```text
+OPENVPN_USER=your_proton_openvpn_username
+OPENVPN_PASSWORD=your_proton_openvpn_password
+VPN_SERVER_COUNTRIES=Netherlands
+```
+
+### Important: the secret file must exist in Portainer's stack checkout
+
+`docker-compose.yml` reads `services/secrets/cf_dns_api_token`. When Portainer deploys from Git, it needs that file in the stack working copy on the Docker host.
+
+Typical host-side setup:
+
+```bash
+# Example path used by Portainer for a stack checkout
+$ mkdir -p /data/compose/homelab/services/secrets
+$ echo -n 'your_cf_api_token' > /data/compose/homelab/services/secrets/cf_dns_api_token
+```
+
+```bash
+# Verify the file exists where Portainer will read it
+$ ls -l /data/compose/homelab/services/secrets/cf_dns_api_token
+-rw------- 1 root root 19 Apr  9 12:00 /data/compose/homelab/services/secrets/cf_dns_api_token
+```
 
 !!! warning
-    For private repositories, you must authenticate. Use either:
-    - **Username/Password** (GitHub personal access token works as password)
-    - **Deploy Key** (add the public key to your repo's deploy keys)
+    If the secret file is missing from the Portainer stack checkout, the full stack deploy will fail before **Traefik** can request certificates.
 
-### Environment Variables
+### What happens on the first full deploy
 
-Add these required **environment variables**:
+Portainer deploys the repo as the real stack. That deploy includes:
 
-| Variable | Value | Required |
-|----------|-------|----------|
-| `DOMAIN` | `yourdomain.com` | Yes |
-| `CF_API_EMAIL` | `you@yourdomain.com` | For production |
+- **Traefik**
+- **Sablier**
+- **AdGuard**
+- **RustFS**
+- app stacks such as **Immich**, **Paperless**, and **Portainer**
 
-Click **"Add an environment variable"** for each:
-
-```
-DOMAIN=yourdomain.com
-CF_API_EMAIL=you@yourdomain.com
-```
-
-### Enable GitOps Auto-Update
-
-Check **"Enable GitOps"** and configure:
-
-| Setting | Recommended Value | Description |
-|---------|-------------------|-------------|
-| **Mechanism** | `Webhook` | Push-based (instant) |
-| **Fetch interval** | `5m` | Poll-based fallback |
-| **Webhook URL** | (Auto-generated) | Copy this for GitHub |
-
-Click **"Deploy the stack"**.
+The first Portainer-managed deploy effectively takes over from the bootstrap containers and reconciles them into the full stack definition.
 
 ---
 
-## Step 3: Configure GitHub Webhook
+## Step 4: Configure DNS And TLS For Production
 
+This repo uses **Cloudflare DNS-01** for certificate issuance and **VPN DNS** for client resolution.
 
-For instant redeploys when you push, add a webhook to your GitHub repository:
+!!! info "Production Checklist"
+    Before you treat the stack as production-ready, make sure you:
 
+    - bootstrap the host with `docker compose --profile pods up -d`
+    - deploy the full homelab through **Portainer**
+    - configure **Cloudflare** DNS-01, **NetBird** DNS, and **AdGuard** wildcard routing
+    - verify `https://whoami.${DOMAIN}` after the full deploy
 
-1. Go to your repository on GitHub
-2. Navigate to **Settings** → **Webhooks** → **Add webhook**
-3. Configure:
-   - **Payload URL**: Paste the webhook URL from Portainer (e.g., `https://pods.yourdomain.com/api/stacks/webhook/abc123`)
-   - **Content type**: `application/json`
-   - **Secret**: (Leave blank, or set if you configured one)
-   - **Events**: Select **Just the push event**
-4. Click **Add webhook**
+The roles are separate:
 
-!!! note
-    You can find the webhook URL in **Portainer** under your stack settings: Stacks → homelab → Editor → GitOps → Webhook URL.
+- **Cloudflare** proves domain ownership to **Let's Encrypt**
+- **NetBird** tells VPN clients which DNS resolver to use
+- **AdGuard** resolves `*.${DOMAIN}` to the homelab server's VPN IP
+
+Resolution path:
+
+`VPN client -> NetBird DNS settings -> AdGuard -> Traefik`
+
+### Cloudflare token permissions
+
+Your Cloudflare token needs:
+
+- `Zone:Read`
+- `DNS:Edit`
+
+### AdGuard wildcard records
+
+Point your wildcard and apex records to the homelab host's VPN IP:
+
+```text
+A  *.lab.example.com  100.90.12.34
+A  lab.example.com    100.90.12.34
+```
+
+### NetBird DNS
+
+In **NetBird**:
+
+1. Add the **AdGuard** instance as the DNS server for the peer groups that should use the homelab.
+2. Confirm clients in those groups receive the NetBird DNS settings.
+
+If you skip this step, certificate issuance may still succeed through **Cloudflare**, but clients will not resolve your app hostnames to the VPN IP.
 
 ---
 
-## Step 4: Verify Deployment
+## Step 5: Verify The Deployed Stack
 
-
-### Check Stack Status
-
-In **Portainer**:
-1. Go to **Stacks** → **homelab**
-2. You should see all services listed with green status indicators
-3. Click on individual services to view logs
-
-### Verify Services Are Accessible
+After Portainer finishes the full deploy, confirm routing, DNS, and TLS.
 
 ```bash
-# Test whoami endpoint
-$ curl -k https://whoami.yourdomain.com
+# Check that the routed entrypoint is alive
+$ curl -sk https://traefik.lab.example.com/api/version | jq
+{
+  "version": "3.6.9"
+}
+```
+
+```bash
+# Check DNS from a VPN-connected client
+$ nslookup whoami.lab.example.com
+Name: whoami.lab.example.com
+Address: 100.90.12.34
+```
+
+```bash
+# Check the routed whoami service
+$ curl -k https://whoami.lab.example.com
 Hostname: homelab-whoami-1
 IP: 172.20.0.2
 ```
 
 ```bash
-# Test Traefik dashboard
-$ curl -s -k https://traefik.yourdomain.com/api/version | jq
-{
-  "version": "3.0.0"
-}
+# Check certificate issuer
+$ curl -vkI https://whoami.lab.example.com 2>&1 | grep -E "(subject:|issuer:)"
+*  subject: CN=whoami.lab.example.com
+*  issuer: C=US; O=Let's Encrypt; CN=R3
 ```
 
 ---
 
-## Service-Specific Environment Variables
+## Common Confusion Points
 
+### `https://pods.${DOMAIN}` does not work right after bootstrap
 
-Each service may require additional **environment variables**. Set these in **Portainer** under your stack's **Environment variables** section:
+That is expected. The `pods` profile only publishes **Portainer** directly on `9443`. The routed `pods.${DOMAIN}` hostname appears only after the full stack deploy creates **Traefik**.
 
-### Required for All Services
+### `docker compose --profile pods up -d` starts only two containers
 
-| Variable | Service | Purpose | Example |
-|----------|---------|---------|---------|
-| `DOMAIN` | All | Base domain | `yourdomain.com` |
-| `CF_API_EMAIL` | Traefik | Cloudflare account email | `you@domain.com` |
+That is correct. The bootstrap profile is intentionally small:
 
-### Karakeep (Bookmark Manager)
+- `portainer`
+- `agent`
 
+Everything else is created by the Portainer-managed stack.
 
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `MEILI_MASTER_KEY` | Meilisearch authentication | `random-secret-key-32-chars-long` |
-| `NEXTAUTH_SECRET` | NextAuth session encryption | `openssl rand -base64 32` |
+### The bootstrap and the full stack both include Portainer
 
-**How to set:**
-1. In **Portainer**, go to **Stacks** → **homelab** → **Editor**
-2. Add to Environment variables:
-   ```
-   MEILI_MASTER_KEY=your-random-key-here
-   NEXTAUTH_SECRET=your-nextauth-secret
-   ```
-3. Click **"Update the stack"**
-
-### Immich (Photo Management)
-
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `DB_USERNAME` | Immich database username | `immich` |
-| `DB_PASSWORD` | Immich database password | `secure-password` |
-| `DB_DATABASE_NAME` | Database name | `immich` |
-
-**Note:** These are referenced in `services/.env-immich`:
-```bash
-DB_HOSTNAME=immich-postgres
-DB_USERNAME=immich
-DB_PASSWORD=immich
-DB_DATABASE_NAME=immich
-REDIS_HOSTNAME=redis
-```
-
-### Listmonk (Newsletters)
-
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `LISTMONK_db__user` | Database username | `listmonk` |
-| `LISTMONK_db__password` | Database password | `listmonk-pass` |
-| `LISTMONK_db__database` | Database name | `listmonk` |
-
-### RustFS (S3 Storage)
-
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `RUSTFS_ACCESS_KEY` | S3 access key | `minioadmin` |
-| `RUSTFS_SECRET_KEY` | S3 secret key | `minioadmin` |
-
-### Paperless-ngx (Document Management)
-
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `PAPERLESS_SECRET_KEY` | Django secret key | `openssl rand -hex 32` |
-| `PAPERLESS_OCR_LANGUAGE` | OCR language | `eng` |
-
-### NetAlertX (Network Scanner)
-
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `NETALERTX_SCAN_SUBNETS` | Networks to scan | `192.168.1.0/24` |
-
-
----
-
-## Managing Secrets
-
-
-This stack uses a **file-based Docker secret** for Cloudflare. Keep that file under the stack checkout path (`services/secrets/cf_dns_api_token`).
-
-
-| Secret File | Used By | How to provide it |
-|-----------|---------|-------------------|
-| `cf_dns_api_token` | Traefik | Create `services/secrets/cf_dns_api_token` in the stack working directory |
-
-### Setting Secrets in Portainer
-
-
-1. Open a shell on the Docker host running **Portainer**.
-2. Create the secret file in the stack path:
-   ```bash
-   $ mkdir -p /data/compose/homelab/services/secrets
-   $ echo -n 'your-cloudflare-token' > /data/compose/homelab/services/secrets/cf_dns_api_token
-   ```
-3. Redeploy the stack in **Portainer** (Stacks → homelab → Pull and redeploy).
-
-!!! warning
-    If your **Portainer** stack path is not `/data/compose/homelab`, check it with:
-    `docker compose exec portainer ls -la /data/compose/`
-
-
----
-
-## GitOps Workflow
-
-Once configured, your workflow becomes:
-
-```bash
-# 1. Make changes locally
-$ vim services/portainer.yml
-
-# 2. Test locally (optional but recommended)
-$ docker compose up -d portainer
-
-# 3. Commit and push
-$ git add .
-$ git commit -m "Update Portainer resources"
-[main 1a2b3c4] Update Portainer resources
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-$ git push origin main
-Enumerating objects: 9, done.
-Delta compression using up to 8 threads
-Compressing objects: 100% (5/5), done.
-Writing objects: 100% (9/9), 532 bytes | 532.00 KiB/s, done.
-To https://github.com/yourusername/homelab.git
-   abc1234..1a2b3c4  main -> main
-```
-
-**Portainer** automatically:
-1. Receives webhook notification from GitHub
-2. Pulls latest changes from your repo
-3. Runs `docker compose up -d` with your environment variables
-4. Updates the stack status in the UI
-
----
-
-## Rollback
-
-Made a mistake? Roll back to a previous version:
-
-1. In **Portainer**, go to **Stacks** → **homelab**
-2. Click **"Rollback"** button
-3. Select the previous revision from the dropdown
-4. Click **"Rollback"**
-
-Or via Git:
-
-```bash
-# Revert last commit
-$ git revert HEAD
-
-# Push (triggers Portainer redeploy)
-$ git push origin main
-```
+That is intentional. Bootstrap gets you into the UI. The first full deploy reconciles **Portainer** and **agent** into the Git-managed stack definition.
 
 ---
 
 ## Troubleshooting
 
-### Stack Shows "Failed" Status
+### Portainer bootstrap is up, but the local environment is missing
 
-**Check:** Repository is accessible
+Confirm both bootstrap services are running:
+
 ```bash
-$ curl -I https://github.com/yourusername/homelab
-HTTP/2 200
+$ docker compose --profile pods ps
+NAME                 IMAGE                       STATUS
+homelab-agent-1      portainer/agent:2.25.1     Up
+homelab-portainer-1  portainer/portainer-ce:2.25.1 Up
 ```
 
-**Check:** Webhook is configured correctly
-In **Portainer**: Stacks → homelab → Editor → GitOps. Verify webhook URL matches GitHub settings.
+If `agent` is missing, restart the bootstrap profile:
 
-**Check:** Portainer logs
 ```bash
-$ docker compose logs portainer --tail 100
-portainer  | 2026/03/03 12:00PM INF github.com/portainer/portainer/api/cmd/portainer/main.go:501 > starting Portainer version=2.25.1
+$ docker compose --profile pods up -d
+[+] Running 2/2
+ ✔ Container homelab-agent-1      Started
+ ✔ Container homelab-portainer-1  Started
 ```
 
-### Services Not Updating
+### The full deploy fails before Traefik starts
 
-**Check:** Environment variables are set
-In **Portainer**: Stacks → homelab → Editor. Verify all required variables are listed.
+The most common cause is a missing secret file inside Portainer's stack checkout:
 
-**Check:** Secrets exist
 ```bash
-$ docker compose exec portainer ls -la /data/compose/homelab/services/secrets/
-total 8
-drwxr-xr-x 2 root root 4096 Mar  3 12:00 .
-drwxr-xr-x 3 root root 4096 Mar  3 12:00 ..
--rw------- 1 root root   40 Mar  3 12:00 cf_dns_api_token
+$ ls /data/compose/homelab/services/secrets/cf_dns_api_token
+ls: cannot access '/data/compose/homelab/services/secrets/cf_dns_api_token': No such file or directory
 ```
 
-**Force redeploy:**
-In **Portainer**: Stacks → homelab → Click **"Pull and redeploy"**
+Create it and redeploy:
 
-### GitHub Webhook Not Working
-
-**Check:** Webhook delivered successfully
-In GitHub: Repository → Settings → Webhooks → Click webhook → Recent Deliveries. Look for green checkmarks.
-
-**Check:** Portainer accessible from GitHub
 ```bash
-$ curl -X POST https://pods.yourdomain.com/api/stacks/webhook/YOUR_WEBHOOK_ID
-{"message":"Invalid stack"}  # This is expected for empty POST
+$ mkdir -p /data/compose/homelab/services/secrets
+$ echo -n 'your_cf_api_token' > /data/compose/homelab/services/secrets/cf_dns_api_token
 ```
 
-If you get connection errors, ensure your **Portainer** instance is publicly accessible.
+### Certificates are not issued
 
-### Environment Variables Not Applied
+Check **Traefik** logs after the full deploy:
 
-**Check:** Variables are saved in Portainer
-In **Portainer**: Stacks → homelab → Editor → Environment variables section.
-
-**Check:** Variable names match exactly
-Case-sensitive: `DOMAIN` ≠ `domain`
-
-**Force update:**
-Make a trivial commit to trigger redeploy:
 ```bash
-$ git commit --allow-empty -m "Trigger redeploy"
-$ git push
+$ docker compose logs traefik --tail 100 | grep -i "acme\\|cloudflare\\|error"
+traefik  | error renewing certificate for domain lab.example.com
 ```
+
+Most common causes:
+
+- wrong token value in `cf_dns_api_token`
+- missing `Zone:Read` or `DNS:Edit` permissions
+- wrong `DOMAIN` value in `.env` or Portainer stack variables
+
+### DNS resolves the wrong IP
+
+From a VPN-connected client:
+
+```bash
+$ nslookup whoami.lab.example.com
+Name: whoami.lab.example.com
+Address: 203.0.113.10
+```
+
+That result is wrong for the VPN-only model. Fix the DNS path:
+
+- confirm NetBird assigns **AdGuard** as the client DNS server
+- confirm **AdGuard** has the wildcard rewrite for `*.lab.example.com`
+- confirm the wildcard points to the homelab host's VPN IP, not a public IP
 
 ---
 
-## Advanced: Multiple Environments
+## Recommended Deployment Cycle
 
-Deploy the same stack to different environments (dev/staging/prod):
+Use this cycle for ongoing changes:
 
-1. Create separate stacks in **Portainer**:
-   - `homelab-dev` → tracks `develop` branch
-   - `homelab-prod` → tracks `main` branch
+1. Edit and commit in Git.
+2. Push to the tracked branch.
+3. Let **Portainer GitOps** redeploy the stack.
+4. Verify a routed endpoint such as `https://whoami.${DOMAIN}`.
 
-2. Use different environment variables per stack:
-   - `homelab-dev`: `DOMAIN=dev.yourdomain.com`
-   - `homelab-prod`: `DOMAIN=yourdomain.com`
+For one-off validation before pushing, run:
 
-3. Configure different webhooks for each stack
+```bash
+$ docker compose config > /dev/null && echo "config ok"
+config ok
+```
 
----
-
-## Advanced: Private Submodules
-
-If your repo includes private submodules:
-
-1. In **Portainer**, when adding the stack:
-   - Check **"Repository authentication"**
-   - Enter SSH key or username/password
-2. Ensure the credentials have access to submodules
-3. Use relative URLs in `.gitmodules`:
-   ```
-   [submodule "config"]
-       path = config
-       url = ../private-config.git
-   ```
-
----
-
-## Best Practices
-
-1. **Never commit secrets**: Add `services/secrets/` to `.gitignore`
-2. **Use `.env.example`**: Commit a template, keep real values in **Portainer**
-3. **Test locally first**: Run `docker compose config` before pushing
-4. **Enable webhook**: Instant deploys beat polling every 5 minutes
-5. **Monitor deployments**: Check **Portainer** notifications for failures
-6. **Version pin images**: Use `image: traefik:3.0` not `image: traefik:latest`
-
----
-
-## Summary
-
-| Task | Time | Command/UI Path |
-|------|------|-----------------|
-| Start infrastructure | 2 min | `docker compose --profile infra up -d` |
-| Configure GitOps stack | 5 min | Portainer → Stacks → Add Stack → Repository |
-| Add GitHub webhook | 3 min | GitHub → Settings → Webhooks |
-| Verify deployment | 2 min | `curl -k https://whoami.yourdomain.com` |
-| Deploy changes | 1 min | `git push origin main` |
-
-**Total setup time: ~15 minutes**
-**Time per deploy: ~1 minute (just push to Git)**
+That keeps the docs aligned with the repo: **Portainer** is the bootstrap control plane, and the full homelab is Portainer-managed from Git.

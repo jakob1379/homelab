@@ -1,10 +1,11 @@
 ---
 services:
   portainer:
-    profiles: [apps, all, portainer]
+    profiles: [apps, all, pods]
     image: portainer/portainer-ce:2.25.1
     volumes: [portainer_data:/data]
     networks: [traefik_public, portainer_agent]
+    ports: [9443:9443]
     labels:
       - traefik.enable=true
       - traefik.http.routers.portainer.entrypoints=websecure
@@ -26,7 +27,7 @@ services:
           cpus: '0.25'
           memory: 256M
   agent:
-    profiles: [apps, all]
+    profiles: [apps, all, pods]
     image: portainer/agent:2.25.1
     restart: always
     volumes:

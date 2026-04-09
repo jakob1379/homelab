@@ -81,7 +81,8 @@ flowchart LR
 - We tune sleep/wake behavior per stack, not per random single container.
 
 By default, host-level access is limited to:
-- **Traefik** (`80/443`, plus `8080` dashboard)
+- **Traefik** (`80/443`)
+- **Portainer bootstrap** (`9443`)
 - **AdGuard DNS** (`${ADGUARD_DNS_PORT}`)
 - **NetAlertX** (`network_mode: host`)
 
@@ -98,7 +99,7 @@ flowchart LR
     B -->|No| D[Sablier Start<br/>~2s] --> C
     C --> E{Traffic?}
     E -->|Yes| C
-    E -->|No x5min| F[(Stopped<br/>0 RAM)]
+    E -->|No xsession| F[(Stopped<br/>0 RAM)]
 
     style A fill:#e3f2fd,stroke:#1976d2
     style C fill:#e8f5e9,stroke:#388e3c
@@ -111,7 +112,7 @@ flowchart LR
 2. If **Portainer** is stopped, **Sablier** intercepts the request and starts the container (~2 seconds)
 3. You see a "Starting..." page while the container boots
 4. Once healthy, your request is proxied to the application
-5. After 5 minutes of no traffic, **Sablier** stops the container to save resources
+5. After the configured `sessionDuration` expires, **Sablier** stops the container to save resources. In this repo, those timeouts vary by route: **Immich workers** use `5m`, **Karakeep** uses `15m`, and most routed apps use `30m`.
 
 ---
 
@@ -214,42 +215,46 @@ IP: 172.20.0.2
 
 **Production** (your domain, valid certs):
 ```bash
-# 1. Set domain
-$ export DOMAIN=yourdomain.com
+# 1. Set domain and Cloudflare email
+$ printf 'DOMAIN=yourdomain.com\nCF_API_EMAIL=you@example.com\n' > .env
 
 # 2. Add Cloudflare token
 $ echo -n 'your_token' > services/secrets/cf_dns_api_token
 
-# 3. Configure NetBird DNS to use AdGuard
-#    and add wildcard in AdGuard:
-#    *.yourdomain.com -> 100.x.y.z
+# 3. Bootstrap Portainer only
+$ docker compose --profile pods up -d
 
-# 4. Deploy
-$ DOMAIN=yourdomain.com docker compose up -d
+# 4. Open https://localhost:9443 and let Portainer deploy the full stack
 ```
 
-See [Production Setup](docs/production.md) for detailed steps.
+See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and GitOps flow.
 
 ---
 
-## Portainer Deployment (GitOps)
+## Deployment Via Portainer
 
-Deploy and manage your homelab through **Portainer's** web UI using **GitOps**:
+Deploy the stack through **Portainer**:
 
 ```bash
-# 1. Start Portainer
-$ docker compose --profile infra up -d
-$ docker compose up -d portainer
+# 1. Bootstrap only Portainer + agent
+$ docker compose --profile pods up -d
+[+] Running 2/2
+ ✔ Container homelab-agent-1      Started
+ ✔ Container homelab-portainer-1  Started
 
-# 2. Access Portainer at https://pods.traefik.me
-# 3. Go to Stacks → Add Stack → Git Repository
-# 4. Configure:
-#    - Repository URL: https://github.com/jakob1379/homelab
-#    - Compose path: docker-compose.yml
-#    - Environment variables: Add DOMAIN, CF_API_EMAIL
+# 2. Verify the direct bootstrap endpoint
+$ curl -sk https://localhost:9443/api/status | jq '.Version'
+"2.25.1"
 ```
 
-See [Portainer GitOps Guide](docs/portainer.md) for the complete setup (takes 10 minutes).
+Then:
+
+1. Open `https://localhost:9443`
+2. Create the Portainer admin user
+3. Add this repo as a **Repository** stack
+4. Let Portainer deploy **Traefik**, **AdGuard**, and the rest of the stack from Git
+
+See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and GitOps flow.
 
 ---
 
@@ -369,8 +374,7 @@ $ docker compose up -d portainer
 ## Documentation
 
 - [Architecture & How It Works](docs/architecture.md) - Request flow, networks, Sablier mechanics
-- [Production Setup](docs/production.md) - VPN-only access with Cloudflare DNS-01 certificates
-- [Portainer GitOps](docs/portainer.md) - Deploy via Portainer web UI
+- [Deployment Guide](docs/portainer.md) - Bootstrap with `--profile pods`, deploy the full stack through Portainer, and follow the production DNS/TLS checklist
 - [Queue-Driven Sleep Pattern](docs/queue-driven-sleep.md) - Sablier pattern for queue-backed workers (Immich)
 - [Troubleshooting](docs/troubleshooting.md) - Common issues and fixes
 - [Service Reference](docs/services.md) - Per-service configuration
