@@ -21,10 +21,17 @@ jobs:
       - name: Run setup-dev script
         run: |
           bash setup-dev.sh
-      - name: Validate Docker Compose configuration (profile all)
+      - name: Validate main Docker Compose configuration (profile all)
         run: |
           DOMAIN=test.traefik.me docker compose --profile all config
-      - name: Validate referenced images exist (dry run)
+      - name: Validate pods bootstrap Docker Compose configuration
+        run: |
+          DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config
+      - name: Validate referenced images exist for main stack (dry run)
         run: |-
           set -euo pipefail
           DOMAIN=test.traefik.me docker compose --profile all pull --dry-run
+      - name: Validate referenced images exist for pods stack (dry run)
+        run: |-
+          set -euo pipefail
+          DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run

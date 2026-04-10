@@ -8,10 +8,10 @@ Run these two checks before you dig into a specific failure:
 
 ```bash title="Check the current container state"
 # 1. Check the bootstrap or full-stack containers
-$ docker compose ps
+$ docker compose -f docker-compose.pods.yml ps
 NAME                    IMAGE                          STATUS
-homelab-portainer-1     portainer/portainer-ce:2.25.1 Up
-homelab-dockhand-1      fnsys/dockhand:latest         Up
+homelab-pods-portainer-1     portainer/portainer-ce:2.25.1 Up
+homelab-pods-dockhand-1      fnsys/dockhand:latest         Up
 ```
 
 ```bash title="Check whether Portainer is still in bootstrap mode"

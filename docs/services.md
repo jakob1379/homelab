@@ -17,11 +17,14 @@ $ docker compose --profile infra up -d
  ✔ Container homelab-traefik-1  Started
  ...
 
-$ docker compose --profile apps up -d portainer dockhand ittools
-[+] Running 3/3
-  ✔ Container homelab-dockhand-1   Started
-  ✔ Container homelab-portainer-1  Started
+$ docker compose --profile apps up -d ittools
+[+] Running 1/1
   ✔ Container homelab-ittools-1    Started
+
+$ docker compose -f docker-compose.pods.yml up -d
+[+] Running 2/2
+  ✔ Container homelab-pods-dockhand-1   Started
+  ✔ Container homelab-pods-portainer-1  Started
 ```
 
 Then open `https://pods.${DOMAIN}`, `https://docker.${DOMAIN}`, and `https://it.${DOMAIN}`.
@@ -78,16 +81,16 @@ Complete list of services and configuration points.
 
 ### Portainer
 - **Purpose:** Docker container management UI
-- **Access:** `https://pods.${DOMAIN}` after the full stack deploy, or `https://localhost:9443` during `pods` bootstrap
-- **Profile:** apps, pods
+- **Access:** `https://pods.${DOMAIN}` after the full stack deploy, or `https://localhost:9443` from the separate bootstrap stack
+- **Stack:** `docker-compose.pods.yml`; after the main deploy, Traefik routes `pods.${DOMAIN}` to that separate stack
 - **Sablier:** Yes
 - **Notes:** Has built-in authentication and an emergency direct host port on `9443`
 - **Guide:** [Deployment](portainer.md)
 
 ### Dockhand
 - **Purpose:** Modern Docker management UI
-- **Access:** `https://docker.${DOMAIN}` after the full deploy, or `http://localhost:3000` during `pods` bootstrap
-- **Profile:** apps, pods
+- **Access:** `https://docker.${DOMAIN}` after the full deploy, or `http://localhost:3000` from the separate bootstrap stack
+- **Stack:** `docker-compose.pods.yml`; after the main deploy, Traefik routes `docker.${DOMAIN}` to that separate stack
 - **Sablier:** Yes
 - **Notes:** Mounts the local Docker socket and publishes a direct bootstrap port on `3000`
 

@@ -1,10 +1,12 @@
 ---
 # Docker Compose Override for Local Development
-# This file sets restart: unless-stopped for all services
-# Place this file in the same directory as your main docker-compose.yml
+# This file sets restart: unless-stopped for the main homelab stack
+# Portainer + Dockhand live in docker-compose.pods.yml and are managed separately
 #
-# Usage: docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
-# Or if using profiles: docker compose --profile all up -d
+# Usage: docker compose --profile all up -d
+# Full local setup with the separate pods stack:
+#   docker compose --profile all up -d
+#   docker compose -f docker-compose.pods.yml up -d
 #
 services:
   # networking.yml
@@ -49,12 +51,6 @@ services:
   chrome:
     restart: unless-stopped
   meilisearch:
-    restart: unless-stopped
-
-  # pods.yml
-  portainer:
-    restart: unless-stopped
-  dockhand:
     restart: unless-stopped
 
   # immich.yml

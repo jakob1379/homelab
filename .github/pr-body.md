@@ -17,10 +17,11 @@ This PR updates the homelab Docker Compose setup with improvements to service co
      - `postgres.yml`: PostgreSQL
      - `rustfs.yml`: RustFS (S3-compatible storage)
      - `monitoring.yml`: Shepherd, Dozzle
-     - `tools.yml`: IT Tools, CloudBeaver, BentoPDF
-      - Application-specific stacks: `listmonk.yml`, `hoarder.yml`, `pods.yml`
-   - Root `docker-compose.yml` includes all stacks with shared networks and volumes
-   - Simplified service management: start all with `docker compose up` or specific stacks with `docker compose up stackname`
+      - `tools.yml`: IT Tools, CloudBeaver, BentoPDF
+      - Application-specific stacks: `listmonk.yml`, `hoarder.yml`
+      - Bootstrap stack: `docker-compose.pods.yml` includes `services/pods.yml`
+   - Root `docker-compose.yml` includes the main homelab stacks with shared networks and volumes
+   - Simplified service management: start the main stack with `docker compose --profile all up` and the bootstrap stack with `docker compose -f docker-compose.pods.yml up`
 
 3. **Domain Standardization & Configurability**
    - Uses `${DOMAIN:-traefik.me}` domain configuration across all files

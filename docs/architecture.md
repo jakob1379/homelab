@@ -147,7 +147,7 @@ screwdriver is much easier when you have a dedicated toolbox.
     ```
 
     **What's happening here:**
-    The main `docker-compose.yml` uses an `include:` directive to pull in service definitions. This keeps the root file clean while each service evolves independently.
+    The main `docker-compose.yml` uses an `include:` directive to pull in the main homelab service definitions. The Portainer + Dockhand bootstrap stack stays separate in `docker-compose.pods.yml`.
 
     ```yaml title="docker-compose.yml (excerpt)"
     # docker-compose.yml
@@ -156,6 +156,10 @@ screwdriver is much easier when you have a dedicated toolbox.
       - services/tools.yml              # IT Tools, CloudBeaver, BentoPDF
       - services/speedtest-tracker.yml  # Internet speed history
       - services/vert.yml               # Local file converter
+    ```
+
+    ```yaml title="docker-compose.pods.yml"
+    include:
       - services/pods.yml               # Portainer + Dockhand bootstrap control plane
     ```
 
@@ -255,7 +259,7 @@ Practical rule:
 
 ## Profile Separation
 
-Here's a common problem: run `docker compose up` on this stack and it starts 15+ containers at once, even when you're just testing **Traefik**. That's like starting your entire computer just to check email.
+Here's a common problem: run the full stack when you're only testing **Traefik** and you wake a pile of containers you did not need. That's like starting your entire computer just to check email.
 
 **Docker Compose profiles** are a great solution: they're tags that say "start these services together." They let us group services into `infra` (the stuff that should always run) and `apps` (the stuff that can sleep until you need it).
 
@@ -264,24 +268,24 @@ Here's a common problem: run `docker compose up` on this stack and it starts 15+
 Running everything at once wastes resources, since each idle container still consumes RAM and CPU:
 
 ```bash title="Why profiles matter: starting everything at once"
-$ docker compose up -d  # Starts everything
+$ docker compose --profile all up -d  # Starts the full main stack
 $ docker stats --no-stream | awk 'NR>1 {sum+=$3} END {print "Total CPU: " sum"%"}'
 Total CPU: 23%
 ```
 
 ### The Solution
 
-This homelab uses **five profiles** to control what starts when:
+This homelab uses **five profiles** in the main stack, plus a separate bootstrap stack for Portainer and Dockhand:
 
 | Profile        | Purpose                            | When to Use                      |
 |----------------|------------------------------------|----------------------------------|
-| `pods`         | Portainer + Dockhand bootstrap control plane | First host bootstrap and recovery |
 | `infra`        | Always-on foundation services      | Run this first, leave it running |
 | `apps`         | On-demand applications             | Start only when needed           |
 | `all`          | Convenience profile                | Development or full testing      |
 | `experimental` | Things that most likely will break | Development only                 |
+| `tunnel`       | Optional Cloudflare tunnel sidecars | Remote access or edge exposure   |
 
-**Pods bootstrap** includes **Portainer** and **Dockhand**. **Infra services** include **Traefik**, **Sablier**, **RustFS**, and **AdGuard**. Stateful apps run app-local databases (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) in the `apps` profile.
+**Bootstrap stack** includes **Portainer** and **Dockhand**. **Infra services** include **Traefik**, **Sablier**, **RustFS**, and **AdGuard**. Stateful apps run app-local databases (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) in the `apps` profile.
 
 **Most app services** start on-demand via **Sablier** when you access them. You can also wake groups via cron pre-warm or queue-monitor triggers where needed. **Immich API/UI** is the exception and stays online by default; only its worker wake flow is optional via the `experimental` profile.
 
@@ -291,11 +295,11 @@ For queue-backed workloads, use the dedicated [Queue-Driven Sleep Pattern](queue
 
 Use this when you want bootstrap management access before the full stack is up:
 
-```bash title="Start only the Portainer bootstrap profile"
-$ docker compose --profile pods up -d
+```bash title="Start only the Portainer bootstrap stack"
+$ docker compose -f docker-compose.pods.yml up -d
 [+] Running 2/2
-  ✔ Container homelab-portainer-1  Started
-  ✔ Container homelab-dockhand-1   Started
+  ✔ Container homelab-pods-portainer-1  Started
+  ✔ Container homelab-pods-dockhand-1   Started
 ```
 
 This is the deployment path described in [Deployment](portainer.md). You access Portainer directly on `https://localhost:9443` and Dockhand on `http://localhost:3000` until the full stack deploy brings up **Traefik**.
@@ -329,19 +333,19 @@ Start individual apps on top of the running infra:
 
 ```bash title="Start specific apps on top of infra"
 $ docker compose --profile infra up -d  # Foundation already running
-$ docker compose --profile apps up -d portainer ittools
+$ docker compose --profile apps up -d ittools cloudbeaver
 [+] Running 2/2
- ✔ Container portainer  Started
- ✔ Container ittools    Started
+ ✔ Container ittools      Started
+ ✔ Container cloudbeaver  Started
 ```
 
 ### Use the Convenience Profile
 
-For development or when you want everything (not including *experimental*):
+For development or when you want the full main stack (not including *experimental*):
 
 ```bash title="Use the all profile from the shell"
 $ export COMPOSE_PROFILES=all
-$ docker compose up -d  # Starts both infra and apps
+$ docker compose up -d  # Starts the full main stack
 ```
 
 Or in your `.env` file:

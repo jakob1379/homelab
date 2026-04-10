@@ -10,7 +10,8 @@ to run locally with minimal setup and scale into a production-style self-hosted 
 - `services/` Per-stack compose files, env files, and secret file paths.-
  `site/` Generated docs output; ignored by git.
 - `traefik-config/` Local Traefik config/secrets area; secrets are ignored.
-- `docker-compose.yml` Root compose entrypoint that includes `services/*.yml`.
+- `docker-compose.yml` Root compose entrypoint for the main homelab stack.
+- `docker-compose.pods.yml` Separate bootstrap stack for Portainer + Dockhand.
 - `docker-compose.override.yml` Local restart-policy overrides.
 - `setup-dev.sh` Creates dummy env and secret files for local development.
 - `README.md` Main overview, quick start, and operator docs.
@@ -24,16 +25,18 @@ Install/bootstrap:
 ```bash
 ./setup-dev.sh
 Run:
-docker compose up -d
+docker compose --profile all up -d
 docker compose --profile infra up -d
 docker compose --profile apps up -d
-docker compose --profile pods up -d
+docker compose -f docker-compose.pods.yml up -d
 cd home-assistant && docker compose --profile service up -d
 Test/validate:
 bash -n setup-dev.sh
 bash setup-dev.sh
 DOMAIN=test.traefik.me docker compose --profile all config
+DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config
 DOMAIN=test.traefik.me docker compose --profile all pull --dry-run
+DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run
 Lint:
 pre-commit install
 pre-commit run -a
@@ -48,7 +51,7 @@ docker compose logs -f traefik
 curl -k https://whoami.traefik.me
 curl -sk https://localhost:9443/api/status | jq '.Version'
 Deploy:
-docker compose --profile pods up -d
+docker compose -f docker-compose.pods.yml up -d
 Code Style & Conventions
 - Keep compose config split by stack under services/.
 - Put routing and middleware in config/traefik/dyn/*.yml.
@@ -71,11 +74,12 @@ flowchart LR
     Docker --> services
     Portainer --> Docker
     HomeAssistant --> traefik_public
-docker-compose.yml includes per-stack files from services/. Traefik handles ingress,
+docker-compose.yml includes the main stack files from services/, while
+docker-compose.pods.yml loads the bootstrap control plane. Traefik handles ingress,
 TLS, and file-plus-Docker-provider routing. Sablier starts stopped app groups on demand.
 Most apps join traefik_public plus a private stack network; stateful services keep
-app-local databases and volumes. Portainer bootstrap uses the pods profile, then
-deploys the full stack from Git.
+app-local databases and volumes. Portainer bootstrap runs as a separate stack, then
+deploys the main stack from Git.
 Testing Strategy
 - Unit tests:
   > TODO: No unit test suite is configured.
@@ -83,9 +87,11 @@ Testing Strategy
   Run bash -n setup-dev.sh,
   bash setup-dev.sh,
   DOMAIN=test.traefik.me docker compose --profile all config, and
-  DOMAIN=test.traefik.me docker compose --profile all pull --dry-run.
+  DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config,
+  DOMAIN=test.traefik.me docker compose --profile all pull --dry-run, and
+  DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run.
 - E2E/smoke:
-  Run docker compose up -d and curl -k https://whoami.traefik.me.
+  Run docker compose --profile all up -d and curl -k https://whoami.traefik.me.
 - CI:
   .github/workflows/test-docker-compose.yml validates the setup script and Compose
   config; .github/workflows/docs.yml builds docs; .github/workflows/yamlfix.yml
@@ -109,10 +115,11 @@ Agent Guardrails
   DOMAIN=test.traefik.me docker compose --profile all config.
 - Prefer stack-local changes over repo-wide refactors.
 Extensibility Hooks
-- Add new stacks as services/<name>.yml, then include them in docker-compose.yml.
+- Add new main-stack services as services/<name>.yml, then include them in docker-compose.yml.
+- Keep Portainer + Dockhand bootstrap changes in docker-compose.pods.yml and services/pods.yml.
 - Add routes and Sablier middleware in config/traefik/dyn/*.yml.
 - Use Compose profiles as feature flags:
-  pods, infra, apps, all, experimental, tunnel.
+  infra, apps, all, experimental, tunnel.
 - Main env hooks:
   DOMAIN, CF_API_EMAIL, ADGUARD_DNS_PORT,
   OPENVPN_USER, OPENVPN_PASSWORD, VPN_SERVER_COUNTRIES.

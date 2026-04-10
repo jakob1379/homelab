@@ -52,7 +52,7 @@ This script creates:
 - Optional: .env from .env.example if missing
 - Reminder: set VPN credentials in .env for media downloads
 
-Run this script before starting services with docker compose.
+Run this script before starting the homelab and pods stacks with docker compose.
 EOF
 }
 
@@ -234,16 +234,20 @@ fi
 log_info "Setup complete!"
 log_info ""
 log_info "Next steps:"
-log_info "1. Start all services:"
-log_info "   docker compose up -d"
-log_info "2. Start only infrastructure:"
+log_info "1. Start the main homelab stack (infra + apps):"
+log_info "   docker compose --profile all up -d"
+log_info "2. Start the separate Portainer + Dockhand stack:"
+log_info "   docker compose -f docker-compose.pods.yml up -d"
+log_info "3. Start only infrastructure:"
 log_info "   docker compose --profile infra up -d"
-log_info "3. Start only applications (requires infra running):"
+log_info "4. Start only applications (requires infra running):"
 log_info "   docker compose --profile apps up -d"
-log_info "4. Start Home Assistant (separate stack):"
+log_info "5. Start Home Assistant (separate stack):"
 log_info "   cd home-assistant && docker compose --profile service up -d"
-log_info "5. Enable media download automation (required for Gluetun):"
+log_info "6. Enable media download automation (required for Gluetun):"
 log_info "   set OPENVPN_USER and OPENVPN_PASSWORD in .env"
 log_info ""
-log_info "View service status: docker compose ps"
-log_info "Stop services: docker compose down"
+log_info "View main stack status: docker compose ps"
+log_info "View pods stack status: docker compose -f docker-compose.pods.yml ps"
+log_info "Stop main stack: docker compose down"
+log_info "Stop pods stack: docker compose -f docker-compose.pods.yml down"

@@ -4,7 +4,7 @@ title: Deployment
 
 # Deploy Through Portainer
 
-Use this guide for the full deployment path in this repo. Start only the `pods` profile, open **Portainer** on port `9443`, then let **Portainer** deploy **Traefik**, **AdGuard**, and the rest of the stack from Git. **Dockhand** is also available on port `3000` during bootstrap for local management. For service layout, read [Service Reference](services.md). For routing and profiles, read [Architecture](architecture.md). For custom stacks, read [Configuration](customization.md). For failures, use [Troubleshooting](troubleshooting.md).
+Use this guide for the full deployment path in this repo. Start the separate `docker-compose.pods.yml` bootstrap stack, open **Portainer** on port `9443`, then let **Portainer** deploy **Traefik**, **AdGuard**, and the rest of the main homelab stack from Git. **Dockhand** is also available on port `3000` during bootstrap for local management. For service layout, read [Service Reference](services.md). For routing and profiles, read [Architecture](architecture.md). For custom stacks, read [Configuration](customization.md). For failures, use [Troubleshooting](troubleshooting.md).
 
 ---
 
@@ -29,10 +29,10 @@ $ printf 'DOMAIN=lab.example.com\nCF_API_EMAIL=you@example.com\n' > .env
 $ echo -n 'your_cf_api_token' > services/secrets/cf_dns_api_token
 
 # 4. Bootstrap only Portainer + Dockhand
-$ docker compose --profile pods up -d
+$ docker compose -f docker-compose.pods.yml up -d
 [+] Running 2/2
-  ✔ Container homelab-portainer-1  Started
-  ✔ Container homelab-dockhand-1   Started
+  ✔ Container homelab-pods-portainer-1  Started
+  ✔ Container homelab-pods-dockhand-1   Started
 ```
 
 ```bash title="Verify the Portainer bootstrap endpoint"
@@ -55,13 +55,13 @@ IP: 172.20.0.2
 
 ---
 
-## Why The Bootstrap Uses `pods`
+## Why The Bootstrap Uses A Separate Compose Stack
 
-The `pods` profile provides a small control plane:
+The separate `docker-compose.pods.yml` stack provides a small control plane:
 
-1. Start **Portainer** and **Dockhand** with `docker compose --profile pods up -d`.
-2. Use **Portainer** to deploy the repo as the real homelab stack.
-3. Let that stack create **Traefik**, **AdGuard**, **RustFS**, the app stacks, and the routed `pods.${DOMAIN}` and `docker.${DOMAIN}` endpoints.
+1. Start **Portainer** and **Dockhand** with `docker compose -f docker-compose.pods.yml up -d`.
+2. Use **Portainer** to deploy `docker-compose.yml` as the real homelab stack.
+3. Let that stack create **Traefik**, **AdGuard**, **RustFS**, and the app stacks, then route traffic to the still-separate `pods` and `dockhand` containers.
 
 This matters for two reasons:
 
@@ -115,14 +115,14 @@ gluetun  | ERROR VPN settings: OPENVPN_USER is not set
 
 ## Step 2: Bootstrap Portainer
 
-The `pods` profile exists specifically for the deployment control plane.
+The `docker-compose.pods.yml` stack exists specifically for the deployment control plane.
 
 ```bash title="Start the bootstrap control plane"
 # Start only the Portainer bootstrap services
-$ docker compose --profile pods up -d
+$ docker compose -f docker-compose.pods.yml up -d
 [+] Running 2/2
-  ✔ Container homelab-portainer-1  Started
-  ✔ Container homelab-dockhand-1   Started
+  ✔ Container homelab-pods-portainer-1  Started
+  ✔ Container homelab-pods-dockhand-1   Started
 ```
 
 ```bash title="Confirm Portainer is answering on port 9443"
@@ -203,9 +203,9 @@ Portainer deploys the repo as the real stack. That deploy includes:
 - **Sablier**
 - **AdGuard**
 - **RustFS**
-- app stacks such as **Immich**, **Paperless**, and **Portainer**
+- app stacks such as **Immich** and **Paperless**
 
-The first Portainer-managed deploy effectively takes over from the bootstrap containers and reconciles them into the full stack definition.
+The bootstrap `docker-compose.pods.yml` stack keeps running separately. Once the main stack brings up **Traefik**, the `pods.${DOMAIN}` and `docker.${DOMAIN}` routes point at those bootstrap containers over the shared `traefik_public` network.
 
 ---
 
@@ -216,7 +216,7 @@ This repo uses **Cloudflare DNS-01** for certificate issuance and **VPN DNS** fo
 !!! info "Production Checklist"
     Before you treat the stack as production-ready, make sure you:
 
-    - bootstrap the host with `docker compose --profile pods up -d`
+    - bootstrap the host with `docker compose -f docker-compose.pods.yml up -d`
     - deploy the full homelab through **Portainer**
     - configure **Cloudflare** DNS-01, **NetBird** DNS, and **AdGuard** wildcard routing
     - verify `https://whoami.${DOMAIN}` after the full deploy
@@ -297,20 +297,20 @@ $ curl -vkI https://whoami.lab.example.com 2>&1 | grep -E "(subject:|issuer:)"
 
 ### `https://pods.${DOMAIN}` does not work right after bootstrap
 
-That is expected. The `pods` profile only publishes **Portainer** directly on `9443` and **Dockhand** on `3000`. The routed `pods.${DOMAIN}` hostname appears only after the full stack deploy creates **Traefik**.
+That is expected. The `docker-compose.pods.yml` bootstrap stack only publishes **Portainer** directly on `9443` and **Dockhand** on `3000`. The routed `pods.${DOMAIN}` hostname appears only after the full stack deploy creates **Traefik**.
 
-### `docker compose --profile pods up -d` starts only two containers
+### `docker compose -f docker-compose.pods.yml up -d` starts only two containers
 
-That is correct. The bootstrap profile is intentionally small:
+That is correct. The bootstrap stack is intentionally small:
 
 - `portainer`
 - `dockhand`
 
 Everything else is created by the Portainer-managed stack.
 
-### The bootstrap and the full stack both include Portainer
+### The bootstrap stack stays separate after the full deploy
 
-That is intentional. Bootstrap gets you into the UI. The first full deploy reconciles **Portainer** and **Dockhand** into the Git-managed stack definition.
+That is intentional. Bootstrap gets you into the UI. The first full deploy creates the Git-managed main stack, while **Portainer** and **Dockhand** continue running from `docker-compose.pods.yml` as their own control-plane stack.
 
 ---
 
@@ -321,19 +321,19 @@ That is intentional. Bootstrap gets you into the UI. The first full deploy recon
 Confirm both bootstrap services are running:
 
 ```bash title="Confirm the bootstrap services exist"
-$ docker compose --profile pods ps
+$ docker compose -f docker-compose.pods.yml ps
 NAME                 IMAGE                       STATUS
-homelab-portainer-1  portainer/portainer-ce:2.25.1 Up
-homelab-dockhand-1   fnsys/dockhand:latest       Up
+homelab-pods-portainer-1  portainer/portainer-ce:2.25.1 Up
+homelab-pods-dockhand-1   fnsys/dockhand:latest       Up
 ```
 
-If `dockhand` is missing, restart the bootstrap profile:
+If `dockhand` is missing, restart the bootstrap stack:
 
-```bash title="Restart the bootstrap profile"
-$ docker compose --profile pods up -d
+```bash title="Restart the bootstrap stack"
+$ docker compose -f docker-compose.pods.yml up -d
 [+] Running 2/2
-  ✔ Container homelab-portainer-1  Started
-  ✔ Container homelab-dockhand-1   Started
+  ✔ Container homelab-pods-portainer-1  Started
+  ✔ Container homelab-pods-dockhand-1   Started
 ```
 
 ### The full deploy fails before Traefik starts

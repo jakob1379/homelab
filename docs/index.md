@@ -60,7 +60,7 @@ hide:
 
     ---
 
-    Bootstrap with `--profile pods`, then let Portainer deploy Traefik, AdGuard, and the rest of the stack from Git, including the production DNS and TLS checklist.
+    Bootstrap with `docker-compose.pods.yml`, then let Portainer deploy the main homelab stack from Git, including the production DNS and TLS checklist.
 
     [→ Deploy the stack](portainer.md)
 
@@ -82,11 +82,12 @@ hide:
     [INFO] Setting up dummy files for homelab development...
     [INFO] Setup complete!
 
-    # Start infrastructure + apps
-    $ docker compose up -d
+    # Start the main homelab stack and the separate pods stack
+    $ docker compose --profile all up -d
+    $ docker compose -f docker-compose.pods.yml up -d
     [+] Running ...
-     ✔ Container homelab-traefik-1  Started
-     ✔ Container homelab-whoami-1   Started
+      ✔ Container homelab-traefik-1  Started
+      ✔ Container homelab-pods-portainer-1  Started
 
     # Verify (accept self-signed cert warning)
     $ curl -k https://whoami.traefik.me
@@ -95,7 +96,7 @@ hide:
 
     **Done!** Your homelab is running locally - check it out at https://traefik.traefik.me.
 
-    For the GitOps deployment path, use [Deployment](portainer.md) instead of starting `infra` manually.
+    For the GitOps deployment path, use [Deployment](portainer.md) instead of starting the main stack manually.
 
 ---
 

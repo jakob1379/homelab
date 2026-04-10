@@ -29,13 +29,14 @@ $ ./setup-dev.sh
 ...
 [INFO] Setup complete!
 
-# 3. Start everything
-$ docker compose up -d
+# 3. Start the main homelab stack and the separate pods stack
+$ docker compose --profile all up -d
+$ docker compose -f docker-compose.pods.yml up -d
 [+] Running ...
- ✔ Container homelab-traefik-1     Started
- ✔ Container homelab-immich-postgres-1 Started
-  ✔ Container homelab-portainer-1   Started
-  ✔ Container homelab-dockhand-1    Started
+  ✔ Container homelab-traefik-1     Started
+  ✔ Container homelab-immich-postgres-1 Started
+  ✔ Container homelab-pods-portainer-1   Started
+  ✔ Container homelab-pods-dockhand-1    Started
  ...
 ```
 
@@ -72,7 +73,7 @@ flowchart LR
 - **Traefik** receives all HTTPS requests and routes them to the correct service
 - **Infrastructure services** (traefik, sablier, rustfs, adguard) run continuously
 - **Database containers are app-local** (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) instead of one shared database
-- **Most applications** (portainer, dockhand, paperless, etc.) start on-demand via **Sablier** when you access their URL, or via scheduled/queue triggers when configured
+- **Most routed applications** (paperless, karakeep, listmonk, etc.) start on-demand via **Sablier** when you access their URL, or via scheduled/queue triggers when configured
 - **Immich API/UI** stays online for scheduler reliability; optional experimental profile can sleep/wake worker containers
 - **Traefik removes host port publishing for almost all web apps**; in this stack only core networking services need host/network-level access
 
@@ -129,11 +130,12 @@ $ ./setup-dev.sh
 [INFO] Setting up dummy files for homelab development...
 [INFO] Setup complete!
 
-# 2. Start everything (infra + apps)
-$ docker compose up -d
+# 2. Start the main stack and the separate pods stack
+$ docker compose --profile all up -d
+$ docker compose -f docker-compose.pods.yml up -d
 [+] Running ...
- ✔ Container homelab-traefik-1    Started
- ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-traefik-1    Started
+  ✔ Container homelab-pods-portainer-1  Started
 
 # 3. Test (accept the self-signed cert warning)
 $ curl -k https://whoami.traefik.me
@@ -142,7 +144,7 @@ IP: 172.20.0.2
 ```
 
 !!! note
-    For local development, use `docker-compose.override.yml` to set `restart: unless-stopped` on all services. This prevents containers from restarting automatically after a reboot.
+    For local development, `docker-compose.override.yml` keeps the main stack on `restart: unless-stopped`. Portainer and Dockhand stay in the separate `docker-compose.pods.yml` bootstrap stack.
 
 ✅ **That's it!** Your homelab is running.
 
@@ -228,7 +230,7 @@ $ printf 'DOMAIN=yourdomain.com\nCF_API_EMAIL=you@example.com\n' > .env
 $ echo -n 'your_token' > services/secrets/cf_dns_api_token
 
 # 3. Bootstrap Portainer + Dockhand
-$ docker compose --profile pods up -d
+$ docker compose -f docker-compose.pods.yml up -d
 
 # 4. Open https://localhost:9443 to deploy the full stack
 #    Dockhand is also available on http://localhost:3000 for local management
@@ -244,10 +246,10 @@ Deploy the stack through **Portainer**:
 
 ```bash title="Bootstrap Portainer and verify the local endpoint"
 # 1. Bootstrap only Portainer + Dockhand
-$ docker compose --profile pods up -d
+$ docker compose -f docker-compose.pods.yml up -d
 [+] Running 2/2
-  ✔ Container homelab-portainer-1  Started
-  ✔ Container homelab-dockhand-1   Started
+  ✔ Container homelab-pods-portainer-1  Started
+  ✔ Container homelab-pods-dockhand-1   Started
 
 # 2. Verify the direct bootstrap endpoint
 $ curl -sk https://localhost:9443/api/status | jq '.Version'
@@ -295,11 +297,11 @@ $ docker compose restart portainer
 
 ```bash title="Check a 502 or missing env file"
 # Check service is running
-$ docker compose ps | grep portainer
-homelab-portainer-1   portainer/portainer-ce   Up 5 minutes
+$ docker compose -f docker-compose.pods.yml ps | grep portainer
+homelab-pods-portainer-1   portainer/portainer-ce   Up 5 minutes
 
 # Check logs
-$ docker compose logs portainer --tail 20
+$ docker compose -f docker-compose.pods.yml logs portainer --tail 20
 
 # Common: Missing env file for a service that uses one
 $ ls services/.env-listmonk
@@ -331,15 +333,15 @@ $ echo "ADGUARD_DNS_PORT=1053" >> .env
 
 ```bash title="Inspect a Sablier-managed service that will not wake"
 # Check service health
-$ docker compose ps portainer
+$ docker compose -f docker-compose.pods.yml ps portainer
 NAME                STATUS
-homelab-portainer-1 Restarting (1) 30 seconds ago
+homelab-pods-portainer-1 Restarting (1) 30 seconds ago
 
 # Check logs for crash loop
-$ docker compose logs portainer --tail 50
+$ docker compose -f docker-compose.pods.yml logs portainer --tail 50
 
 # Force start
-$ docker compose up -d portainer
+$ docker compose -f docker-compose.pods.yml up -d portainer
 ```
 
 [More troubleshooting →](docs/troubleshooting.md)
@@ -383,7 +385,7 @@ $ docker compose up -d portainer
 ## Documentation
 
 - [Architecture & How It Works](docs/architecture.md) - Request flow, networks, Sablier mechanics
-- [Deployment Guide](docs/portainer.md) - Bootstrap with `--profile pods`, deploy the full stack through Portainer, and follow the production DNS/TLS checklist
+- [Deployment Guide](docs/portainer.md) - Bootstrap with `docker-compose.pods.yml`, deploy the main stack through Portainer, and follow the production DNS/TLS checklist
 - [Queue-Driven Sleep Pattern](docs/queue-driven-sleep.md) - Sablier pattern for queue-backed workers (Immich)
 - [Troubleshooting](docs/troubleshooting.md) - Common issues and fixes
 - [Service Reference](docs/services.md) - Per-service configuration
