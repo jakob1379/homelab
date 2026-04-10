@@ -9,6 +9,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ../config/homepage:/app/config
+      - homepage_logs:/app/config/logs
     labels:
       - traefik.enable=true
       - traefik.http.routers.home.entrypoints=websecure
@@ -29,3 +30,5 @@ networks:
     name: traefik_public
     driver: bridge
     attachable: true
+volumes:
+  homepage_logs:
