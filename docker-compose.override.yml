@@ -51,10 +51,10 @@ services:
   meilisearch:
     restart: unless-stopped
 
-  # portainer.yml
+  # pods.yml
   portainer:
     restart: unless-stopped
-  agent:
+  dockhand:
     restart: unless-stopped
 
   # immich.yml

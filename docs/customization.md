@@ -173,7 +173,7 @@ Add your service file to the includes list so Docker Compose knows to load it:
 ```yaml title="docker-compose.yml"
 include:
   - services/networking.yml      # Traefik, Sablier, AdGuard
-  - services/portainer.yml       # Docker management
+  - services/pods.yml            # Portainer + Dockhand bootstrap control plane
   - services/custom.yml          # Your custom services
 ```
 

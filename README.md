@@ -34,7 +34,8 @@ $ docker compose up -d
 [+] Running ...
  ✔ Container homelab-traefik-1     Started
  ✔ Container homelab-immich-postgres-1 Started
- ✔ Container homelab-portainer-1   Started
+  ✔ Container homelab-portainer-1   Started
+  ✔ Container homelab-dockhand-1    Started
  ...
 ```
 
@@ -71,7 +72,7 @@ flowchart LR
 - **Traefik** receives all HTTPS requests and routes them to the correct service
 - **Infrastructure services** (traefik, sablier, rustfs, adguard) run continuously
 - **Database containers are app-local** (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) instead of one shared database
-- **Most applications** (portainer, paperless, etc.) start on-demand via **Sablier** when you access their URL, or via scheduled/queue triggers when configured
+- **Most applications** (portainer, dockhand, paperless, etc.) start on-demand via **Sablier** when you access their URL, or via scheduled/queue triggers when configured
 - **Immich API/UI** stays online for scheduler reliability; optional experimental profile can sleep/wake worker containers
 - **Traefik removes host port publishing for almost all web apps**; in this stack only core networking services need host/network-level access
 
@@ -83,6 +84,7 @@ flowchart LR
 By default, host-level access is limited to:
 - **Traefik** (`80/443`)
 - **Portainer bootstrap** (`9443`)
+- **Dockhand bootstrap** (`3000`)
 - **AdGuard DNS** (`${ADGUARD_DNS_PORT}`)
 - **NetAlertX** (`network_mode: host`)
 
@@ -160,13 +162,14 @@ IP: 172.20.0.2
 | **whoami** | Debug endpoint | `https://whoami.${DOMAIN}` |
 | **Dozzle** | Docker log viewer | `https://dozzle.${DOMAIN}` |
 
-### Apps (Mostly 💤 On-Demand) - 15 apps
+### Apps (Mostly 💤 On-Demand) - 16 apps
 
 | Service | Purpose | Access |
 |---------|---------|--------|
 | **Homepage** | Service dashboard | `https://home.${DOMAIN}` |
 | **AnythingLLM** | Private AI workspace | `https://llm.${DOMAIN}` |
 | **Portainer** | Docker management | `https://pods.${DOMAIN}` |
+| **Dockhand** | Docker management | `https://docker.${DOMAIN}` |
 | **Karakeep** | Bookmark manager | `https://keep.${DOMAIN}` |
 | **Listmonk** | Newsletters | `https://listmonk.${DOMAIN}` |
 | **Omni Tools** | General utilities | `https://omni.${DOMAIN}` |
@@ -224,10 +227,11 @@ $ printf 'DOMAIN=yourdomain.com\nCF_API_EMAIL=you@example.com\n' > .env
 # 2. Add Cloudflare token
 $ echo -n 'your_token' > services/secrets/cf_dns_api_token
 
-# 3. Bootstrap Portainer only
+# 3. Bootstrap Portainer + Dockhand
 $ docker compose --profile pods up -d
 
-# 4. Open https://localhost:9443 and let Portainer deploy the full stack
+# 4. Open https://localhost:9443 to deploy the full stack
+#    Dockhand is also available on http://localhost:3000 for local management
 ```
 
 See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and GitOps flow.
@@ -239,11 +243,11 @@ See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and 
 Deploy the stack through **Portainer**:
 
 ```bash title="Bootstrap Portainer and verify the local endpoint"
-# 1. Bootstrap only Portainer + agent
+# 1. Bootstrap only Portainer + Dockhand
 $ docker compose --profile pods up -d
 [+] Running 2/2
- ✔ Container homelab-agent-1      Started
- ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-dockhand-1   Started
 
 # 2. Verify the direct bootstrap endpoint
 $ curl -sk https://localhost:9443/api/status | jq '.Version'

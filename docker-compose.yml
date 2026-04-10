@@ -17,7 +17,7 @@ include:
   - services/anythingllm.yml  # AnythingLLM private AI workspace
   - services/listmonk.yml  # Listmonk with Cloudflare tunnel
   - services/karakeep.yml  # Karakeep (formerly Hoarder) with Chrome and Meilisearch
-  - services/portainer.yml  # Portainer with agent
+  - services/pods.yml  # Portainer + Dockhand bootstrap control plane
   - services/immich.yml  # Immich photo management (optional experimental worker queue scaling)
   - services/paperless-ngx.yml  # Paperless-ngx document management
   - services/media.yml  # Jellyfin + media automation stack

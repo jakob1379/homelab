@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    dockhand:
+      rule: Host(`docker.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: dockhand
+      middlewares: [sablier-dockhand@file, startup-retry@file]
+  services:
+    dockhand:
+      loadBalancer:
+        servers:
+          - url: http://dockhand:3000/
+  middlewares:
+    sablier-dockhand:
+      plugin:
+        sablier:
+          group: dockhand
+          dynamic:
+            displayName: Dockhand
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m

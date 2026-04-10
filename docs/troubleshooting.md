@@ -11,7 +11,7 @@ Run these two checks before you dig into a specific failure:
 $ docker compose ps
 NAME                    IMAGE                          STATUS
 homelab-portainer-1     portainer/portainer-ce:2.25.1 Up
-homelab-agent-1         portainer/agent:2.25.1        Up
+homelab-dockhand-1      fnsys/dockhand:latest         Up
 ```
 
 ```bash title="Check whether Portainer is still in bootstrap mode"

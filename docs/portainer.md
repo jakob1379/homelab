@@ -4,7 +4,7 @@ title: Deployment
 
 # Deploy Through Portainer
 
-Use this guide for the full deployment path in this repo. Start only the `pods` profile, open **Portainer** on port `9443`, then let **Portainer** deploy **Traefik**, **AdGuard**, and the rest of the stack from Git. For service layout, read [Service Reference](services.md). For routing and profiles, read [Architecture](architecture.md). For custom stacks, read [Configuration](customization.md). For failures, use [Troubleshooting](troubleshooting.md).
+Use this guide for the full deployment path in this repo. Start only the `pods` profile, open **Portainer** on port `9443`, then let **Portainer** deploy **Traefik**, **AdGuard**, and the rest of the stack from Git. **Dockhand** is also available on port `3000` during bootstrap for local management. For service layout, read [Service Reference](services.md). For routing and profiles, read [Architecture](architecture.md). For custom stacks, read [Configuration](customization.md). For failures, use [Troubleshooting](troubleshooting.md).
 
 ---
 
@@ -28,11 +28,11 @@ $ printf 'DOMAIN=lab.example.com\nCF_API_EMAIL=you@example.com\n' > .env
 # 3. Add the Cloudflare DNS token Traefik will use later
 $ echo -n 'your_cf_api_token' > services/secrets/cf_dns_api_token
 
-# 4. Bootstrap only Portainer + agent
+# 4. Bootstrap only Portainer + Dockhand
 $ docker compose --profile pods up -d
 [+] Running 2/2
- ✔ Container homelab-agent-1      Started
- ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-dockhand-1   Started
 ```
 
 ```bash title="Verify the Portainer bootstrap endpoint"
@@ -41,7 +41,7 @@ $ curl -sk https://localhost:9443/api/status | jq '.Version'
 "2.25.1"
 ```
 
-Open `https://localhost:9443`, create the admin user, then create a **Repository** stack that points back to this repo. After Portainer finishes the full deploy, verify the routed stack:
+Open `https://localhost:9443`, create the admin user, then create a **Repository** stack that points back to this repo. Dockhand is available on `http://localhost:3000` for bootstrap access. After Portainer finishes the full deploy, verify the routed stack:
 
 ```bash title="Verify the routed stack after the full deploy"
 # 6. Verify the full stack after Portainer deploys it
@@ -59,9 +59,9 @@ IP: 172.20.0.2
 
 The `pods` profile provides a small control plane:
 
-1. Start **Portainer** and its **agent** with `docker compose --profile pods up -d`.
+1. Start **Portainer** and **Dockhand** with `docker compose --profile pods up -d`.
 2. Use **Portainer** to deploy the repo as the real homelab stack.
-3. Let that Portainer-managed stack create **Traefik**, **AdGuard**, **RustFS**, the app stacks, and the routed `pods.${DOMAIN}` endpoint.
+3. Let that stack create **Traefik**, **AdGuard**, **RustFS**, the app stacks, and the routed `pods.${DOMAIN}` and `docker.${DOMAIN}` endpoints.
 
 This matters for two reasons:
 
@@ -121,8 +121,8 @@ The `pods` profile exists specifically for the deployment control plane.
 # Start only the Portainer bootstrap services
 $ docker compose --profile pods up -d
 [+] Running 2/2
- ✔ Container homelab-agent-1      Started
- ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-dockhand-1   Started
 ```
 
 ```bash title="Confirm Portainer is answering on port 9443"
@@ -137,7 +137,7 @@ $ curl -sk https://localhost:9443/api/status | jq
 Open `https://localhost:9443` and complete the first-login flow:
 
 1. Create the **Portainer** admin user.
-2. Choose the local environment backed by the bundled **agent**.
+2. Add the local Docker environment that connects to the host socket.
 3. Go to **Stacks** and select **Add stack**.
 4. Choose **Repository** as the deployment method.
 
@@ -297,43 +297,43 @@ $ curl -vkI https://whoami.lab.example.com 2>&1 | grep -E "(subject:|issuer:)"
 
 ### `https://pods.${DOMAIN}` does not work right after bootstrap
 
-That is expected. The `pods` profile only publishes **Portainer** directly on `9443`. The routed `pods.${DOMAIN}` hostname appears only after the full stack deploy creates **Traefik**.
+That is expected. The `pods` profile only publishes **Portainer** directly on `9443` and **Dockhand** on `3000`. The routed `pods.${DOMAIN}` hostname appears only after the full stack deploy creates **Traefik**.
 
 ### `docker compose --profile pods up -d` starts only two containers
 
 That is correct. The bootstrap profile is intentionally small:
 
 - `portainer`
-- `agent`
+- `dockhand`
 
 Everything else is created by the Portainer-managed stack.
 
 ### The bootstrap and the full stack both include Portainer
 
-That is intentional. Bootstrap gets you into the UI. The first full deploy reconciles **Portainer** and **agent** into the Git-managed stack definition.
+That is intentional. Bootstrap gets you into the UI. The first full deploy reconciles **Portainer** and **Dockhand** into the Git-managed stack definition.
 
 ---
 
 ## Troubleshooting
 
-### Portainer bootstrap is up, but the local environment is missing
+### Portainer bootstrap is up, but Dockhand is missing
 
 Confirm both bootstrap services are running:
 
 ```bash title="Confirm the bootstrap services exist"
 $ docker compose --profile pods ps
 NAME                 IMAGE                       STATUS
-homelab-agent-1      portainer/agent:2.25.1     Up
 homelab-portainer-1  portainer/portainer-ce:2.25.1 Up
+homelab-dockhand-1   fnsys/dockhand:latest       Up
 ```
 
-If `agent` is missing, restart the bootstrap profile:
+If `dockhand` is missing, restart the bootstrap profile:
 
 ```bash title="Restart the bootstrap profile"
 $ docker compose --profile pods up -d
 [+] Running 2/2
- ✔ Container homelab-agent-1      Started
- ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-dockhand-1   Started
 ```
 
 ### The full deploy fails before Traefik starts
@@ -401,4 +401,4 @@ $ docker compose config > /dev/null && echo "config ok"
 config ok
 ```
 
-That keeps the docs aligned with the repo: **Portainer** is the bootstrap control plane, and the full homelab is Portainer-managed from Git.
+That keeps the docs aligned with the repo: **Portainer** and **Dockhand** are the bootstrap control plane, and the documented deployment path remains Portainer-managed from Git.

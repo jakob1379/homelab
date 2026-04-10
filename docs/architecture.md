@@ -156,7 +156,7 @@ screwdriver is much easier when you have a dedicated toolbox.
       - services/tools.yml              # IT Tools, CloudBeaver, BentoPDF
       - services/speedtest-tracker.yml  # Internet speed history
       - services/vert.yml               # Local file converter
-      - services/portainer.yml          # Docker management
+      - services/pods.yml               # Portainer + Dockhand bootstrap control plane
     ```
 
 === "Services"
@@ -174,7 +174,7 @@ screwdriver is much easier when you have a dedicated toolbox.
     ├── networking.yml          # Traefik, AdGuard, NetAlertX
     ├── omni-tools.yml          # Web-based utilities
     ├── paperless-ngx.yml       # Document management
-    ├── portainer.yml           # Docker management UI
+    ├── pods.yml                # Portainer + Dockhand bootstrap control plane
     ├── rustfs.yml              # S3-compatible object storage
     ├── speedtest-tracker.yml   # Internet speed and uptime history
     ├── tools.yml               # IT Tools, CloudBeaver, BentoPDF
@@ -199,6 +199,7 @@ screwdriver is much easier when you have a dedicated toolbox.
         │   ├── bentopdf.yml    # Per-service routing rules
         │   ├── immich.yml
         │   ├── portainer.yml
+        │   ├── dockhand.yml
         │   ├── speedtest.yml
         │   ├── vert.yml
         │   └── ...             # One file per external service
@@ -274,13 +275,13 @@ This homelab uses **five profiles** to control what starts when:
 
 | Profile        | Purpose                            | When to Use                      |
 |----------------|------------------------------------|----------------------------------|
-| `pods`         | Portainer bootstrap control plane  | First host bootstrap and recovery |
+| `pods`         | Portainer + Dockhand bootstrap control plane | First host bootstrap and recovery |
 | `infra`        | Always-on foundation services      | Run this first, leave it running |
 | `apps`         | On-demand applications             | Start only when needed           |
 | `all`          | Convenience profile                | Development or full testing      |
 | `experimental` | Things that most likely will break | Development only                 |
 
-**Pods bootstrap** includes **Portainer** and its **agent** only. **Infra services** include **Traefik**, **Sablier**, **RustFS**, and **AdGuard**. Stateful apps run app-local databases (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) in the `apps` profile.
+**Pods bootstrap** includes **Portainer** and **Dockhand**. **Infra services** include **Traefik**, **Sablier**, **RustFS**, and **AdGuard**. Stateful apps run app-local databases (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) in the `apps` profile.
 
 **Most app services** start on-demand via **Sablier** when you access them. You can also wake groups via cron pre-warm or queue-monitor triggers where needed. **Immich API/UI** is the exception and stays online by default; only its worker wake flow is optional via the `experimental` profile.
 
@@ -288,16 +289,16 @@ For queue-backed workloads, use the dedicated [Queue-Driven Sleep Pattern](queue
 
 ### Start Only The Bootstrap Control Plane
 
-Use this when you want **Portainer** to deploy the full stack from Git:
+Use this when you want bootstrap management access before the full stack is up:
 
 ```bash title="Start only the Portainer bootstrap profile"
 $ docker compose --profile pods up -d
 [+] Running 2/2
- ✔ Container homelab-agent-1      Started
- ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-dockhand-1   Started
 ```
 
-This is the deployment path described in [Deployment](portainer.md). You access Portainer directly on `https://localhost:9443` until the full stack deploy brings up **Traefik**.
+This is the deployment path described in [Deployment](portainer.md). You access Portainer directly on `https://localhost:9443` and Dockhand on `http://localhost:3000` until the full stack deploy brings up **Traefik**.
 
 ### Start Only Infrastructure
 
@@ -380,7 +381,6 @@ The separation keeps your baseline resource usage low while giving you access to
 | `traefik_public`  | External proxy access      | All web-facing services                                           |
 | `listmonk`        | Listmonk isolation         | listmonk, listmonk-postgres, cftunnel (optional `tunnel` profile) |
 | `keep`            | Karakeep isolation         | keep, chrome, meilisearch                                         |
-| `portainer_agent` | Portainer control          | portainer, agent                                                  |
 | `immich`          | Immich internals           | immich-server, workers, redis, immich-postgres                    |
 | `paperless`       | Paperless internals        | paperless services + paperless-postgres                           |
 | `media`           | Media automation internals | jellyfin, seerr, gluetun, qbittorrent, sonarr, radarr             |
@@ -408,6 +408,8 @@ In this stack, host/network-level access is limited to core networking pieces:
 
 - `traefik` (`80/443`, plus `8080` dashboard)
 - `adguard` DNS port mapping
+- `portainer` (`9443` bootstrap)
+- `dockhand` (`3000` bootstrap)
 - `netalertx` with `network_mode: host`
 
 If DNS is provided through a VPN sidecar network (for example NetBird), the AdGuard DNS host port mapping can be removed.

@@ -4,11 +4,12 @@ This page lists every service, its purpose, and how to access it. If you need th
 
 ## Try It Now
 
-Start with these three services:
+Start with these four services:
 
 1. **Traefik** (included in `infra`), the traffic director
 2. **Portainer**, Docker management UI
-3. **IT Tools**, Developer utilities
+3. **Dockhand**, Docker management UI
+4. **IT Tools**, Developer utilities
 
 ```bash title="Start a minimal sample set"
 $ docker compose --profile infra up -d
@@ -16,14 +17,14 @@ $ docker compose --profile infra up -d
  ✔ Container homelab-traefik-1  Started
  ...
 
-$ docker compose --profile apps up -d portainer agent ittools
+$ docker compose --profile apps up -d portainer dockhand ittools
 [+] Running 3/3
- ✔ Container homelab-agent-1      Started
- ✔ Container homelab-portainer-1  Started
- ✔ Container homelab-ittools-1    Started
+  ✔ Container homelab-dockhand-1   Started
+  ✔ Container homelab-portainer-1  Started
+  ✔ Container homelab-ittools-1    Started
 ```
 
-Then open `https://pods.${DOMAIN}` and `https://it.${DOMAIN}`.
+Then open `https://pods.${DOMAIN}`, `https://docker.${DOMAIN}`, and `https://it.${DOMAIN}`.
 
 ---
 
@@ -83,11 +84,12 @@ Complete list of services and configuration points.
 - **Notes:** Has built-in authentication and an emergency direct host port on `9443`
 - **Guide:** [Deployment](portainer.md)
 
-### Portainer Agent
-- **Purpose:** Local Docker endpoint used by Portainer
-- **Access:** Internal only
+### Dockhand
+- **Purpose:** Modern Docker management UI
+- **Access:** `https://docker.${DOMAIN}` after the full deploy, or `http://localhost:3000` during `pods` bootstrap
 - **Profile:** apps, pods
-- **Notes:** Required for the `--profile pods` bootstrap flow
+- **Sablier:** Yes
+- **Notes:** Mounts the local Docker socket and publishes a direct bootstrap port on `3000`
 
 ### Karakeep
 - **Purpose:** Bookmark manager with AI tagging
@@ -241,6 +243,7 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | IT Tools | `it` |
 | AnythingLLM | `llm` |
 | Portainer | `pods` |
+| Dockhand | `docker` |
 | CloudBeaver | `cbeaver` |
 | BentoPDF | `pdf` |
 | Speedtest Tracker | `speed` |

@@ -18,7 +18,7 @@ This PR updates the homelab Docker Compose setup with improvements to service co
      - `rustfs.yml`: RustFS (S3-compatible storage)
      - `monitoring.yml`: Shepherd, Dozzle
      - `tools.yml`: IT Tools, CloudBeaver, BentoPDF
-     - Application-specific stacks: `listmonk.yml`, `hoarder.yml`, `portainer.yml`
+      - Application-specific stacks: `listmonk.yml`, `hoarder.yml`, `pods.yml`
    - Root `docker-compose.yml` includes all stacks with shared networks and volumes
    - Simplified service management: start all with `docker compose up` or specific stacks with `docker compose up stackname`
 

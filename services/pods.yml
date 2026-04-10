@@ -3,8 +3,10 @@ services:
   portainer:
     profiles: [apps, all, pods]
     image: portainer/portainer-ce:2.25.1
-    volumes: [portainer_data:/data]
-    networks: [traefik_public, portainer_agent]
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [traefik_public]
     ports: [9443:9443]
     labels:
       - traefik.enable=true
@@ -26,14 +28,26 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
-  agent:
+  dockhand:
     profiles: [apps, all, pods]
-    image: portainer/agent:2.25.1
-    restart: always
+    image: fnsys/dockhand:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/volumes:/var/lib/docker/volumes
-    networks: [portainer_agent]
+      - dockhand_data:/app/data
+    networks: [traefik_public]
+    ports: [3000:3000]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dockhand.entrypoints=websecure
+      - traefik.http.services.dockhand.loadbalancer.server.port=3000
+      - sablier.enable=true
+      - sablier.group=dockhand
+      - homepage.group=Developer
+      - homepage.name=Dockhand
+      - homepage.icon=docker.png
+      - homepage.href=https://docker.${DOMAIN:-traefik.me}
+      - homepage.description=Modern Docker management UI
+    restart: always
     deploy:
       resources:
         limits:
@@ -43,10 +57,10 @@ services:
           cpus: '0.25'
           memory: 256M
 networks:
-  portainer_agent:
   traefik_public:
     name: traefik_public
     driver: bridge
     attachable: true
 volumes:
   portainer_data:
+  dockhand_data:
