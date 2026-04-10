@@ -38,9 +38,9 @@ $ docker compose logs immich-server
 immich-server  | [Nest] 1  - 02/19/2026, 10:00:00 AM     LOG [NestFactory] Starting Nest application...
 immich-server  | [Nest] 1  - 02/19/2026, 10:00:01 AM     LOG [InstanceLoader] DatabaseModule dependencies initialized
 
-# 3. Common: Missing environment file
-$ ls services/.env-immich
-ls: cannot access 'services/.env-immich': No such file or directory
+# 3. Common: Missing required variable
+$ docker compose config
+required variable DB_PASSWORD is missing a value: Set DB_PASSWORD in .env, direnv, or Portainer
 
 # 4. Common: Network not connected
 $ docker network ls | grep traefik_public

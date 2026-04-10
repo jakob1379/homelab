@@ -13,8 +13,13 @@ services:
     volumes: [karakeep_data:/data]
     environment:
       MEILI_ADDR: http://meilisearch:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?Generate a key using `openssl rand -hex
+        32 2>/dev/null`}
       BROWSER_WEB_URL: http://chrome:9222
       DATA_DIR: /data
+      NEXTAUTH_URL: https://keep.${DOMAIN:-traefik.me}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?Generate a key using `openssl rand -hex
+        32 2>/dev/null`}
     labels:
       - sablier.enable=true
       - sablier.group=keep
@@ -58,6 +63,8 @@ services:
     restart: always
     networks: [keep]
     environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?Generate a key using `openssl rand -hex
+        32 2>/dev/null`}
       MEILI_NO_ANALYTICS: 'true'
     volumes: [meilisearch_data:/meili_data]
     labels: [sablier.enable=true, sablier.group=keep]

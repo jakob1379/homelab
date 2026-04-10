@@ -9,7 +9,8 @@ services:
     environment:
       - POSTGRES_DB=${PAPERLESS_DBNAME:-paperless}
       - POSTGRES_USER=${PAPERLESS_DBUSER:-paperless}
-      - POSTGRES_PASSWORD=${PAPERLESS_DBPASS:-paperless}
+      - POSTGRES_PASSWORD=${PAPERLESS_DBPASS:?Set PAPERLESS_DBPASS in .env, direnv,
+        or Portainer}
       - TZ=Europe/Copenhagen
     healthcheck:
       test: [CMD-SHELL, pg_isready -U paperless -d paperless]
@@ -50,7 +51,11 @@ services:
       - PAPERLESS_DBPORT=5432
       - PAPERLESS_DBNAME=${PAPERLESS_DBNAME:-paperless}
       - PAPERLESS_DBUSER=${PAPERLESS_DBUSER:-paperless}
-      - PAPERLESS_DBPASS=${PAPERLESS_DBPASS:-paperless}
+      - PAPERLESS_DBPASS=${PAPERLESS_DBPASS:?Set PAPERLESS_DBPASS in .env, direnv,
+        or Portainer}
+      - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY:?Generate a key using `openssl
+        rand -hex 32 2>/dev/null`}
+      - PAPERLESS_OCR_LANGUAGE=${PAPERLESS_OCR_LANGUAGE:-eng}
       - PAPERLESS_TIKA_ENABLED=1
       - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://paperless-gotenberg:3000
       - PAPERLESS_TIKA_ENDPOINT=http://paperless-tika:9998
@@ -101,7 +106,11 @@ services:
       - PAPERLESS_DBPORT=5432
       - PAPERLESS_DBNAME=${PAPERLESS_DBNAME:-paperless}
       - PAPERLESS_DBUSER=${PAPERLESS_DBUSER:-paperless}
-      - PAPERLESS_DBPASS=${PAPERLESS_DBPASS:-paperless}
+      - PAPERLESS_DBPASS=${PAPERLESS_DBPASS:?Set PAPERLESS_DBPASS in .env, direnv,
+        or Portainer}
+      - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY:?Generate a key using `openssl
+        rand -hex 32 2>/dev/null`}
+      - PAPERLESS_OCR_LANGUAGE=${PAPERLESS_OCR_LANGUAGE:-eng}
       - PAPERLESS_CONSUMER_POLLING=30
     healthcheck:
       disable: true

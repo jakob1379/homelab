@@ -58,7 +58,7 @@ Complete list of services and configuration points.
 - **Purpose:** S3-compatible object storage
 - **Access:** `https://rustfs.${DOMAIN}` (API), `https://rustfs-console.${DOMAIN}` (UI)
 - **Profile:** infra
-- **Env:** `.env-rustfs` (access/secret keys)
+- **Required env:** `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`
 - **Sablier:** No (always on for backup/automation reliability)
 - **Homepage link:** points to `https://rustfs-console.${DOMAIN}` (admin UI)
 
@@ -74,7 +74,7 @@ Complete list of services and configuration points.
 - **Access:** `http://localhost:20211`
 - **Profile:** infra
 - **Network:** host mode
-- **Env:** `.env-netalertx`
+- **Defaults in compose:** `NETALERTX_SCAN_SUBNETS=192.168.1.0/24`, override via `.env` if needed
 - **Security:** Read-only root filesystem with minimal Linux caps (`CHOWN`, `SETGID`, `SETUID`, `NET_ADMIN`, `NET_RAW`, `NET_BIND_SERVICE`)
 
 ## Application Services
@@ -98,7 +98,7 @@ Complete list of services and configuration points.
 - **Purpose:** Bookmark manager with AI tagging
 - **Access:** `https://keep.${DOMAIN}`
 - **Profile:** apps
-- **Env:** `.env-karakeep`
+- **Required env:** `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`
 - **Sablier:** Yes
 - **Dependencies:** Chrome, Meilisearch
 - **Sleep behavior:** `keep`, `chrome`, and `meilisearch` share one Sablier group and sleep together after 15 minutes of inactivity
@@ -107,7 +107,7 @@ Complete list of services and configuration points.
 - **Purpose:** Newsletter & mailing list manager
 - **Access:** `https://listmonk.${DOMAIN}`
 - **Profile:** apps
-- **Env:** `.env-listmonk`
+- **Required env:** `LISTMONK_db__password`
 - **Sablier:** Yes
 - **Dependencies:** `listmonk-postgres`
 - **Extras:** Optional Cloudflare tunnel (`cftunnel`) via `--profile tunnel`
@@ -184,14 +184,13 @@ Complete list of services and configuration points.
 - **Purpose:** PDF manipulation tools
 - **Access:** `https://pdf.${DOMAIN}`
 - **Profile:** apps
-- **Env:** `.env-bentopdf`
 - **Sablier:** Yes
 
 ### Speedtest Tracker
 - **Purpose:** Track internet speed, latency, and uptime over time
 - **Access:** `https://speed.${DOMAIN}`
 - **Profile:** apps
-- **Env:** `.env-speedtest-tracker`
+- **Required env:** `SPEEDTEST_APP_KEY` (for example via `.envrc`)
 - **Sablier:** Yes
 - **Storage:** `speedtest_tracker_data` named volume with SQLite in `/config`
 
@@ -206,7 +205,7 @@ Complete list of services and configuration points.
 - **Purpose:** Photo and video management with AI features
 - **Access:** `https://photos.${DOMAIN}`
 - **Profile:** apps
-- **Env:** `.env-immich`
+- **Required env:** `DB_PASSWORD`
 - **Sablier:** Partial (API/UI always on; workers can be queue-woken)
 - **Notes:** `immich-server` is routed by `config/traefik/dyn/immich.yml` at `photos.${DOMAIN}`; `immich-microservices` and `immich-machine-learning` are grouped as `immich-workers`
 - **Notes:** Queue-based wake logic is experimental via profile `experimental` (not included in `all`)
@@ -217,10 +216,10 @@ Complete list of services and configuration points.
 - **Purpose:** Document management system with OCR and full-text search
 - **Access:** `https://paperless.${DOMAIN}`
 - **Profile:** apps
-- **Env:** `.env-paperless`
+- **Required env:** `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`
 - **Sablier:** Yes
 - **Dependencies:** `paperless-postgres`, `paperless-redis`, `paperless-gotenberg` (PDF conversion), `paperless-tika` (document parsing)
-- **Notes:** Supports document upload, OCR, tagging, and full-text search. Configure OCR language in `.env-paperless`
+- **Notes:** Supports document upload, OCR, tagging, and full-text search. `PAPERLESS_OCR_LANGUAGE` defaults to `eng` in compose
 
 ### Whoami
 - **Purpose:** Debug endpoint (shows request info)
@@ -265,18 +264,23 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | AdGuard | `dns` |
 | NetAlertX | N/A (port 20211) |
 
-## Environment Files Reference
+## Required Variables Reference
 
-| File | Service | Contents |
-|------|---------|----------|
-| `.env-listmonk` | Listmonk | DB credentials, app settings |
-| `.env-karakeep` | Karakeep | MeiliSearch key, admin password |
-| `.env-bentopdf` | BentoPDF | PDF processing options |
-| `.env-immich` | Immich | Database credentials |
-| `.env-rustfs` | RustFS | S3 access/secret keys |
-| `.env-netalertx` | NetAlertX | Scan subnets, notifications |
-| `.env-paperless` | Paperless-ngx | OCR language, admin credentials, secret key |
-| `.env-speedtest-tracker` | Speedtest Tracker | App key, schedule, UI retention settings |
+| Variable | Service | Purpose |
+|----------|---------|---------|
+| `ACME_EMAIL` | Traefik | Let's Encrypt ACME contact email |
+| `CF_DNS_API_TOKEN` | Traefik | Cloudflare DNS-01 challenge token |
+| `DB_PASSWORD` | Immich | PostgreSQL password |
+| `LISTMONK_db__password` | Listmonk | PostgreSQL password |
+| `PAPERLESS_DBPASS` | Paperless-ngx | PostgreSQL password |
+| `PAPERLESS_SECRET_KEY` | Paperless-ngx | Django app secret |
+| `NEXTAUTH_SECRET` | Karakeep | Auth/session secret |
+| `MEILI_MASTER_KEY` | Karakeep / Meilisearch | Shared search API key |
+| `RUSTFS_ACCESS_KEY` | RustFS | S3 access key |
+| `RUSTFS_SECRET_KEY` | RustFS | S3 secret key |
+| `OPENVPN_USER` | Gluetun | ProtonVPN OpenVPN username |
+| `OPENVPN_PASSWORD` | Gluetun | ProtonVPN OpenVPN password |
+| `SPEEDTEST_APP_KEY` | Speedtest Tracker | Laravel app key |
 
 ## TLS / DNS Credentials
 

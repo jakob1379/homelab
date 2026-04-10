@@ -7,12 +7,12 @@ to run locally with minimal setup and scale into a production-style self-hosted 
 - `config/` Runtime config for Traefik and Homepage.
 - `docs/` Source docs for the published documentation site.
 - `home-assistant/` Separate Home Assistant compose project on `traefik_public`.
-- `services/` Per-stack compose files, env files, and untracked secret paths.
+- `services/` Per-stack compose files and a few optional untracked local env paths.
 - `site/` Generated docs output; ignored by git.
 - `docker-compose.yml` Root compose entrypoint for the main homelab stack.
 - `docker-compose.pods.yml` Separate bootstrap stack for Portainer + Dockhand.
 - `docker-compose.override.yml` Local restart-policy overrides.
-- `setup-dev.sh` Creates dummy env and secret files for local development.
+- `setup-dev.sh` Copies `.env.example` when needed and reports missing required vars.
 - `README.md` Main overview, quick start, and operator docs.
 - `backup_spec.md` Backup service design spec.
 - `template-stack.yml` Portainer stack template.
@@ -96,10 +96,10 @@ Testing Strategy
   config; .github/workflows/docs.yml builds docs; .github/workflows/yamlfix.yml
   runs pre-commit auto-fixes.
 Security & Compliance
-- Secrets are file-based and untracked: .env, services/.env-*,
-  and services/secrets/*.
-- setup-dev.sh creates dummy local placeholders; do not commit real credentials.
-- Traefik reads Cloudflare DNS credentials from services/secrets/cf_dns_api_token.
+- Secrets are untracked and environment-driven: `.env`, shell env / direnv,
+  optional local `services/.env-*` files for non-main stacks, and `services/secrets/*`.
+- setup-dev.sh does not generate dummy secrets; do not commit real credentials.
+- Traefik reads Cloudflare DNS credentials from `CF_DNS_API_TOKEN` in the environment.
 - Dependabot updates Docker dependencies monthly.
 - Pre-commit includes secret-oriented guardrails such as detect-private-key.
 - netalertx uses network_mode: host; review changes there carefully.
@@ -120,8 +120,10 @@ Extensibility Hooks
 - Use Compose profiles as feature flags:
   infra, apps, all, experimental, tunnel.
 - Main env hooks:
-  DOMAIN, CF_API_EMAIL, ADGUARD_DNS_PORT,
-  OPENVPN_USER, OPENVPN_PASSWORD, VPN_SERVER_COUNTRIES.
+  DOMAIN, ACME_EMAIL, CF_DNS_API_TOKEN, ADGUARD_DNS_PORT,
+  DB_PASSWORD, LISTMONK_db__password, PAPERLESS_DBPASS, PAPERLESS_SECRET_KEY,
+  NEXTAUTH_SECRET, MEILI_MASTER_KEY, RUSTFS_ACCESS_KEY, RUSTFS_SECRET_KEY,
+  OPENVPN_USER, OPENVPN_PASSWORD, VPN_SERVER_COUNTRIES, SPEEDTEST_APP_KEY.
 - services/immich.yml contains the experimental queue-driven wake pattern.
 - template-stack.yml is the Portainer templating hook.
 Further Reading

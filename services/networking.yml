@@ -5,9 +5,11 @@ services:
     image: traefik:3.6.9
     ports: [80:80, 443:443]
     environment:
-      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:-}
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:?Set CF_DNS_API_TOKEN in .env, direnv,
+        or Portainer}
       - DOMAIN=${DOMAIN:-traefik.me}
-      - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${ACME_EMAIL:-}
+      - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${ACME_EMAIL:?Set ACME_EMAIL
+        in .env, direnv, or Portainer}
     volumes:
       - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -138,9 +140,10 @@ services:
     volumes: [netalertx_data:/data, /etc/localtime:/etc/localtime:ro]
     tmpfs: ['/tmp:uid=20211,gid=20211,mode=1700']
     read_only: true
-    # Environment variables configured in Portainer UI for production
-    env_file: [.env-netalertx]
-    environment: [PORT=20211, TZ=Europe/Copenhagen]
+    environment:
+      - PORT=20211
+      - TZ=Europe/Copenhagen
+      - NETALERTX_SCAN_SUBNETS=${NETALERTX_SCAN_SUBNETS:-192.168.1.0/24}
     cap_drop: [ALL]
     cap_add:
       - CHOWN

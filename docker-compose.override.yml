@@ -20,12 +20,10 @@ services:
     restart: unless-stopped
   netalertx:
     restart: unless-stopped
-    env_file: [services/.env-netalertx]
 
   # rustfs.yml
   rustfs:
     restart: unless-stopped
-    env_file: [services/.env-rustfs]
 
   # monitoring.yml
   dozzle:
@@ -40,14 +38,12 @@ services:
     restart: unless-stopped
   listmonk:
     restart: unless-stopped
-    env_file: [services/.env-listmonk]
   cftunnel:
     restart: unless-stopped
 
   # karakeep.yml
   keep:
     restart: unless-stopped
-    env_file: [services/.env-karakeep]
   chrome:
     restart: unless-stopped
   meilisearch:
@@ -58,10 +54,8 @@ services:
     restart: unless-stopped
   immich-server:
     restart: unless-stopped
-    env_file: [services/.env-immich]
   immich-microservices:
     restart: unless-stopped
-    env_file: [services/.env-immich]
   immich-machine-learning:
     restart: unless-stopped
   redis:
@@ -74,10 +68,8 @@ services:
     restart: unless-stopped
   paperless-web:
     restart: unless-stopped
-    env_file: [services/.env-paperless]
   paperless-consumer:
     restart: unless-stopped
-    env_file: [services/.env-paperless]
   paperless-redis:
     restart: unless-stopped
   paperless-gotenberg:
@@ -106,7 +98,6 @@ services:
     restart: unless-stopped
   bentopdf:
     restart: unless-stopped
-    env_file: [services/.env-bentopdf]
 
   # homepage.yml
   home:

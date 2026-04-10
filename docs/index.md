@@ -5,7 +5,7 @@ hide:
 ---
 
 <p align="center">
-  <strong style="font-size: 1.5em;">Zero-config Docker Compose homelab</strong><br>
+  <strong style="font-size: 1.5em;">Minimal-setup Docker Compose homelab</strong><br>
   <span style="opacity: 0.7;">Auto HTTPS &middot; Services scale to 0</span>
 </p>
 
@@ -68,7 +68,7 @@ hide:
 
 ---
 
-!!! info "Quick Start: Get Running in 30 Seconds"
+!!! info "Quick Start: Bootstrap The Repo"
 
     **Prerequisites:** Docker + Docker Compose v2+
 
@@ -79,10 +79,11 @@ hide:
     done.
 
     $ ./setup-dev.sh
-    [INFO] Setting up dummy files for homelab development...
+    [INFO] Setting up the homelab development environment...
+    [WARN] setup-dev.sh no longer generates service env files or dummy secrets
     [INFO] Setup complete!
 
-    # Start the main homelab stack and the separate pods stack
+    # Fill the required values in .env / .envrc, then start the stacks
     $ docker compose --profile all up -d
     $ docker compose -f docker-compose.pods.yml up -d
     [+] Running ...
@@ -94,7 +95,7 @@ hide:
     Hostname: homelab-whoami-1
     ```
 
-    **Done!** Your homelab is running locally - check it out at https://traefik.traefik.me.
+    **Next:** fill the required variables reported by `setup-dev.sh`, then bring up the main stack.
 
     For the GitOps deployment path, use [Deployment](portainer.md) instead of starting the main stack manually.
 
@@ -102,7 +103,7 @@ hide:
 
 ## The Pitch
 
-**Containerized services** with automatic HTTPS. Sleep-enabled apps use 0 RAM when idle (they wake up in ~2 seconds on request, or via scheduled/queue triggers when configured). Works on your laptop with zero config, or in production with your own domain.
+**Containerized services** with automatic HTTPS. Sleep-enabled apps use 0 RAM when idle (they wake up in ~2 seconds on request, or via scheduled/queue triggers when configured). Works on your laptop with a small amount of local secret setup, or in production with your own domain.
 
 ```mermaid
 flowchart LR

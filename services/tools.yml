@@ -53,11 +53,9 @@ services:
           cpus: '0.25'
           memory: 256M
   bentopdf:
-    # Environment variables configured in Portainer UI for production
     profiles: [apps, all]
     image: bentopdf/bentopdf:1.2.0
     restart: always
-    env_file: [.env-bentopdf]
     networks: [traefik_public]
     labels:
       - traefik.enable=true

@@ -5,7 +5,8 @@ services:
     image: postgres:17.9-alpine3.23
     environment:
       - POSTGRES_USER=${LISTMONK_db__user:-listmonk}
-      - POSTGRES_PASSWORD=${LISTMONK_db__password:-dummy_password}
+      - POSTGRES_PASSWORD=${LISTMONK_db__password:?Set LISTMONK_db__password in .env,
+        direnv, or Portainer}
       - POSTGRES_DB=${LISTMONK_db__database:-listmonk}
       - TZ=Europe/Copenhagen
     volumes: [listmonk_postgres_data:/var/lib/postgresql/data]
@@ -35,7 +36,8 @@ services:
       - TZ=Europe/Copenhagen
       - LISTMONK_app__address=0.0.0.0:9000
       - LISTMONK_db__user=listmonk
-      - LISTMONK_db__password=${LISTMONK_db__password:-dummy_password}
+      - LISTMONK_db__password=${LISTMONK_db__password:?Set LISTMONK_db__password in
+        .env, direnv, or Portainer}
       - LISTMONK_db__database=listmonk
       - LISTMONK_db__host=listmonk-postgres
       - LISTMONK_db__port=5432

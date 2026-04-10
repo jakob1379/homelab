@@ -4,8 +4,9 @@ services:
     profiles: [apps, all]
     image: lscr.io/linuxserver/speedtest-tracker:v1.13.12-ls144
     restart: always
-    env_file: [.env-speedtest-tracker]
     environment:
+      - APP_KEY=${SPEEDTEST_APP_KEY:?Generate a key with `openssl rand -base64 32
+        2>/dev/null`}
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
       - TZ=Europe/Copenhagen

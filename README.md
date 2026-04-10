@@ -5,7 +5,7 @@
 [![Traefik](https://img.shields.io/badge/Traefik-Proxy-24A1C1?logo=traefikproxy&logoColor=white)](https://traefik.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Zero-config Docker Compose homelab.** Auto HTTPS. Smart resource management. Works on your laptop or production server.
+> **Minimal-setup Docker Compose homelab.** Auto HTTPS. Smart resource management. Works on your laptop or production server.
 
 **The pitch:** Automatic HTTPS, and sleep-enabled apps use 0 RAM when idle (they wake up in ~2 seconds on request, or via scheduled/queue triggers when configured).
 
@@ -13,7 +13,7 @@
 
 ## Try It Now (2 Minutes)
 
-Run these commands to get a fully working homelab on your local machine:
+Run these commands to bootstrap the repo locally and see what values are still required:
 
 ```bash title="Local quick start"
 # 1. Clone the repository
@@ -21,14 +21,18 @@ $ git clone https://github.com/jakob1379/homelab.git && cd homelab
 Cloning into 'homelab'...
 done.
 
-# 2. Set up development environment (creates dummy env files)
+# 2. Prepare the local env files and review missing secrets
 $ ./setup-dev.sh
-[INFO] Setting up dummy files for homelab development...
-[WARN] Creating dummy environment file: services/.env-listmonk
+[INFO] Setting up the homelab development environment...
+[WARN] setup-dev.sh no longer generates service env files or dummy secrets
+[WARN] Missing required variables for docker compose --profile all:
+ - ACME_EMAIL
+ - CF_DNS_API_TOKEN
+ - ...
 ...
 [INFO] Setup complete!
 
-# 3. Start the main homelab stack and the separate pods stack
+# 3. Fill the required values in .env / .envrc, then start the stacks
 $ docker compose --profile all up -d
 $ docker compose -f docker-compose.pods.yml up -d
 [+] Running ...
@@ -46,7 +50,7 @@ Hostname: homelab-whoami-1
 IP: 172.20.0.2
 ```
 
-✅ **Done!** Open `https://traefik.traefik.me` in your browser.
+If you only want the bootstrap control plane first, start `docker-compose.pods.yml` and use `https://localhost:9443`.
 
 !!! note
     The `traefik.me` domain is a wildcard DNS that resolves to `127.0.0.1`. Perfect for local development without any DNS configuration.
@@ -126,10 +130,11 @@ flowchart LR
 # 1. Clone & setup
 $ git clone https://github.com/jakob1379/homelab.git && cd homelab
 $ ./setup-dev.sh
-[INFO] Setting up dummy files for homelab development...
+[INFO] Setting up the homelab development environment...
+[WARN] setup-dev.sh no longer generates service env files or dummy secrets
 [INFO] Setup complete!
 
-# 2. Start the main stack and the separate pods stack
+# 2. Fill the required values in .env / .envrc, then start the stacks
 $ docker compose --profile all up -d
 $ docker compose -f docker-compose.pods.yml up -d
 [+] Running ...
@@ -161,7 +166,6 @@ IP: 172.20.0.2
 | **AdGuard** | DNS ad blocker | Port `${ADGUARD_DNS_PORT}` (default `1053`) + `https://dns.${DOMAIN}` |
 | **NetAlertX** | Network scanner | `http://localhost:20211` |
 | **whoami** | Debug endpoint | `https://whoami.${DOMAIN}` |
-| **Dozzle** | Docker log viewer | `https://dozzle.${DOMAIN}` |
 
 ### Apps (Mostly 💤 On-Demand) - 16 apps
 
@@ -178,6 +182,7 @@ IP: 172.20.0.2
 | **IT Tools** | Dev utilities | `https://it.${DOMAIN}` |
 | **CloudBeaver** | Database UI | `https://cbeaver.${DOMAIN}` |
 | **BentoPDF** | PDF tools | `https://pdf.${DOMAIN}` |
+| **Dozzle** | Docker log viewer | `https://dozzle.${DOMAIN}` |
 | **Speedtest Tracker** | Internet speed history | `https://speed.${DOMAIN}` |
 | **VERT** | Local file converter | `https://vert.${DOMAIN}` |
 | **Immich** | Photo management | `https://photos.${DOMAIN}` |
@@ -186,7 +191,7 @@ IP: 172.20.0.2
 
 **First visit** to on-demand apps shows "Starting..." for ~2 seconds, then loads. **Immich** is routed by Traefik file-provider config at `https://photos.${DOMAIN}`.
 
-For movie/series request automation (`Seerr` + `Radarr` + `Sonarr` + `qBittorrent`), set `OPENVPN_USER` and `OPENVPN_PASSWORD` in `.env` so Gluetun can establish the ProtonVPN tunnel.
+For movie/series request automation (`Seerr` + `Radarr` + `Sonarr` + `qBittorrent`), set `OPENVPN_USER` and `OPENVPN_PASSWORD` in `.env` so Gluetun can establish the ProtonVPN tunnel. For local secret generation, the Nix dev shell includes `mkpasswd` and `openssl`.
 
 ### Smart Home (Standalone Stack)
 
@@ -210,9 +215,9 @@ Access: `https://ha.${DOMAIN}`
 | **Domain** | `traefik.me` (magic DNS) | Your domain |
 | **HTTPS** | Self-signed (browser warnings) | Let's Encrypt |
 | **DNS** | None needed | NetBird DNS -> AdGuard wildcard + Cloudflare DNS-01 |
-| **Setup** | `./setup-dev.sh` | ACME email + Cloudflare token + AdGuard wildcard record |
+| **Setup** | `./setup-dev.sh` + fill required vars | ACME email + Cloudflare token + app secrets + AdGuard wildcard record |
 
-**Development** (default, zero config):
+**Development** (local placeholders for required secrets):
 ```bash title="Development smoke test"
 # Already works after Quick Start
 $ curl -k https://whoami.traefik.me
@@ -229,7 +234,9 @@ ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_token
 EOF
 
-# 2. Bootstrap Portainer + Dockhand
+# 2. Add the remaining app secrets or disable the apps you do not plan to run yet
+
+# 3. Bootstrap Portainer + Dockhand
 $ docker compose -f docker-compose.pods.yml up -d
 
 # 3. Open https://localhost:9443 to deploy the full stack
@@ -274,7 +281,7 @@ See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and 
 $ docker compose ps
 NAME                IMAGE                STATUS
 homelab-traefik-1   traefik:3.6.9        Up 2 hours (healthy)
-homelab-listmonk-1  listmonk/listmonk:latest Up 2 hours
+homelab-listmonk-1  listmonk/listmonk:v6.1.0 Up 2 hours
 
 # View logs
 $ docker compose logs -f traefik
@@ -286,7 +293,7 @@ $ docker compose down
 $ docker compose down -v
 
 # Restart a service
-$ docker compose restart portainer
+$ docker compose -f docker-compose.pods.yml restart portainer
 ```
 
 ---
@@ -303,9 +310,9 @@ homelab-pods-portainer-1   portainer/portainer-ce   Up 5 minutes
 # Check logs
 $ docker compose -f docker-compose.pods.yml logs portainer --tail 20
 
-# Common: Missing env file for a service that uses one
-$ ls services/.env-listmonk
-ls: cannot access 'services/.env-listmonk': No such file or directory
+# Common: Missing required variable for a service
+$ docker compose --profile all config
+required variable LISTMONK_db__password is missing a value: Set LISTMONK_db__password in .env, direnv, or Portainer
 ```
 
 ### Certificate Warning (Expected in Dev)
@@ -355,25 +362,27 @@ $ docker compose -f docker-compose.pods.yml up -d portainer
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `DOMAIN` | No | `traefik.me` | Base domain |
-| `ACME_EMAIL` | For prod | — | Let's Encrypt ACME contact email |
-| `CF_DNS_API_TOKEN` | For prod | — | Cloudflare DNS API token for DNS-01 |
+| `ACME_EMAIL` | Yes | — | Let's Encrypt ACME contact email for Traefik |
+| `CF_DNS_API_TOKEN` | Yes | — | Cloudflare DNS API token for DNS-01 |
 | `ADGUARD_DNS_PORT` | No | `1053` | Host DNS port mapped to AdGuard 53 |
+| `DB_PASSWORD` | Yes | — | Immich PostgreSQL password |
+| `LISTMONK_db__password` | Yes | — | Listmonk PostgreSQL password |
+| `PAPERLESS_DBPASS` | Yes | — | Paperless PostgreSQL password |
+| `PAPERLESS_SECRET_KEY` | Yes | — | Paperless app secret key |
+| `NEXTAUTH_SECRET` | Yes | — | Karakeep auth secret |
+| `MEILI_MASTER_KEY` | Yes | — | Karakeep / Meilisearch shared key |
+| `RUSTFS_ACCESS_KEY` | Yes | — | RustFS S3 access key |
+| `RUSTFS_SECRET_KEY` | Yes | — | RustFS S3 secret key |
 | `OPENVPN_USER` | For media VPN | — | ProtonVPN OpenVPN username for Gluetun |
 | `OPENVPN_PASSWORD` | For media VPN | — | ProtonVPN OpenVPN password for Gluetun |
 | `VPN_SERVER_COUNTRIES` | No | `Netherlands` | Preferred VPN exit country for media downloads |
+| `SPEEDTEST_APP_KEY` | Yes for Speedtest Tracker | — | Speedtest Tracker Laravel app key |
 
-### Service Configs (`services/.env-*`)
+### Service Defaults and Secrets
 
-| File | Service | Contents |
-|------|---------|----------|
-| `.env-listmonk` | Listmonk | DB credentials |
-| `.env-karakeep` | Karakeep | Admin password, search key |
-| `.env-immich` | Immich | Database credentials |
-| `.env-rustfs` | RustFS | S3 keys |
-| `.env-netalertx` | NetAlertX | Scan subnets |
-| `.env-paperless` | Paperless-ngx | OCR language, secret key |
-| `.env-bentopdf` | BentoPDF | PDF options |
-| `.env-speedtest-tracker` | Speedtest Tracker | App key, schedule, retention |
+Safe defaults now live in the compose files.
+Required secrets should be set through `.env`, `.envrc`, or Portainer instead of repo-managed `services/.env-*` files.
+If you use the Nix dev shell, `mkpasswd` is available for passwords and `openssl` is available for hex/base64 secrets.
 
 ### TLS / DNS Credentials
 

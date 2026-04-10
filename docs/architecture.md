@@ -184,7 +184,7 @@ screwdriver is much easier when you have a dedicated toolbox.
     ```
 
     **What's happening here:**
-    Each file defines a complete stack (volumes, networks, environment). Sensitive runtime values live in untracked env files such as `.env` and `services/.env-*`.
+    Each file defines a complete stack (volumes, networks, environment). Sensitive runtime values usually come from untracked `.env`, shell env, or direnv-managed exports. A few optional side stacks may still use local env files.
 
 === "Routes"
 
@@ -334,7 +334,7 @@ $ docker compose --profile apps up -d ittools cloudbeaver
 
 ### Use the Convenience Profile
 
-For development or when you want the full main stack (not including *experimental*):
+For development or when you want the full main stack (not including *experimental*), after required variables are set:
 
 ```bash title="Use the all profile from the shell"
 $ export COMPOSE_PROFILES=all
@@ -364,7 +364,7 @@ ittools
 ### Profile Strategy in Practice
 
 1. **Production servers**: Set `COMPOSE_PROFILES=infra` and let **Sablier** start sleep-enabled apps on-demand
-2. **Development machines**: Use `COMPOSE_PROFILES=all` for immediate access to everything
+2. **Development machines**: Use `COMPOSE_PROFILES=all` after filling the required variables for the full stack
 3. **CI/CD pipelines**: Test each profile independently to validate service boundaries
 
 The separation keeps your baseline resource usage low while giving you access to the full stack when needed.

@@ -13,16 +13,17 @@ Use this guide for the full deployment path in this repo. Start the separate `do
 This is the shortest working path from a fresh clone to a fully deployed stack:
 
 ```bash title="Fresh-host deployment path"
-# 1. Clone and create the local bootstrap files
+# 1. Clone and prepare the local env files
 $ git clone https://github.com/jakob1379/homelab.git && cd homelab
 Cloning into 'homelab'...
 done.
 
 $ ./setup-dev.sh
-[INFO] Setting up dummy files for homelab development...
+[INFO] Setting up the homelab development environment...
+[WARN] setup-dev.sh no longer generates service env files or dummy secrets
 [INFO] Setup complete!
 
-# 2. Set your real deployment domain, ACME email, and Cloudflare token
+# 2. Set your real deployment domain and required secrets
 $ cat > .env <<'EOF'
 DOMAIN=lab.example.com
 ACME_EMAIL=you@example.com
@@ -75,8 +76,8 @@ This matters for two reasons:
 
 You need the following before the full deploy works:
 
-- A root `.env` with at least `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`
-- Any optional app credentials you plan to use later, such as `OPENVPN_USER` and `OPENVPN_PASSWORD`
+- A root `.env` with `DOMAIN`, `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and the app secrets required by the profiles you plan to run
+- Any shell or direnv-provided values you intentionally keep out of `.env`, such as `SPEEDTEST_APP_KEY`
 
 ```bash title="Create the root deployment files"
 # Create the main environment file
@@ -153,12 +154,21 @@ Recommended stack settings:
 | **GitOps update mechanism** | `Webhook` |
 | **Poll fallback** | `5m` |
 
-Add these **environment variables** in the stack editor:
+Add these **environment variables** in the stack editor if you deploy the full main stack:
 
 ```text title="Portainer stack variables"
 DOMAIN=lab.example.com
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cf_api_token
+DB_PASSWORD=...
+LISTMONK_db__password=...
+PAPERLESS_DBPASS=...
+PAPERLESS_SECRET_KEY=...
+NEXTAUTH_SECRET=...
+MEILI_MASTER_KEY=...
+RUSTFS_ACCESS_KEY=...
+RUSTFS_SECRET_KEY=...
+SPEEDTEST_APP_KEY=...
 ```
 
 If you plan to use media downloads, also add:
@@ -169,16 +179,25 @@ OPENVPN_PASSWORD=your_proton_openvpn_password
 VPN_SERVER_COUNTRIES=Netherlands
 ```
 
-### Important: the Cloudflare token must be present in the stack environment
+### Important: Portainer must receive every required variable for the profiles you deploy
 
-This repo now passes the Cloudflare token through `CF_DNS_API_TOKEN`, not a file mount. When Portainer deploys from Git, make sure the stack environment includes:
+This repo now fails fast with `${VAR:?message}` checks. When Portainer deploys from Git, make sure the stack environment includes at least:
 
 - `DOMAIN`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
+- `DB_PASSWORD`
+- `LISTMONK_db__password`
+- `PAPERLESS_DBPASS`
+- `PAPERLESS_SECRET_KEY`
+- `NEXTAUTH_SECRET`
+- `MEILI_MASTER_KEY`
+- `RUSTFS_ACCESS_KEY`
+- `RUSTFS_SECRET_KEY`
+- `SPEEDTEST_APP_KEY`
 
 !!! warning
-    If `CF_DNS_API_TOKEN` is missing from the Portainer stack environment, **Traefik** will start but certificate issuance will fail.
+    If one of the required variables is missing from the Portainer stack environment, Compose rendering fails before the stack deploy completes.
 
 ### What happens on the first full deploy
 

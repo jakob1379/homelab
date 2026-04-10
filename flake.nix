@@ -5,7 +5,7 @@
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ prek gitleaks yamlfix zensical ];
+          buildInputs = with pkgs; [ prek gitleaks yamlfix zensical libressl expect ];
         };
       });
 }
