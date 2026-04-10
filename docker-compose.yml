@@ -22,9 +22,6 @@ include:
   - services/paperless-ngx.yml  # Paperless-ngx document management
   - services/media.yml  # Jellyfin + media automation stack
   - services/homepage.yml  # Homepage dashboard
-secrets:
-  cf_dns_api_token:
-    file: services/secrets/cf_dns_api_token
 # Log rotation configuration to prevent disk fill
 # Reference in services with: <<: *x-logging
 x-logging:

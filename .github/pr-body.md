@@ -9,7 +9,7 @@ This PR updates the homelab Docker Compose setup with improvements to service co
    - Traefik configured with Docker provider in `traefik.yml`
    - Root `docker-compose.yml` includes all stacks with clear separation
    - Healthchecks implemented for key services (Traefik, PostgreSQL, RustFS)
-   - Development secret files with placeholder values
+   - Development environment files with placeholder values
 
 2. **Clean Separation of Concerns**
    - Organized services into logical stack files in `services/` directory:
@@ -42,7 +42,7 @@ This PR updates the homelab Docker Compose setup with improvements to service co
 6. **Single-Command Startup Solution**
    - `scripts/start-dev.sh` provides Docker Compose-based deployment
    - Supports `--basestack-only` and `--apps-only` modes
-   - Creates dummy Docker secret files if missing for development
+   - Creates dummy environment files if missing for development
    - Waits for Traefik readiness before deploying apps
 
 7. **Makefile Integration**

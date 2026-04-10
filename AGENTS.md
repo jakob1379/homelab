@@ -7,9 +7,8 @@ to run locally with minimal setup and scale into a production-style self-hosted 
 - `config/` Runtime config for Traefik and Homepage.
 - `docs/` Source docs for the published documentation site.
 - `home-assistant/` Separate Home Assistant compose project on `traefik_public`.
-- `services/` Per-stack compose files, env files, and secret file paths.-
- `site/` Generated docs output; ignored by git.
-- `traefik-config/` Local Traefik config/secrets area; secrets are ignored.
+- `services/` Per-stack compose files, env files, and untracked secret paths.
+- `site/` Generated docs output; ignored by git.
 - `docker-compose.yml` Root compose entrypoint for the main homelab stack.
 - `docker-compose.pods.yml` Separate bootstrap stack for Portainer + Dockhand.
 - `docker-compose.override.yml` Local restart-policy overrides.
@@ -98,7 +97,7 @@ Testing Strategy
   runs pre-commit auto-fixes.
 Security & Compliance
 - Secrets are file-based and untracked: .env, services/.env-*,
-  services/secrets/*, and traefik-config/secrets/*.
+  and services/secrets/*.
 - setup-dev.sh creates dummy local placeholders; do not commit real credentials.
 - Traefik reads Cloudflare DNS credentials from services/secrets/cf_dns_api_token.
 - Dependabot updates Docker dependencies monthly.
@@ -107,7 +106,7 @@ Security & Compliance
 - License: MIT
 Agent Guardrails
 - Never edit or commit secret/state paths:
-  .env, services/.env-*, services/secrets/*, traefik-config/secrets/*,
+  .env, services/.env-*, services/secrets/*,
   home-assistant/config/, site/, .cache/, and log directories.
 - Treat docker-compose.yml, services/networking.yml,
   config/traefik/traefik.yml, and home-assistant/docker-compose.yml as high-risk.

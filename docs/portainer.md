@@ -22,13 +22,14 @@ $ ./setup-dev.sh
 [INFO] Setting up dummy files for homelab development...
 [INFO] Setup complete!
 
-# 2. Set your real deployment domain and Cloudflare email
-$ printf 'DOMAIN=lab.example.com\nCF_API_EMAIL=you@example.com\n' > .env
+# 2. Set your real deployment domain, ACME email, and Cloudflare token
+$ cat > .env <<'EOF'
+DOMAIN=lab.example.com
+ACME_EMAIL=you@example.com
+CF_DNS_API_TOKEN=your_cf_api_token
+EOF
 
-# 3. Add the Cloudflare DNS token Traefik will use later
-$ echo -n 'your_cf_api_token' > services/secrets/cf_dns_api_token
-
-# 4. Bootstrap only Portainer + Dockhand
+# 3. Bootstrap only Portainer + Dockhand
 $ docker compose -f docker-compose.pods.yml up -d
 [+] Running 2/2
   ✔ Container homelab-pods-portainer-1  Started
@@ -36,7 +37,7 @@ $ docker compose -f docker-compose.pods.yml up -d
 ```
 
 ```bash title="Verify the Portainer bootstrap endpoint"
-# 5. Verify the bootstrap control plane
+# 4. Verify the bootstrap control plane
 $ curl -sk https://localhost:9443/api/status | jq '.Version'
 "2.25.1"
 ```
@@ -44,7 +45,7 @@ $ curl -sk https://localhost:9443/api/status | jq '.Version'
 Open `https://localhost:9443`, create the admin user, then create a **Repository** stack that points back to this repo. Dockhand is available on `http://localhost:3000` for bootstrap access. After Portainer finishes the full deploy, verify the routed stack:
 
 ```bash title="Verify the routed stack after the full deploy"
-# 6. Verify the full stack after Portainer deploys it
+# 5. Verify the full stack after Portainer deploys it
 $ curl -k https://whoami.lab.example.com
 Hostname: homelab-whoami-1
 IP: 172.20.0.2
@@ -72,25 +73,18 @@ This matters for two reasons:
 
 ## Step 1: Prepare The Repo
 
-You need three things before the full deploy works:
+You need the following before the full deploy works:
 
-- A root `.env` with at least `DOMAIN` and `CF_API_EMAIL`
-- A Cloudflare token file at `services/secrets/cf_dns_api_token`
+- A root `.env` with at least `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`
 - Any optional app credentials you plan to use later, such as `OPENVPN_USER` and `OPENVPN_PASSWORD`
 
 ```bash title="Create the root deployment files"
 # Create the main environment file
 $ cat > .env <<'EOF'
 DOMAIN=lab.example.com
-CF_API_EMAIL=you@example.com
+ACME_EMAIL=you@example.com
+CF_DNS_API_TOKEN=your_cf_api_token
 EOF
-
-# Add the Cloudflare token with no trailing newline
-$ echo -n 'your_cf_api_token' > services/secrets/cf_dns_api_token
-
-# Confirm the secret file is clean
-$ cat -A services/secrets/cf_dns_api_token
-your_cf_api_token
 ```
 
 If you want media automation, add the ProtonVPN credentials before deployment:
@@ -163,7 +157,8 @@ Add these **environment variables** in the stack editor:
 
 ```text title="Portainer stack variables"
 DOMAIN=lab.example.com
-CF_API_EMAIL=you@example.com
+ACME_EMAIL=you@example.com
+CF_DNS_API_TOKEN=your_cf_api_token
 ```
 
 If you plan to use media downloads, also add:
@@ -174,26 +169,16 @@ OPENVPN_PASSWORD=your_proton_openvpn_password
 VPN_SERVER_COUNTRIES=Netherlands
 ```
 
-### Important: the secret file must exist in Portainer's stack checkout
+### Important: the Cloudflare token must be present in the stack environment
 
-`docker-compose.yml` reads `services/secrets/cf_dns_api_token`. When Portainer deploys from Git, it needs that file in the stack working copy on the Docker host.
+This repo now passes the Cloudflare token through `CF_DNS_API_TOKEN`, not a file mount. When Portainer deploys from Git, make sure the stack environment includes:
 
-Typical host-side setup:
-
-```bash title="Create the Cloudflare token in Portainer's stack checkout"
-# Example path used by Portainer for a stack checkout
-$ mkdir -p /data/compose/homelab/services/secrets
-$ echo -n 'your_cf_api_token' > /data/compose/homelab/services/secrets/cf_dns_api_token
-```
-
-```bash title="Verify the secret file path Portainer will read"
-# Verify the file exists where Portainer will read it
-$ ls -l /data/compose/homelab/services/secrets/cf_dns_api_token
--rw------- 1 root root 19 Apr  9 12:00 /data/compose/homelab/services/secrets/cf_dns_api_token
-```
+- `DOMAIN`
+- `ACME_EMAIL`
+- `CF_DNS_API_TOKEN`
 
 !!! warning
-    If the secret file is missing from the Portainer stack checkout, the full stack deploy will fail before **Traefik** can request certificates.
+    If `CF_DNS_API_TOKEN` is missing from the Portainer stack environment, **Traefik** will start but certificate issuance will fail.
 
 ### What happens on the first full deploy
 
@@ -336,21 +321,11 @@ $ docker compose -f docker-compose.pods.yml up -d
   ✔ Container homelab-pods-dockhand-1   Started
 ```
 
-### The full deploy fails before Traefik starts
+### The full deploy comes up, but Traefik cannot issue certificates
 
-The most common cause is a missing secret file inside Portainer's stack checkout:
+The most common cause is a missing or wrong token in the Portainer stack environment.
 
-```bash title="Check for the missing Cloudflare token file"
-$ ls /data/compose/homelab/services/secrets/cf_dns_api_token
-ls: cannot access '/data/compose/homelab/services/secrets/cf_dns_api_token': No such file or directory
-```
-
-Create it and redeploy:
-
-```bash title="Create the missing token file and redeploy"
-$ mkdir -p /data/compose/homelab/services/secrets
-$ echo -n 'your_cf_api_token' > /data/compose/homelab/services/secrets/cf_dns_api_token
-```
+Check the stack variables in Portainer and confirm `CF_DNS_API_TOKEN` is set.
 
 ### Certificates are not issued
 
@@ -362,9 +337,9 @@ traefik  | error renewing certificate for domain lab.example.com
 ```
 
 Most common causes:
-
-- wrong token value in `cf_dns_api_token`
+- wrong token value in `CF_DNS_API_TOKEN`
 - missing `Zone:Read` or `DNS:Edit` permissions
+- missing `ACME_EMAIL`
 - wrong `DOMAIN` value in `.env` or Portainer stack variables
 
 ### DNS resolves the wrong IP

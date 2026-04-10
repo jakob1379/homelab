@@ -47,7 +47,6 @@ Options:
     --help, -h    Show this help message
 
 This script creates:
-- services/secrets/* dummy secret files (1 file)
 - services/.env-* dummy environment files (${#MANAGED_ENV_FILES[@]} files)
 - Optional: .env from .env.example if missing
 - Reminder: set VPN credentials in .env for media downloads
@@ -72,24 +71,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 log_info "Setting up dummy files for homelab development..."
-
-# Create services/secrets directory and dummy secret file
-SECRETS_DIR="services/secrets"
-mkdir -p "$SECRETS_DIR"
-
-SECRETS=(
-    "cf_dns_api_token"
-)
-
-for secret in "${SECRETS[@]}"; do
-    secret_file="$SECRETS_DIR/$secret"
-    if [[ -f "$secret_file" ]]; then
-        log_info "Secret file $secret_file already exists"
-    else
-        log_warn "Creating dummy secret file: $secret_file"
-        echo -n "dummy_placeholder" > "$secret_file"
-    fi
-done
 
 # Create environment files in services directory
 ENV_FILES_DIR="services"

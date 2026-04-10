@@ -21,10 +21,9 @@ $ git clone https://github.com/jakob1379/homelab.git && cd homelab
 Cloning into 'homelab'...
 done.
 
-# 2. Set up development environment (creates dummy secrets)
+# 2. Set up development environment (creates dummy env files)
 $ ./setup-dev.sh
 [INFO] Setting up dummy files for homelab development...
-[WARN] Creating dummy secret file: services/secrets/cf_dns_api_token
 [WARN] Creating dummy environment file: services/.env-listmonk
 ...
 [INFO] Setup complete!
@@ -211,7 +210,7 @@ Access: `https://ha.${DOMAIN}`
 | **Domain** | `traefik.me` (magic DNS) | Your domain |
 | **HTTPS** | Self-signed (browser warnings) | Let's Encrypt |
 | **DNS** | None needed | NetBird DNS -> AdGuard wildcard + Cloudflare DNS-01 |
-| **Setup** | `./setup-dev.sh` | Cloudflare token + AdGuard wildcard record |
+| **Setup** | `./setup-dev.sh` | ACME email + Cloudflare token + AdGuard wildcard record |
 
 **Development** (default, zero config):
 ```bash title="Development smoke test"
@@ -223,16 +222,17 @@ IP: 172.20.0.2
 
 **Production** (your domain, valid certs):
 ```bash title="Production bootstrap values"
-# 1. Set domain and Cloudflare email
-$ printf 'DOMAIN=yourdomain.com\nCF_API_EMAIL=you@example.com\n' > .env
+# 1. Set domain, ACME email, and Cloudflare token
+$ cat > .env <<'EOF'
+DOMAIN=yourdomain.com
+ACME_EMAIL=you@example.com
+CF_DNS_API_TOKEN=your_token
+EOF
 
-# 2. Add Cloudflare token
-$ echo -n 'your_token' > services/secrets/cf_dns_api_token
-
-# 3. Bootstrap Portainer + Dockhand
+# 2. Bootstrap Portainer + Dockhand
 $ docker compose -f docker-compose.pods.yml up -d
 
-# 4. Open https://localhost:9443 to deploy the full stack
+# 3. Open https://localhost:9443 to deploy the full stack
 #    Dockhand is also available on http://localhost:3000 for local management
 ```
 
@@ -355,7 +355,8 @@ $ docker compose -f docker-compose.pods.yml up -d portainer
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `DOMAIN` | No | `traefik.me` | Base domain |
-| `CF_API_EMAIL` | For prod | — | Cloudflare email |
+| `ACME_EMAIL` | For prod | — | Let's Encrypt ACME contact email |
+| `CF_DNS_API_TOKEN` | For prod | — | Cloudflare DNS API token for DNS-01 |
 | `ADGUARD_DNS_PORT` | No | `1053` | Host DNS port mapped to AdGuard 53 |
 | `OPENVPN_USER` | For media VPN | — | ProtonVPN OpenVPN username for Gluetun |
 | `OPENVPN_PASSWORD` | For media VPN | — | ProtonVPN OpenVPN password for Gluetun |
@@ -374,11 +375,12 @@ $ docker compose -f docker-compose.pods.yml up -d portainer
 | `.env-bentopdf` | BentoPDF | PDF options |
 | `.env-speedtest-tracker` | Speedtest Tracker | App key, schedule, retention |
 
-### Secrets (`services/secrets/`)
+### TLS / DNS Credentials
 
-| File | Used By | Purpose |
-|------|---------|---------|
-| `cf_dns_api_token` | Traefik | Cloudflare DNS |
+| Variable | Used By | Purpose |
+|----------|---------|---------|
+| `ACME_EMAIL` | Traefik | Let's Encrypt ACME contact email |
+| `CF_DNS_API_TOKEN` | Traefik | Cloudflare DNS-01 challenge token |
 
 ---
 

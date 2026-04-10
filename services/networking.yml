@@ -5,16 +5,14 @@ services:
     image: traefik:3.6.9
     ports: [80:80, 443:443]
     environment:
-      - CF_API_EMAIL=${CF_API_EMAIL}
-      - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:-}
       - DOMAIN=${DOMAIN:-traefik.me}
-      - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${CF_API_EMAIL}
+      - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${ACME_EMAIL:-}
     volumes:
       - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ../config/traefik/dyn:/etc/traefik/dyn
       - ../config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-    secrets: [cf_dns_api_token]
     networks: [traefik_public]
     labels:
       - traefik.enable=true

@@ -278,8 +278,9 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | `.env-paperless` | Paperless-ngx | OCR language, admin credentials, secret key |
 | `.env-speedtest-tracker` | Speedtest Tracker | App key, schedule, UI retention settings |
 
-## Secrets Reference
+## TLS / DNS Credentials
 
-| File | Used By | Purpose |
-|------|---------|---------|
-| `cf_dns_api_token` | Traefik | Cloudflare DNS-01 challenge |
+| Variable | Used By | Purpose |
+|----------|---------|---------|
+| `ACME_EMAIL` | Traefik | Let's Encrypt ACME contact email |
+| `CF_DNS_API_TOKEN` | Traefik | Cloudflare DNS-01 challenge |

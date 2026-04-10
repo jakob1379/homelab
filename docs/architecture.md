@@ -167,8 +167,6 @@ screwdriver is much easier when you have a dedicated toolbox.
 
     ```text title="services/"
     services/
-    ├── secrets/                # Docker secrets (excluded from git)
-    │   └── cf_dns_api_token
     ├── homepage.yml            # Homepage dashboard stack
     ├── immich.yml              # Photo management
     ├── karakeep.yml            # Bookmark manager
@@ -186,12 +184,7 @@ screwdriver is much easier when you have a dedicated toolbox.
     ```
 
     **What's happening here:**
-    Each file defines a complete stack (volumes, networks, environment). The `secrets/` subdirectory holds sensitive values as plain files, never committed to git.
-
-    ```bash title="Create a development secret file"
-    # Create a dummy secret for development
-    $ echo -n "dummy_token" > services/secrets/cf_dns_api_token
-    ```
+    Each file defines a complete stack (volumes, networks, environment). Sensitive runtime values live in untracked env files such as `.env` and `services/.env-*`.
 
 === "Routes"
 
@@ -440,9 +433,7 @@ certificatesResolvers:
         provider: cloudflare
 ```
 
-**Traefik** is configured to use the **Cloudflare** API token (from
-`services/secrets/cf_dns_api_token`) to automatically add TXT to your DNS records, proving domain
-ownership.
+**Traefik** is configured to use the **Cloudflare** API token from `CF_DNS_API_TOKEN` to automatically add TXT to your DNS records, proving domain ownership. The ACME contact email comes from `ACME_EMAIL`.
 
 ---
 
