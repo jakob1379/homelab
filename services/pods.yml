@@ -30,7 +30,7 @@ services:
           memory: 256M
   dockhand:
     profiles: [apps, all, pods]
-    image: fnsys/dockhand:latest
+    image: fnsys/dockhand:v1.0.24
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - dockhand_data:/app/data

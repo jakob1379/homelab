@@ -4,7 +4,7 @@ volumes:
 services:
   ha:
     profiles: [service]
-    image: homeassistant/home-assistant:latest
+    image: homeassistant/home-assistant:2026.4.1
     volumes:
       - ha_config:/config
       - /etc/localtime:/etc/localtime:ro

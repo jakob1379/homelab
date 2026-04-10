@@ -2,7 +2,7 @@
 services:
   rustfs:
     profiles: [infra, all]
-    image: rustfs/rustfs:latest
+    image: rustfs/rustfs:1.0.0-alpha.92
     depends_on:
       traefik:
         condition: service_healthy
