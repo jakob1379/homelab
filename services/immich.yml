@@ -2,7 +2,7 @@
 services:
   immich-postgres:
     profiles: [apps, all]
-    image: pgvector/pgvector:pg17
+    image: pgvector/pgvector:0.8.2-pg17
     environment:
       - POSTGRES_USER=${DB_USERNAME:-immich}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-immich}
@@ -34,7 +34,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    image: ghcr.io/immich-app/immich-server:release
+    image: ghcr.io/immich-app/immich-server:v2.7.3
     command: [start.sh, immich]
     volumes: [immich_library:/usr/src/app/upload]
     environment:
@@ -75,7 +75,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    image: ghcr.io/immich-app/immich-server:release
+    image: ghcr.io/immich-app/immich-server:v2.7.3
     command: [start.sh, microservices]
     volumes: [immich_library:/usr/src/app/upload]
     environment:
@@ -106,7 +106,7 @@ services:
   # ML processing - Sablier-managed group (queue wake is experimental)
   immich-machine-learning:
     profiles: [apps, all]
-    image: ghcr.io/immich-app/immich-machine-learning:release
+    image: ghcr.io/immich-app/immich-machine-learning:v2.7.3
     volumes: [immich_model_cache:/cache]
     environment: [REDIS_HOSTNAME=redis]
     networks: [immich]
@@ -130,7 +130,7 @@ services:
   # Queue storage - Always on
   redis:
     profiles: [apps, all]
-    image: redis:7-alpine
+    image: redis:7.4.8-alpine3.21
     volumes: [immich_redis:/data]
     networks: [immich]
     healthcheck:
@@ -151,7 +151,7 @@ services:
   # Queue monitor (experimental) - Polls Redis, pings Sablier API
   immich-queue-monitor:
     profiles: [experimental]
-    image: alpine:latest
+    image: alpine:3.23.3
     depends_on: [redis]
     environment:
       - REDIS_HOST=redis

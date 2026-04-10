@@ -70,7 +70,7 @@ services:
           memory: 64M
   whoami:
     profiles: [infra, all]
-    image: traefik/whoami:v1.10
+    image: traefik/whoami:v1.10.4
     depends_on:
       traefik:
         condition: service_healthy
@@ -132,7 +132,7 @@ services:
           memory: 128M
   netalertx:
     profiles: [infra, all]
-    image: ghcr.io/jokob-sk/netalertx:latest
+    image: ghcr.io/jokob-sk/netalertx:26.4.6
     network_mode: host
     depends_on:
       traefik:

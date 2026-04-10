@@ -1,7 +1,7 @@
 ---
 services:
   teable:
-    image: ghcr.io/teableio/teable:latest
+    image: ghcr.io/teableio/teable@sha256:36b47d022333148903ca0ec4089505c170a375ed7097c218dfd71ea435a3c8ac
     volumes: [teable-data:/app/.assets:rw]
     env_file: [./.env-teable]
     environment: [NEXT_ENV_IMAGES_ALL_REMOTE=true]

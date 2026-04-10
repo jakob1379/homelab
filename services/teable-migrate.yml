@@ -1,7 +1,7 @@
 ---
 services:
   teable-createbuckets:
-    image: minio/mc
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
     env_file: [./.env-teable]
     entrypoint: >
       /bin/sh -c "
@@ -17,7 +17,7 @@ services:
       restart_policy:
         condition: none  # Ensures the service does not restart
   teable-db-migrate:
-    image: ghcr.io/teableio/teable-db-migrate:latest
+    image: ghcr.io/teableio/teable-db-migrate@sha256:f046bef9c10888af0fc3e78c92dda8d47fe8ffdc09b3fb77cc2c298253dd3e2d
     env_file: [./.env-teable]
     deploy:
       replicas: 1  # Ensures only one instance runs
