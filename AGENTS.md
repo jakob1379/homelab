@@ -11,7 +11,6 @@ to run locally with minimal setup and scale into a production-style self-hosted 
 - `site/` Generated docs output; ignored by git.
 - `docker-compose.yml` Root compose entrypoint for the main homelab stack.
 - `docker-compose.pods.yml` Separate bootstrap stack for Portainer + Dockhand.
-- `docker-compose.override.yml` Local restart-policy overrides.
 - `setup-dev.sh` Copies `.env.example` when needed and reports missing required vars.
 - `README.md` Main overview, quick start, and operator docs.
 - `backup_spec.md` Backup service design spec.
@@ -121,7 +120,7 @@ Extensibility Hooks
   infra, apps, all, experimental, tunnel.
 - Main env hooks:
   DOMAIN, ACME_EMAIL, CF_DNS_API_TOKEN, ADGUARD_DNS_PORT,
-  DB_PASSWORD, LISTMONK_db__password, PAPERLESS_DBPASS, PAPERLESS_SECRET_KEY,
+  IMMICH_DB_PASSWORD, LISTMONK_db__password, PAPERLESS_DBPASS, PAPERLESS_SECRET_KEY,
   NEXTAUTH_SECRET, MEILI_MASTER_KEY, RUSTFS_ACCESS_KEY, RUSTFS_SECRET_KEY,
   OPENVPN_USER, OPENVPN_PASSWORD, VPN_SERVER_COUNTRIES, SPEEDTEST_APP_KEY.
 - services/immich.yml contains the experimental queue-driven wake pattern.

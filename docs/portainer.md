@@ -20,7 +20,7 @@ done.
 
 $ ./setup-dev.sh
 [INFO] Setting up the homelab development environment...
-[WARN] setup-dev.sh no longer generates service env files or dummy secrets
+[INFO] setup-dev.sh leaves password-style credentials alone and only generates app keys
 [INFO] Setup complete!
 
 # 2. Set your real deployment domain and required secrets
@@ -160,7 +160,7 @@ Add these **environment variables** in the stack editor if you deploy the full m
 DOMAIN=lab.example.com
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cf_api_token
-DB_PASSWORD=...
+IMMICH_DB_PASSWORD=...
 LISTMONK_db__password=...
 PAPERLESS_DBPASS=...
 PAPERLESS_SECRET_KEY=...
@@ -186,7 +186,7 @@ This repo now fails fast with `${VAR:?message}` checks. When Portainer deploys f
 - `DOMAIN`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
-- `DB_PASSWORD`
+- `IMMICH_DB_PASSWORD`
 - `LISTMONK_db__password`
 - `PAPERLESS_DBPASS`
 - `PAPERLESS_SECRET_KEY`

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Setup script for homelab development environment
-# Copies .env.example when needed and reports missing required values
+# Copies .env.example when needed, generates dev-safe app keys, and reports missing required values
 
 # Color codes for output
 RED='\033[0;31m'
@@ -89,13 +89,53 @@ has_config_value() {
     [[ -f ".env" ]] && grep -Eq "^${var_name}=.+" ".env"
 }
 
+generate_base64_key() {
+    openssl rand -base64 32 | tr -d '\n'
+}
+
+set_env_value() {
+    local var_name="$1"
+    local var_value="$2"
+    local env_file="$3"
+    local tmp_file
+
+    tmp_file=$(mktemp)
+
+    if [[ -f "$env_file" ]]; then
+        grep -Ev "^${var_name}=" "$env_file" > "$tmp_file" || true
+    fi
+
+    printf '%s=%s\n' "$var_name" "$var_value" >> "$tmp_file"
+    mv "$tmp_file" "$env_file"
+}
+
+ensure_generated_dev_key() {
+    local var_name="$1"
+
+    if has_config_value "$var_name"; then
+        return 0
+    fi
+
+    if ! command -v openssl >/dev/null 2>&1; then
+        log_warn "openssl is not available, so $var_name was not generated"
+        return 1
+    fi
+
+    if [[ ! -f ".env" ]]; then
+        log_warn ".env is missing, so $var_name was not generated"
+        return 1
+    fi
+
+    set_env_value "$var_name" "$(generate_base64_key)" ".env"
+    log_info "Generated development key: $var_name"
+}
+
 show_generation_hints() {
     log_info "Generator hints:"
     if command -v mkpasswd >/dev/null 2>&1; then
-        log_info "  mkpasswd -l 32 -s 1      # passwords and access keys"
+        log_info "  mkpasswd -l 32 -s 1      # passwords"
     fi
-    log_info "  openssl rand -hex 32      # hex secrets"
-    log_info "  openssl rand -base64 32   # app keys"
+    log_info "  openssl rand -base64 32   # app keys and secrets"
 }
 
 show_usage() {
@@ -109,6 +149,7 @@ Options:
 
 This script:
 - Optionally copies .env.example to .env if missing
+- Generates random app keys in .env when safe for local development
 - Verifies required env_file references from included compose files
 - Reports required secrets that must be set manually
 
@@ -132,7 +173,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 log_info "Setting up the homelab development environment..."
-log_warn "setup-dev.sh no longer generates service env files or dummy secrets"
+log_info "setup-dev.sh leaves password-style credentials alone and only generates app keys"
 
 ENV_FILES_DIR="services"
 
@@ -161,10 +202,17 @@ elif [[ ! -f ".env" ]]; then
     log_info "No .env file found. You can create one for custom environment variables."
 fi
 
+generated_key_failures=0
+for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_db__password PAPERLESS_SECRET_KEY NEXTAUTH_SECRET MEILI_MASTER_KEY SPEEDTEST_APP_KEY; do
+    if ! ensure_generated_dev_key "$generated_key"; then
+        generated_key_failures=1
+    fi
+done
+
 required_vars=(
     ACME_EMAIL
     CF_DNS_API_TOKEN
-    DB_PASSWORD
+    IMMICH_DB_PASSWORD
     LISTMONK_db__password
     PAPERLESS_DBPASS
     PAPERLESS_SECRET_KEY
@@ -188,6 +236,9 @@ if (( ${#missing_required_vars[@]} > 0 )); then
     log_warn "Missing required variables for docker compose --profile all:"
     printf ' - %s\n' "${missing_required_vars[@]}"
     log_warn "Set them in .env, direnv, or Portainer before starting the stack"
+    show_generation_hints
+elif (( generated_key_failures > 0 )); then
+    log_warn "Some development keys were not generated automatically"
     show_generation_hints
 fi
 

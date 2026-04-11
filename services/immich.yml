@@ -4,9 +4,10 @@ services:
     profiles: [apps, all]
     image: pgvector/pgvector:0.8.2-pg17
     environment:
-      - POSTGRES_USER=${DB_USERNAME:-immich}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in .env, direnv, or Portainer}
-      - POSTGRES_DB=${DB_DATABASE_NAME:-immich}
+      - POSTGRES_USER=${IMMICH_DB_USERNAME:-immich}
+      - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD:?Set IMMICH_DB_PASSWORD in .env, direnv,
+        or Portainer}
+      - POSTGRES_DB=${IMMICH_DB_DATABASE_NAME:-immich}
       - TZ=Europe/Copenhagen
     volumes: [immich_postgres_data:/var/lib/postgresql/data]
     healthcheck:
@@ -39,9 +40,10 @@ services:
     volumes: [immich_library:/usr/src/app/upload]
     environment:
       - DB_HOSTNAME=immich-postgres
-      - DB_USERNAME=${DB_USERNAME:-immich}
-      - DB_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in .env, direnv, or Portainer}
-      - DB_DATABASE_NAME=${DB_DATABASE_NAME:-immich}
+      - DB_USERNAME=${IMMICH_DB_USERNAME:-immich}
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD:?Set IMMICH_DB_PASSWORD in .env, direnv,
+        or Portainer}
+      - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME:-immich}
       - REDIS_HOSTNAME=redis
       - IMMICH_WORKERS_INCLUDE=api
     networks: [traefik_public, immich]
@@ -80,10 +82,10 @@ services:
     volumes: [immich_library:/usr/src/app/upload]
     environment:
       - DB_HOSTNAME=immich-postgres
-      - DB_USERNAME=${DB_USERNAME:-immich}
-      - DB_PASSWORD=${DB_PASSWORD:?Generate a password using `openssl rand -base64
-        32 2>/dev/null`}
-      - DB_DATABASE_NAME=${DB_DATABASE_NAME:-immich}
+      - DB_USERNAME=${IMMICH_DB_USERNAME:-immich}
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD:?Generate a password using `openssl rand
+        -base64 32 2>/dev/null`}
+      - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME:-immich}
       - REDIS_HOSTNAME=redis
       - IMMICH_WORKERS_EXCLUDE=api
     networks: [immich]

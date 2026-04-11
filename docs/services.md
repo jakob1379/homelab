@@ -205,7 +205,7 @@ Complete list of services and configuration points.
 - **Purpose:** Photo and video management with AI features
 - **Access:** `https://photos.${DOMAIN}`
 - **Profile:** apps
-- **Required env:** `DB_PASSWORD`
+- **Required env:** `IMMICH_DB_PASSWORD`
 - **Sablier:** Partial (API/UI always on; workers can be queue-woken)
 - **Notes:** `immich-server` is routed by `config/traefik/dyn/immich.yml` at `photos.${DOMAIN}`; `immich-microservices` and `immich-machine-learning` are grouped as `immich-workers`
 - **Notes:** Queue-based wake logic is experimental via profile `experimental` (not included in `all`)
@@ -270,7 +270,7 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 |----------|---------|---------|
 | `ACME_EMAIL` | Traefik | Let's Encrypt ACME contact email |
 | `CF_DNS_API_TOKEN` | Traefik | Cloudflare DNS-01 challenge token |
-| `DB_PASSWORD` | Immich | PostgreSQL password |
+| `IMMICH_DB_PASSWORD` | Immich | PostgreSQL password |
 | `LISTMONK_db__password` | Listmonk | PostgreSQL password |
 | `PAPERLESS_DBPASS` | Paperless-ngx | PostgreSQL password |
 | `PAPERLESS_SECRET_KEY` | Paperless-ngx | Django app secret |

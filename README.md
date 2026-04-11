@@ -24,7 +24,9 @@ done.
 # 2. Prepare the local env files and review missing secrets
 $ ./setup-dev.sh
 [INFO] Setting up the homelab development environment...
-[WARN] setup-dev.sh no longer generates service env files or dummy secrets
+[INFO] setup-dev.sh leaves password-style credentials alone and only generates app keys
+[INFO] Generated development key: NEXTAUTH_SECRET
+[INFO] Generated development key: MEILI_MASTER_KEY
 [WARN] Missing required variables for docker compose --profile all:
  - ACME_EMAIL
  - CF_DNS_API_TOKEN
@@ -131,7 +133,7 @@ flowchart LR
 $ git clone https://github.com/jakob1379/homelab.git && cd homelab
 $ ./setup-dev.sh
 [INFO] Setting up the homelab development environment...
-[WARN] setup-dev.sh no longer generates service env files or dummy secrets
+[INFO] setup-dev.sh leaves password-style credentials alone and only generates app keys
 [INFO] Setup complete!
 
 # 2. Fill the required values in .env / .envrc, then start the stacks
@@ -148,7 +150,7 @@ IP: 172.20.0.2
 ```
 
 !!! note
-    For local development, `docker-compose.override.yml` keeps the main stack on `restart: unless-stopped`. Portainer and Dockhand stay in the separate `docker-compose.pods.yml` bootstrap stack.
+    Portainer and Dockhand stay in the separate `docker-compose.pods.yml` bootstrap stack.
 
 ✅ **That's it!** Your homelab is running.
 
@@ -365,7 +367,7 @@ $ docker compose -f docker-compose.pods.yml up -d portainer
 | `ACME_EMAIL` | Yes | — | Let's Encrypt ACME contact email for Traefik |
 | `CF_DNS_API_TOKEN` | Yes | — | Cloudflare DNS API token for DNS-01 |
 | `ADGUARD_DNS_PORT` | No | `1053` | Host DNS port mapped to AdGuard 53 |
-| `DB_PASSWORD` | Yes | — | Immich PostgreSQL password |
+| `IMMICH_DB_PASSWORD` | Yes | — | Immich PostgreSQL password |
 | `LISTMONK_db__password` | Yes | — | Listmonk PostgreSQL password |
 | `PAPERLESS_DBPASS` | Yes | — | Paperless PostgreSQL password |
 | `PAPERLESS_SECRET_KEY` | Yes | — | Paperless app secret key |
@@ -382,6 +384,7 @@ $ docker compose -f docker-compose.pods.yml up -d portainer
 
 Safe defaults now live in the compose files.
 Required secrets should be set through `.env`, `.envrc`, or Portainer instead of repo-managed `services/.env-*` files.
+For local development, `setup-dev.sh` generates base64 app keys for `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, and `SPEEDTEST_APP_KEY` when they are missing.
 If you use the Nix dev shell, `mkpasswd` is available for passwords and `openssl` is available for hex/base64 secrets.
 
 ### TLS / DNS Credentials

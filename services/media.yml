@@ -10,9 +10,8 @@ services:
       - TZ=Europe/Copenhagen
       - VPN_SERVICE_PROVIDER=protonvpn
       - VPN_TYPE=openvpn
-      - OPENVPN_USER=${OPENVPN_USER:?Set OPENVPN_USER in .env, direnv, or Portainer}
-      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:?Set OPENVPN_PASSWORD in .env, direnv,
-        or Portainer}
+      # - OPENVPN_USER=${OPENVPN_USER:?Set OPENVPN_USER in .env, direnv, or Portainer}
+      # - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:?Set OPENVPN_PASSWORD in .env, direnv, or Portainer}
       - SERVER_COUNTRIES=${VPN_SERVER_COUNTRIES:-Netherlands}
       - FIREWALL_INPUT_PORTS=8080,7878,8989,6881
     restart: always

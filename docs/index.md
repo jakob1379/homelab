@@ -80,7 +80,7 @@ hide:
 
     $ ./setup-dev.sh
     [INFO] Setting up the homelab development environment...
-    [WARN] setup-dev.sh no longer generates service env files or dummy secrets
+    [INFO] setup-dev.sh leaves password-style credentials alone and only generates app keys
     [INFO] Setup complete!
 
     # Fill the required values in .env / .envrc, then start the stacks

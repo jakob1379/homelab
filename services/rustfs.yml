@@ -16,6 +16,7 @@ services:
       - RUSTFS_CONSOLE_ENABLE=true
       - RUSTFS_CONSOLE_ADDRESS=:9001
     networks: [traefik_public]
+    security_opt: [no-new-privileges:true]
     labels:
       - traefik.enable=true
       - homepage.group=Storage & Data
