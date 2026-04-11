@@ -108,6 +108,8 @@ services:
     ports:
       - ${ADGUARD_DNS_PORT:-1053}:53/tcp
       - ${ADGUARD_DNS_PORT:-1053}:53/udp
+      - 5080:80
+      - 5003:3000
     volumes:
       - adguard_data:/opt/adguardhome/work
       - adguard_conf:/opt/adguardhome/conf
