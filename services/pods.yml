@@ -1,32 +1,32 @@
 ---
 services:
-  portainer:
-    image: portainer/portainer-ce:2.25.1
-    volumes:
-      - portainer_data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks: [traefik_public]
-    ports: [9443:9443]
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.portainer.entrypoints=websecure
-      - traefik.http.services.portainer.loadbalancer.server.port=9000
-      - sablier.enable=true
-      - sablier.group=portainer
-      - homepage.group=Developer
-      - homepage.name=Portainer
-      - homepage.icon=portainer.png
-      - homepage.href=https://pods.${DOMAIN:-traefik.me}
-      - homepage.description=View and manage what's running on the server
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
+  # portainer:
+  #   image: portainer/portainer-ce:2.25.1
+  #   volumes:
+  #     - portainer_data:/data
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   networks: [traefik_public]
+  #   ports: [9443:9443]
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.http.routers.portainer.entrypoints=websecure
+  #     - traefik.http.services.portainer.loadbalancer.server.port=9000
+  #     - sablier.enable=true
+  #     - sablier.group=portainer
+  #     - homepage.group=Developer
+  #     - homepage.name=Portainer
+  #     - homepage.icon=portainer.png
+  #     - homepage.href=https://pods.${DOMAIN:-traefik.me}
+  #     - homepage.description=View and manage what's running on the server
+  #   restart: always
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '0.5'
+  #         memory: 512M
+  #       reservations:
+  #         cpus: '0.25'
+  #         memory: 256M
   dockhand:
     image: fnsys/dockhand:v1.0.24
     environment: ['DATA_DIR=${DOCKHAND_DATA_DIR:-/opt/dockhand}']
