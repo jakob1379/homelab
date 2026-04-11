@@ -10,11 +10,12 @@ services:
       - DOMAIN=${DOMAIN:-traefik.me}
       - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${ACME_EMAIL:?Set ACME_EMAIL
         in .env, direnv, or Portainer}
+    command: [--configFile=/etc/traefik/traefik.yml]
     volumes:
       - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ../config/traefik/dyn:/etc/traefik/dyn
-      - ../config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ../config/traefik/:/etc/traefik/:ro
     networks: [traefik_public]
     labels:
       - traefik.enable=true
