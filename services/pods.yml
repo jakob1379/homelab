@@ -29,9 +29,10 @@ services:
           memory: 256M
   dockhand:
     image: fnsys/dockhand:v1.0.24
+    environment: ['DATA_DIR=${DOCKHAND_DATA_DIR:-/opt/dockhand}']
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - dockhand_data:/app/data
+      - ${DOCKHAND_DATA_DIR:-/opt/dockhand}:${DOCKHAND_DATA_DIR:-/opt/dockhand}
     networks: [traefik_public]
     ports: [3000:3000]
     labels:
@@ -61,4 +62,3 @@ networks:
     attachable: true
 volumes:
   portainer_data:
-  dockhand_data:

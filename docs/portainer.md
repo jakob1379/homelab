@@ -28,6 +28,7 @@ $ cat > .env <<'EOF'
 DOMAIN=lab.example.com
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cf_api_token
+DOCKHAND_DATA_DIR=/opt/dockhand
 EOF
 
 # 3. Bootstrap only Portainer + Dockhand
@@ -44,6 +45,8 @@ $ curl -sk https://localhost:9443/api/status | jq '.Version'
 ```
 
 Open `https://localhost:9443`, create the admin user, then create a **Repository** stack that points back to this repo. Dockhand is available on `http://localhost:3000` for bootstrap access. After Portainer finishes the full deploy, verify the routed stack:
+
+Dockhand now uses a matching host path for its data directory by default. Keep `DOCKHAND_DATA_DIR` on a real host path such as `/opt/dockhand` so Git-managed stacks with relative bind mounts resolve correctly when Docker creates the target containers.
 
 ```bash title="Verify the routed stack after the full deploy"
 # 5. Verify the full stack after Portainer deploys it
@@ -77,6 +80,7 @@ This matters for two reasons:
 You need the following before the full deploy works:
 
 - A root `.env` with `DOMAIN`, `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and the app secrets required by the profiles you plan to run
+- `DOCKHAND_DATA_DIR` set to a real host path such as `/opt/dockhand` if you want Dockhand Git stacks to support relative bind mounts
 - Any shell or direnv-provided values you intentionally keep out of `.env`, such as `SPEEDTEST_APP_KEY`
 
 ```bash title="Create the root deployment files"
@@ -85,6 +89,7 @@ $ cat > .env <<'EOF'
 DOMAIN=lab.example.com
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cf_api_token
+DOCKHAND_DATA_DIR=/opt/dockhand
 EOF
 ```
 

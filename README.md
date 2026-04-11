@@ -270,7 +270,8 @@ Then:
 1. Open `https://localhost:9443`
 2. Create the Portainer admin user
 3. Add this repo as a **Repository** stack
-4. Let Portainer deploy **Traefik**, **AdGuard**, and the rest of the stack from Git
+4. Keep Dockhand on a matching host path such as `DOCKHAND_DATA_DIR=/opt/dockhand` if you plan to use it for Git stacks with relative bind mounts
+5. Let Portainer deploy **Traefik**, **AdGuard**, and the rest of the stack from Git
 
 See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and GitOps flow.
 
