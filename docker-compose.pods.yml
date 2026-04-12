@@ -1,5 +1,5 @@
 ---
-# Separate bootstrap stack for Portainer + Dockhand
+# Separate bootstrap stack for Dockhand
 name: homelab-pods
 include:
-  - services/pods.yml  # Portainer + Dockhand bootstrap control plane
+  - services/pods.yml  # Dockhand bootstrap control plane

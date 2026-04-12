@@ -6,7 +6,7 @@ services:
     environment:
       - POSTGRES_USER=${LISTMONK_db__user:-listmonk}
       - POSTGRES_PASSWORD=${LISTMONK_db__password:?Set LISTMONK_db__password in .env,
-        direnv, or Portainer}
+        direnv, or Dockhand}
       - POSTGRES_DB=${LISTMONK_db__database:-listmonk}
       - TZ=Europe/Copenhagen
     volumes: [listmonk_postgres_data:/var/lib/postgresql/data]
@@ -37,7 +37,7 @@ services:
       - LISTMONK_app__address=0.0.0.0:9000
       - LISTMONK_db__user=listmonk
       - LISTMONK_db__password=${LISTMONK_db__password:?Set LISTMONK_db__password in
-        .env, direnv, or Portainer}
+        .env, direnv, or Dockhand}
       - LISTMONK_db__database=listmonk
       - LISTMONK_db__host=listmonk-postgres
       - LISTMONK_db__port=5432

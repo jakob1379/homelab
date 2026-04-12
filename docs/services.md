@@ -1,15 +1,14 @@
 # Service Reference
 
-This page lists every service, its purpose, and how to access it. If you need the system model first, read [Architecture](architecture.md). For deployment and changes, use [Configuration](customization.md) and [Deployment](portainer.md).
+This page lists every service, its purpose, and how to access it. If you need the system model first, read [Architecture](architecture.md). For deployment and changes, use [Configuration](customization.md) and [Deployment](dockhand.md).
 
 ## Try It Now
 
-Start with these four services:
+Start with these three services:
 
 1. **Traefik** (included in `infra`), the traffic director
-2. **Portainer**, Docker management UI
-3. **Dockhand**, Docker management UI
-4. **IT Tools**, Developer utilities
+2. **Dockhand**, Docker management UI
+3. **IT Tools**, Developer utilities
 
 ```bash title="Start a minimal sample set"
 $ docker compose --profile infra up -d
@@ -22,12 +21,11 @@ $ docker compose --profile apps up -d ittools
   ✔ Container homelab-ittools-1    Started
 
 $ docker compose -f docker-compose.pods.yml up -d
-[+] Running 2/2
-  ✔ Container homelab-pods-dockhand-1   Started
-  ✔ Container homelab-pods-portainer-1  Started
+[+] Running 1/1
+  ✔ Container homelab-pods-dockhand-1  Started
 ```
 
-Then open `https://pods.${DOMAIN}`, `https://docker.${DOMAIN}`, and `https://it.${DOMAIN}`.
+Then open `https://docker.${DOMAIN}` and `https://it.${DOMAIN}`.
 
 ---
 
@@ -56,11 +54,11 @@ Complete list of services and configuration points.
 
 ### RustFS
 - **Purpose:** S3-compatible object storage
-- **Access:** `https://rustfs.${DOMAIN}` (API), `https://rustfs-console.${DOMAIN}` (UI)
+- **Access:** `https://rustfs.${DOMAIN}` (UI), `https://rustfs-api.${DOMAIN}` (API)
 - **Profile:** infra
 - **Required env:** `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`
 - **Sablier:** No (always on for backup/automation reliability)
-- **Homepage link:** points to `https://rustfs-console.${DOMAIN}` (admin UI)
+- **Homepage link:** points to `https://rustfs.${DOMAIN}` (admin UI)
 
 ### AdGuard Home
 - **Purpose:** Network-wide ad blocker & DNS
@@ -78,14 +76,6 @@ Complete list of services and configuration points.
 - **Security:** Read-only root filesystem with minimal Linux caps (`CHOWN`, `SETGID`, `SETUID`, `NET_ADMIN`, `NET_RAW`, `NET_BIND_SERVICE`)
 
 ## Application Services
-
-### Portainer
-- **Purpose:** Docker container management UI
-- **Access:** `https://pods.${DOMAIN}` after the full stack deploy, or `https://localhost:9443` from the separate bootstrap stack
-- **Stack:** `docker-compose.pods.yml`; after the main deploy, Traefik routes `pods.${DOMAIN}` to that separate stack
-- **Sablier:** Yes
-- **Notes:** Has built-in authentication and an emergency direct host port on `9443`
-- **Guide:** [Deployment](portainer.md)
 
 ### Dockhand
 - **Purpose:** Modern Docker management UI
@@ -237,21 +227,20 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | Whoami | `whoami` |
 | IT Tools | `it` |
 | AnythingLLM | `llm` |
-| Portainer | `pods` |
 | Dockhand | `docker` |
 | CloudBeaver | `cbeaver` |
 | BentoPDF | `pdf` |
 | Speedtest Tracker | `speed` |
 | VERT | `vert` |
 | Immich | `photos` |
-| Paperless-ngx | `paperless` |
+| Paperless-ngx | `paper` |
 | Jellyfin | `jellyfin` |
 | Seerr | `requests` |
 | Karakeep | `keep` |
 | Listmonk | `listmonk` |
 | Omni Tools | `omni` |
-| RustFS API | `rustfs` |
-| RustFS Console | `rustfs-console` |
+| RustFS | `rustfs` |
+| RustFS API | `rustfs-api` |
 | Home Assistant | `ha` |
 | AdGuard | `dns` |
 | NetAlertX | N/A (port 20211) |

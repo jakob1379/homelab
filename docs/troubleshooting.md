@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Use this page when a service does not start, does not wake, or does not resolve. Start with [Architecture](architecture.md) to understand the request path, then match the symptom below. For the deployment flow, read [Deployment](portainer.md).
+Use this page when a service does not start, does not wake, or does not resolve. Start with [Architecture](architecture.md) to understand the request path, then match the symptom below. For the deployment flow, read [Deployment](dockhand.md).
 
 ## Try It Now
 
@@ -9,18 +9,17 @@ Run these two checks before you dig into a specific failure:
 ```bash title="Check the current container state"
 # 1. Check the bootstrap or full-stack containers
 $ docker compose -f docker-compose.pods.yml ps
-NAME                    IMAGE                          STATUS
-homelab-pods-portainer-1     portainer/portainer-ce:2.25.1 Up
-homelab-pods-dockhand-1      fnsys/dockhand:latest         Up
+NAME                    IMAGE                    STATUS
+homelab-pods-dockhand-1 fnsys/dockhand:v1.0.24   Up
 ```
 
-```bash title="Check whether Portainer is still in bootstrap mode"
+```bash title="Check whether Dockhand is still in bootstrap mode"
 # 2. Check whether you are still on bootstrap or already on routed traffic
-$ curl -sk https://localhost:9443/api/status | jq '.Version'
-"2.25.1"
+$ curl -I http://localhost:3000
+HTTP/1.1 200 OK
 ```
 
-If the direct `9443` endpoint works but `https://pods.${DOMAIN}` does not, you are still in bootstrap mode. That is expected until Portainer deploys the full stack.
+If the direct `3000` endpoint works but `https://docker.${DOMAIN}` does not, you are still in bootstrap mode. That is expected until Dockhand deploys the full stack.
 
 ## The "Starting..." Screen That Never Ends
 
@@ -40,7 +39,7 @@ immich-server  | [Nest] 1  - 02/19/2026, 10:00:01 AM     LOG [InstanceLoader] Da
 
 # 3. Common: Missing required variable
 $ docker compose config
-required variable IMMICH_DB_PASSWORD is missing a value: Set IMMICH_DB_PASSWORD in .env, direnv, or Portainer
+required variable IMMICH_DB_PASSWORD is missing a value: Set IMMICH_DB_PASSWORD in .env, direnv, or Dockhand
 
 # 4. Common: Network not connected
 $ docker network ls | grep traefik_public
@@ -56,7 +55,7 @@ abc123def456   traefik_public    bridge    local
 - Click "Advanced" → "Proceed anyway" (Chrome)
 - Or add `-k` flag to curl: `curl -k https://...`
 
-For production, ensure the Cloudflare token is valid and NetBird DNS points clients to AdGuard wildcard records that resolve hostnames to your server VPN IP. See [Deployment](portainer.md).
+For production, ensure the Cloudflare token is valid and NetBird DNS points clients to AdGuard wildcard records that resolve hostnames to your server VPN IP. See [Deployment](dockhand.md).
 
 ## Sablier "Starting..." Forever
 
@@ -140,7 +139,7 @@ abc123def456   traefik_public    bridge    local
 $ curl -k https://traefik.traefik.me/api/rawdata 2>/dev/null | jq '.routers | keys'
 [
   "immich@file",
-  "portainer@file",
+  "dockhand@file",
   "traefik@file"
 ]
 ```
@@ -225,7 +224,7 @@ $ docker compose --profile infra up -d
  ✔ Container homelab-sablier-1   Started
  ...
 
-# If you deploy through Portainer, let Portainer deploy the full
+# If you deploy through Dockhand, let Dockhand deploy the full
 # stack before starting Home Assistant.
 
 # Then start Home Assistant

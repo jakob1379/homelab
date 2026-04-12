@@ -40,7 +40,6 @@ $ docker compose -f docker-compose.pods.yml up -d
 [+] Running ...
   ✔ Container homelab-traefik-1     Started
   ✔ Container homelab-immich-postgres-1 Started
-  ✔ Container homelab-pods-portainer-1   Started
   ✔ Container homelab-pods-dockhand-1    Started
  ...
 ```
@@ -52,7 +51,7 @@ Hostname: homelab-whoami-1
 IP: 172.20.0.2
 ```
 
-If you only want the bootstrap control plane first, start `docker-compose.pods.yml` and use `https://localhost:9443`.
+If you only want the bootstrap control plane first, start `docker-compose.pods.yml` and use `http://localhost:3000`.
 
 !!! note
     The `traefik.me` domain is a wildcard DNS that resolves to `127.0.0.1`. Perfect for local development without any DNS configuration.
@@ -89,7 +88,6 @@ flowchart LR
 
 By default, host-level access is limited to:
 - **Traefik** (`80/443`)
-- **Portainer bootstrap** (`9443`)
 - **Dockhand bootstrap** (`3000`)
 - **AdGuard DNS** (`${ADGUARD_DNS_PORT}`)
 - **NetAlertX** (`network_mode: host`)
@@ -116,8 +114,8 @@ flowchart LR
 ```
 
 **What's happening here:**
-1. You visit `https://pods.traefik.me` (Portainer)
-2. If **Portainer** is stopped, **Sablier** intercepts the request and starts the container (~2 seconds)
+1. You visit `https://docker.traefik.me` (Dockhand)
+2. If **Dockhand** is stopped, **Sablier** intercepts the request and starts the container (~2 seconds)
 3. You see a "Starting..." page while the container boots
 4. Once healthy, your request is proxied to the application
 5. After the configured `sessionDuration` expires, **Sablier** stops the container to save resources. In this repo, those timeouts vary by route: **Immich workers** use `5m`, **Karakeep** uses `15m`, and most routed apps use `30m`.
@@ -141,7 +139,7 @@ $ docker compose --profile all up -d
 $ docker compose -f docker-compose.pods.yml up -d
 [+] Running ...
   ✔ Container homelab-traefik-1    Started
-  ✔ Container homelab-pods-portainer-1  Started
+  ✔ Container homelab-pods-dockhand-1   Started
 
 # 3. Test (accept the self-signed cert warning)
 $ curl -k https://whoami.traefik.me
@@ -150,7 +148,7 @@ IP: 172.20.0.2
 ```
 
 !!! note
-    Portainer and Dockhand stay in the separate `docker-compose.pods.yml` bootstrap stack.
+    Dockhand stays in the separate `docker-compose.pods.yml` bootstrap stack.
 
 ✅ **That's it!** Your homelab is running.
 
@@ -164,18 +162,17 @@ IP: 172.20.0.2
 |---------|---------|--------|
 | **Traefik** | Reverse proxy + auto HTTPS | `https://traefik.${DOMAIN}` |
 | **Sablier** | Idle app management | Internal |
-| **RustFS** | S3-compatible storage | `https://rustfs.${DOMAIN}` |
+| **RustFS** | S3-compatible storage | `https://rustfs.${DOMAIN}` (UI), `https://rustfs-api.${DOMAIN}` (API) |
 | **AdGuard** | DNS ad blocker | Port `${ADGUARD_DNS_PORT}` (default `1053`) + `https://dns.${DOMAIN}` |
 | **NetAlertX** | Network scanner | `http://localhost:20211` |
 | **whoami** | Debug endpoint | `https://whoami.${DOMAIN}` |
 
-### Apps (Mostly 💤 On-Demand) - 16 apps
+### Apps (Mostly 💤 On-Demand) - 15 apps
 
 | Service | Purpose | Access |
 |---------|---------|--------|
 | **Homepage** | Service dashboard | `https://home.${DOMAIN}` |
 | **AnythingLLM** | Private AI workspace | `https://llm.${DOMAIN}` |
-| **Portainer** | Docker management | `https://pods.${DOMAIN}` |
 | **Dockhand** | Docker management | `https://docker.${DOMAIN}` |
 | **Karakeep** | Bookmark manager | `https://keep.${DOMAIN}` |
 | **Listmonk** | Newsletters | `https://listmonk.${DOMAIN}` |
@@ -237,42 +234,39 @@ EOF
 
 # 2. Add the remaining app secrets or disable the apps you do not plan to run yet
 
-# 3. Bootstrap Portainer + Dockhand
+# 3. Bootstrap Dockhand
 $ docker compose -f docker-compose.pods.yml up -d
 
-# 3. Open https://localhost:9443 to deploy the full stack
-#    Dockhand is also available on http://localhost:3000 for local management
+# 4. Open http://localhost:3000 to deploy the full stack
 ```
 
-See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and GitOps flow.
+See [Deployment Guide](docs/dockhand.md) for the full bootstrap, DNS, TLS, and GitOps flow.
 
 ---
 
-## Deployment Via Portainer
+## Deployment Via Dockhand
 
-Deploy the stack through **Portainer**:
+Deploy the stack through **Dockhand**:
 
-```bash title="Bootstrap Portainer and verify the local endpoint"
-# 1. Bootstrap only Portainer + Dockhand
+```bash title="Bootstrap Dockhand and verify the local endpoint"
+# 1. Bootstrap Dockhand
 $ docker compose -f docker-compose.pods.yml up -d
-[+] Running 2/2
-  ✔ Container homelab-pods-portainer-1  Started
+[+] Running 1/1
   ✔ Container homelab-pods-dockhand-1   Started
 
 # 2. Verify the direct bootstrap endpoint
-$ curl -sk https://localhost:9443/api/status | jq '.Version'
-"2.25.1"
+$ curl -I http://localhost:3000
+HTTP/1.1 200 OK
 ```
 
 Then:
 
-1. Open `https://localhost:9443`
-2. Create the Portainer admin user
-3. Add this repo as a **Repository** stack
+1. Open `http://localhost:3000`
+2. Add this repo as a Git-managed stack
 4. Keep Dockhand on a matching host path such as `DOCKHAND_DATA_DIR=/opt/dockhand` if you plan to use it for Git stacks with relative bind mounts
-5. Let Portainer deploy **Traefik**, **AdGuard**, and the rest of the stack from Git
+5. Let Dockhand deploy **Traefik**, **AdGuard**, and the rest of the stack from Git
 
-See [Deployment Guide](docs/portainer.md) for the full bootstrap, DNS, TLS, and GitOps flow.
+See [Deployment Guide](docs/dockhand.md) for the full bootstrap, DNS, TLS, and GitOps flow.
 
 ---
 
@@ -295,7 +289,7 @@ $ docker compose down
 $ docker compose down -v
 
 # Restart a service
-$ docker compose -f docker-compose.pods.yml restart portainer
+$ docker compose -f docker-compose.pods.yml restart dockhand
 ```
 
 ---
@@ -306,15 +300,15 @@ $ docker compose -f docker-compose.pods.yml restart portainer
 
 ```bash title="Check a 502 or missing env file"
 # Check service is running
-$ docker compose -f docker-compose.pods.yml ps | grep portainer
-homelab-pods-portainer-1   portainer/portainer-ce   Up 5 minutes
+$ docker compose -f docker-compose.pods.yml ps | grep dockhand
+homelab-pods-dockhand-1   fnsys/dockhand:v1.0.24   Up 5 minutes
 
 # Check logs
-$ docker compose -f docker-compose.pods.yml logs portainer --tail 20
+$ docker compose -f docker-compose.pods.yml logs dockhand --tail 20
 
 # Common: Missing required variable for a service
 $ docker compose --profile all config
-required variable LISTMONK_db__password is missing a value: Set LISTMONK_db__password in .env, direnv, or Portainer
+required variable LISTMONK_db__password is missing a value: Set LISTMONK_db__password in .env, direnv, or Dockhand
 ```
 
 ### Certificate Warning (Expected in Dev)
@@ -342,15 +336,15 @@ $ echo "ADGUARD_DNS_PORT=1053" >> .env
 
 ```bash title="Inspect a Sablier-managed service that will not wake"
 # Check service health
-$ docker compose -f docker-compose.pods.yml ps portainer
+$ docker compose -f docker-compose.pods.yml ps dockhand
 NAME                STATUS
-homelab-pods-portainer-1 Restarting (1) 30 seconds ago
+homelab-pods-dockhand-1 Restarting (1) 30 seconds ago
 
 # Check logs for crash loop
-$ docker compose -f docker-compose.pods.yml logs portainer --tail 50
+$ docker compose -f docker-compose.pods.yml logs dockhand --tail 50
 
 # Force start
-$ docker compose -f docker-compose.pods.yml up -d portainer
+$ docker compose -f docker-compose.pods.yml up -d dockhand
 ```
 
 [More troubleshooting →](docs/troubleshooting.md)
@@ -383,7 +377,7 @@ $ docker compose -f docker-compose.pods.yml up -d portainer
 ### Service Defaults and Secrets
 
 Safe defaults now live in the compose files.
-Required secrets should be set through `.env`, `.envrc`, or Portainer instead of repo-managed `services/.env-*` files.
+Required secrets should be set through `.env`, `.envrc`, or Dockhand instead of repo-managed `services/.env-*` files.
 For local development, `setup-dev.sh` generates base64 app keys for `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, and `SPEEDTEST_APP_KEY` when they are missing.
 If you use the Nix dev shell, `mkpasswd` is available for passwords and `openssl` is available for hex/base64 secrets.
 
@@ -399,7 +393,7 @@ If you use the Nix dev shell, `mkpasswd` is available for passwords and `openssl
 ## Documentation
 
 - [Architecture & How It Works](docs/architecture.md) - Request flow, networks, Sablier mechanics
-- [Deployment Guide](docs/portainer.md) - Bootstrap with `docker-compose.pods.yml`, deploy the main stack through Portainer, and follow the production DNS/TLS checklist
+- [Deployment Guide](docs/dockhand.md) - Bootstrap with `docker-compose.pods.yml`, deploy the main stack through Dockhand, and follow the production DNS/TLS checklist
 - [Queue-Driven Sleep Pattern](docs/queue-driven-sleep.md) - Sablier pattern for queue-backed workers (Immich)
 - [Troubleshooting](docs/troubleshooting.md) - Common issues and fixes
 - [Service Reference](docs/services.md) - Per-service configuration

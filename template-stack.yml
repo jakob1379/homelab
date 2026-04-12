@@ -1,6 +1,6 @@
 ---
 
-# Portainer Template for Docker Swarm Stack
+# Stack template for Docker Swarm
 # The mustache variables will be used to prompt for user inputs.
 services:
   '{{ service_name }}':

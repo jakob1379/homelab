@@ -6,7 +6,7 @@ services:
     environment:
       - POSTGRES_USER=${IMMICH_DB_USERNAME:-immich}
       - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD:?Set IMMICH_DB_PASSWORD in .env, direnv,
-        or Portainer}
+        or Dockhand}
       - POSTGRES_DB=${IMMICH_DB_DATABASE_NAME:-immich}
       - TZ=Europe/Copenhagen
     volumes: [immich_postgres_data:/var/lib/postgresql/data]
@@ -42,7 +42,7 @@ services:
       - DB_HOSTNAME=immich-postgres
       - DB_USERNAME=${IMMICH_DB_USERNAME:-immich}
       - DB_PASSWORD=${IMMICH_DB_PASSWORD:?Set IMMICH_DB_PASSWORD in .env, direnv,
-        or Portainer}
+        or Dockhand}
       - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME:-immich}
       - REDIS_HOSTNAME=redis
       - IMMICH_WORKERS_INCLUDE=api

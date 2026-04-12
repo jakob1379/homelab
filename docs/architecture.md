@@ -4,7 +4,7 @@ title: Architecture
 
 # Homelab Architecture
 
-This page explains how requests flow from your browser to your containers, how service stacks are organized, and how sleep-on-demand works. Read this before editing [services](services.md), [customization](customization.md), or [Deployment](portainer.md).
+This page explains how requests flow from your browser to your containers, how service stacks are organized, and how sleep-on-demand works. Read this before editing [services](services.md), [customization](customization.md), or [Deployment](dockhand.md).
 
 ---
 
@@ -32,7 +32,7 @@ $ curl -sk https://traefik.traefik.me/api/version | jq
 # List configured routers
 $ curl -sk https://traefik.traefik.me/api/http/routers | jq -r '.[].name'
 immich@file
-portainer@file
+dockhand@file
 home@file
 ...
 ```
@@ -97,12 +97,12 @@ flowchart LR
 
 **What's happening here:**
 
-When you type `https://pods.traefik.me` in your browser:
+When you type `https://docker.traefik.me` in your browser:
 
-1. **DNS Resolution**: Your browser looks up `pods.traefik.me` → gets your server's IP (or
+1. **DNS Resolution**: Your browser looks up `docker.traefik.me` → gets your server's IP (or
    `127.0.0.1` in dev)
 2. **HTTPS Handshake**: **Traefik** terminates TLS using its auto-generated certificate
-3. **Router Matching**: **Traefik** reads the `Host` header (`pods.traefik.me`) and finds the
+3. **Router Matching**: **Traefik** reads the `Host` header (`docker.traefik.me`) and finds the
    matching router rule
 4. **Middleware Chain**: **Sablier** middleware intercepts the request for sleep-enabled routes
 5. **State Check**: If the container is stopped, **Sablier** scales it to 1 replica via Docker API
@@ -114,16 +114,16 @@ The inline code for this flow:
 
 ```yaml title="Traefik routing and Sablier labels"
 # Traefik router matches the Host header
-rule: Host(`pods.${DOMAIN}`)
+rule: Host(`docker.${DOMAIN}`)
 
 # Sablier middleware checks container state
 middlewares:
-  - sablier-portainer@file
+  - sablier-dockhand@file
 
 # Docker Compose labels enable Sablier
 labels:
   - sablier.enable=true
-  - sablier.group=portainer
+  - sablier.group=dockhand
 ```
 
 ---
@@ -147,7 +147,7 @@ screwdriver is much easier when you have a dedicated toolbox.
     ```
 
     **What's happening here:**
-    The main `docker-compose.yml` uses an `include:` directive to pull in the main homelab service definitions. The Portainer + Dockhand bootstrap stack stays separate in `docker-compose.pods.yml`.
+    The main `docker-compose.yml` uses an `include:` directive to pull in the main homelab service definitions. The Dockhand bootstrap stack stays separate in `docker-compose.pods.yml`.
 
     ```yaml title="docker-compose.yml (excerpt)"
     # docker-compose.yml
@@ -160,7 +160,7 @@ screwdriver is much easier when you have a dedicated toolbox.
 
     ```yaml title="docker-compose.pods.yml"
     include:
-      - services/pods.yml               # Portainer + Dockhand bootstrap control plane
+      - services/pods.yml               # Dockhand bootstrap control plane
     ```
 
 === "Services"
@@ -172,11 +172,10 @@ screwdriver is much easier when you have a dedicated toolbox.
     ├── karakeep.yml            # Bookmark manager
     ├── listmonk.yml            # Newsletter/mailing lists
     ├── media.yml               # Jellyfin + Seerr + media automation
-    ├── monitoring.yml          # Dozzle (log viewer)
     ├── networking.yml          # Traefik, AdGuard, NetAlertX
     ├── omni-tools.yml          # Web-based utilities
     ├── paperless-ngx.yml       # Document management
-    ├── pods.yml                # Portainer + Dockhand bootstrap control plane
+    ├── pods.yml                # Dockhand bootstrap control plane
     ├── rustfs.yml              # S3-compatible object storage
     ├── speedtest-tracker.yml   # Internet speed and uptime history
     ├── tools.yml               # IT Tools, CloudBeaver, BentoPDF
@@ -195,7 +194,6 @@ screwdriver is much easier when you have a dedicated toolbox.
         │   ├── common.yml      # Shared middlewares (auth, headers, Sablier)
         │   ├── bentopdf.yml    # Per-service routing rules
         │   ├── immich.yml
-        │   ├── portainer.yml
         │   ├── dockhand.yml
         │   ├── speedtest.yml
         │   ├── vert.yml
@@ -268,7 +266,7 @@ Total CPU: 23%
 
 ### The Solution
 
-This homelab uses **five profiles** in the main stack, plus a separate bootstrap stack for Portainer and Dockhand:
+This homelab uses **five profiles** in the main stack, plus a separate bootstrap stack for Dockhand:
 
 | Profile        | Purpose                            | When to Use                      |
 |----------------|------------------------------------|----------------------------------|
@@ -278,7 +276,7 @@ This homelab uses **five profiles** in the main stack, plus a separate bootstrap
 | `experimental` | Things that most likely will break | Development only                 |
 | `tunnel`       | Optional Cloudflare tunnel sidecars | Remote access or edge exposure   |
 
-**Bootstrap stack** includes **Portainer** and **Dockhand**. **Infra services** include **Traefik**, **Sablier**, **RustFS**, and **AdGuard**. Stateful apps run app-local databases (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) in the `apps` profile.
+**Bootstrap stack** includes **Dockhand**. **Infra services** include **Traefik**, **Sablier**, **RustFS**, and **AdGuard**. Stateful apps run app-local databases (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) in the `apps` profile.
 
 **Most app services** start on-demand via **Sablier** when you access them. You can also wake groups via cron pre-warm or queue-monitor triggers where needed. **Immich API/UI** is the exception and stays online by default; only its worker wake flow is optional via the `experimental` profile.
 
@@ -288,14 +286,13 @@ For queue-backed workloads, use the dedicated [Queue-Driven Sleep Pattern](queue
 
 Use this when you want bootstrap management access before the full stack is up:
 
-```bash title="Start only the Portainer bootstrap stack"
+```bash title="Start only the Dockhand bootstrap stack"
 $ docker compose -f docker-compose.pods.yml up -d
-[+] Running 2/2
-  ✔ Container homelab-pods-portainer-1  Started
-  ✔ Container homelab-pods-dockhand-1   Started
+[+] Running 1/1
+  ✔ Container homelab-pods-dockhand-1  Started
 ```
 
-This is the deployment path described in [Deployment](portainer.md). You access Portainer directly on `https://localhost:9443` and Dockhand on `http://localhost:3000` until the full stack deploy brings up **Traefik**.
+This is the deployment path described in [Deployment](dockhand.md). You access Dockhand directly on `http://localhost:3000` until the full stack deploy brings up **Traefik**.
 
 ### Start Only Infrastructure
 
@@ -357,8 +354,8 @@ rustfs
 traefik
 
 $ docker compose ps --services --filter "profile=apps"
-portainer
 ittools
+cloudbeaver
 ```
 
 ### Profile Strategy in Practice
@@ -405,7 +402,6 @@ In this stack, host/network-level access is limited to core networking pieces:
 
 - `traefik` (`80/443`, plus `8080` dashboard)
 - `adguard` DNS port mapping
-- `portainer` (`9443` bootstrap)
 - `dockhand` (`3000` bootstrap)
 - `netalertx` with `network_mode: host`
 
@@ -443,8 +439,8 @@ Here's the thing about self-hosting: most of your apps sit idle 90% of the time.
 uploading photos at 3 AM. You're not generating PDFs while you're asleep. But traditional Docker
 keeps those containers running 24/7, hogging resources for no reason.
 
-**Sablier** is our "smart receptionist." When you visit `pods.yourdomain.com`, it checks if
-**Portainer** is awake. If not, it puts you in a waiting room while it starts the container. When
+**Sablier** is our "smart receptionist." When you visit `docker.yourdomain.com`, it checks if
+**Dockhand** is awake. If not, it puts you in a waiting room while it starts the container. When
 you're done and 30 minutes pass with no activity, it puts the app back to sleep. Your server thanks
 you.
 
@@ -459,7 +455,7 @@ sequenceDiagram
     participant Docker
     participant App
 
-    User->>Browser: Navigate to https://pods.traefik.me
+    User->>Browser: Navigate to https://docker.traefik.me
     Browser->>Traefik: GET / (request)
 
     rect rgb(240, 248, 255)
@@ -513,14 +509,14 @@ The sequence diagram shows the three phases:
 
 The inline code that enables this:
 
-```yaml title="config/traefik/dyn/portainer.yml"
-# config/traefik/dyn/portainer.yml
+```yaml title="config/traefik/dyn/dockhand.yml"
+# config/traefik/dyn/dockhand.yml
 http:
   middlewares:
-    sablier-portainer:
+    sablier-dockhand:
       plugin:
         sablier:
-          group: portainer
+          group: dockhand
           sablierUrl: http://sablier:10000
           sessionDuration: 30m
 ```
@@ -592,18 +588,20 @@ http:
 
 **Current Homelab Example (explicit override):**
 
-Looking at `services/networking.yml`, `whoami` sets an explicit host rule instead of relying on `defaultRule`:
+Looking at `services/networking.yml`, `adguard` sets an explicit host rule instead of relying on `defaultRule`:
 
 ```yaml title="services/networking.yml"
 services:
-  whoami:
+  adguard:
     labels:
       - traefik.enable=true
-      - traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN:-traefik.me}`)
-      - sablier.enable=true
+      - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.adguard.entrypoints=websecure
 ```
 
 That override keeps the URL stable and human-friendly.
+
+If routing is defined in a file-provider config, do not also set `traefik.enable=true` on the service unless you intentionally want a second Docker-provider route.
 
 **When to Override:**
 

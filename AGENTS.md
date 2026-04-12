@@ -1,6 +1,6 @@
 # Project Overview
 This repo is a Docker Compose homelab with Traefik for HTTPS routing, Sablier for
-sleep-on-demand apps, and Portainer for bootstrap and Git-based deployment. It is built
+sleep-on-demand apps, and Dockhand for bootstrap and Git-based deployment. It is built
 to run locally with minimal setup and scale into a production-style self-hosted stack.
 ## Repository Structure
 - `.github/` CI workflows, Dependabot config, and PR templates.
@@ -10,11 +10,11 @@ to run locally with minimal setup and scale into a production-style self-hosted 
 - `services/` Per-stack compose files and a few optional untracked local env paths.
 - `site/` Generated docs output; ignored by git.
 - `docker-compose.yml` Root compose entrypoint for the main homelab stack.
-- `docker-compose.pods.yml` Separate bootstrap stack for Portainer + Dockhand.
+- `docker-compose.pods.yml` Separate bootstrap stack for Dockhand.
 - `setup-dev.sh` Copies `.env.example` when needed and reports missing required vars.
 - `README.md` Main overview, quick start, and operator docs.
 - `backup_spec.md` Backup service design spec.
-- `template-stack.yml` Portainer stack template.
+- `template-stack.yml` Git stack template.
 - `flake.nix` Optional Nix dev shell.
 - `zensical.toml` Docs site config.
 - `AGENTS.md` Agent guide for this repo.
@@ -47,7 +47,7 @@ Debug:
 docker compose ps
 docker compose logs -f traefik
 curl -k https://whoami.traefik.me
-curl -sk https://localhost:9443/api/status | jq '.Version'
+curl -I http://localhost:3000
 Deploy:
 docker compose -f docker-compose.pods.yml up -d
 Code Style & Conventions
@@ -70,13 +70,13 @@ flowchart LR
     Traefik --> App
     Sablier --> Docker
     Docker --> services
-    Portainer --> Docker
+    Dockhand --> Docker
     HomeAssistant --> traefik_public
 docker-compose.yml includes the main stack files from services/, while
 docker-compose.pods.yml loads the bootstrap control plane. Traefik handles ingress,
 TLS, and file-plus-Docker-provider routing. Sablier starts stopped app groups on demand.
 Most apps join traefik_public plus a private stack network; stateful services keep
-app-local databases and volumes. Portainer bootstrap runs as a separate stack, then
+app-local databases and volumes. Dockhand bootstrap runs as a separate stack, then
 deploys the main stack from Git.
 Testing Strategy
 - Unit tests:
@@ -114,7 +114,7 @@ Agent Guardrails
 - Prefer stack-local changes over repo-wide refactors.
 Extensibility Hooks
 - Add new main-stack services as services/<name>.yml, then include them in docker-compose.yml.
-- Keep Portainer + Dockhand bootstrap changes in docker-compose.pods.yml and services/pods.yml.
+- Keep Dockhand bootstrap changes in docker-compose.pods.yml and services/pods.yml.
 - Add routes and Sablier middleware in config/traefik/dyn/*.yml.
 - Use Compose profiles as feature flags:
   infra, apps, all, experimental, tunnel.
@@ -124,13 +124,13 @@ Extensibility Hooks
   NEXTAUTH_SECRET, MEILI_MASTER_KEY, RUSTFS_ACCESS_KEY, RUSTFS_SECRET_KEY,
   OPENVPN_USER, OPENVPN_PASSWORD, VPN_SERVER_COUNTRIES, SPEEDTEST_APP_KEY.
 - services/immich.yml contains the experimental queue-driven wake pattern.
-- template-stack.yml is the Portainer templating hook.
+- template-stack.yml is the stack templating hook.
 Further Reading
 - README.md (README.md)
 - docs/architecture.md (docs/architecture.md)
 - docs/services.md (docs/services.md)
 - docs/customization.md (docs/customization.md)
-- docs/portainer.md (docs/portainer.md)
+- docs/dockhand.md (docs/dockhand.md)
 - docs/queue-driven-sleep.md (docs/queue-driven-sleep.md)
 - docs/troubleshooting.md (docs/troubleshooting.md)
 - backup_spec.md (backup_spec.md)

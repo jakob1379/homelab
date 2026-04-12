@@ -60,9 +60,9 @@ hide:
 
     ---
 
-    Bootstrap with `docker-compose.pods.yml`, then let Portainer deploy the main homelab stack from Git, including the production DNS and TLS checklist.
+    Bootstrap with `docker-compose.pods.yml`, then let Dockhand deploy the main homelab stack from Git, including the production DNS and TLS checklist.
 
-    [→ Deploy the stack](portainer.md)
+    [→ Deploy the stack](dockhand.md)
 
 </div>
 
@@ -88,7 +88,7 @@ hide:
     $ docker compose -f docker-compose.pods.yml up -d
     [+] Running ...
       ✔ Container homelab-traefik-1  Started
-      ✔ Container homelab-pods-portainer-1  Started
+      ✔ Container homelab-pods-dockhand-1  Started
 
     # Verify (accept self-signed cert warning)
     $ curl -k https://whoami.traefik.me
@@ -97,7 +97,7 @@ hide:
 
     **Next:** fill the required variables reported by `setup-dev.sh`, then bring up the main stack.
 
-    For the GitOps deployment path, use [Deployment](portainer.md) instead of starting the main stack manually.
+    For the GitOps deployment path, use [Deployment](dockhand.md) instead of starting the main stack manually.
 
 ---
 

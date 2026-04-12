@@ -4,7 +4,7 @@ title: Configuration
 
 # Add a Custom Service
 
-Use this page to add your own Docker services to the stack. The path is simple: define the container, add the router, include the file in `docker-compose.yml`, then verify it works. For the architecture behind the pattern, read [Architecture](architecture.md). For deployment, see [Deployment](portainer.md). For failures, use [Troubleshooting](troubleshooting.md).
+Use this page to add your own Docker services to the stack. The path is simple: define the container, add the router, include the file in `docker-compose.yml`, then verify it works. For the architecture behind the pattern, read [Architecture](architecture.md). For deployment, see [Deployment](dockhand.md). For failures, use [Troubleshooting](troubleshooting.md).
 
 ---
 
@@ -329,7 +329,7 @@ For widgets that need authentication, keep credentials in environment variables 
 
 **Homepage** discovers these labels via Docker, so discovery itself does not wake services. Keep active health/status checks disabled on Sablier-managed services. Use practical groups so related services stay together:
 
-- **Developer**: Admin and diagnostics tools like **Portainer**, **Dozzle**, **Traefik**, **Whoami**
+- **Developer**: Admin and diagnostics tools like **Dockhand**, **Traefik**, **Whoami**
 - **Media & Files**: Photo, video, document, and content tools (**Immich**, **Jellyfin**, **Karakeep**, **Paperless**)
 - **Utilities**: General utilities (**IT Tools**, **Omni Tools**, **BentoPDF**, **VERT**)
 - **Networking**: DNS and network services (**AdGuard**, **NetAlertX**, **Speedtest Tracker**)
@@ -598,12 +598,11 @@ Remove **Sablier** labels and middleware:
 
 ```yaml title="Remove Sablier labels from a service"
 services:
-  portainer:
+  dockhand:
     labels:
-      - traefik.enable=true
       # Remove these:
       # - sablier.enable=true
-      # - sablier.group=portainer
+      # - sablier.group=dockhand
 ```
 
 And update the router:
@@ -611,9 +610,9 @@ And update the router:
 ```yaml title="Remove the Sablier middleware from the router"
 http:
   routers:
-    portainer:
+    dockhand:
       # ...
-      # middlewares: [sablier-portainer@file]  # Remove this
+      # middlewares: [sablier-dockhand@file]  # Remove this
 ```
 
 ---
