@@ -8,7 +8,7 @@ services:
       chrome:
         condition: service_started
       meilisearch:
-        condition: service_started
+        condition: service_healthy
     networks: [traefik_public, keep]
     volumes: [karakeep_data:/data]
     environment:
@@ -67,6 +67,12 @@ services:
         32 2>/dev/null`}
       MEILI_NO_ANALYTICS: 'true'
     volumes: [meilisearch_data:/meili_data]
+    healthcheck:
+      test: [CMD, curl, -f, http://127.0.0.1:7700/health]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     labels: [sablier.enable=true, sablier.group=keep]
     deploy:
       resources:
