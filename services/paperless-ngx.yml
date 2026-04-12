@@ -10,7 +10,7 @@ services:
       - POSTGRES_DB=${PAPERLESS_DBNAME:-paperless}
       - POSTGRES_USER=${PAPERLESS_DBUSER:-paperless}
       - POSTGRES_PASSWORD=${PAPERLESS_DBPASS:?Set PAPERLESS_DBPASS in .env, direnv,
-        or Portainer}
+        or Dockhand}
       - TZ=Europe/Copenhagen
     healthcheck:
       test: [CMD-SHELL, pg_isready -U paperless -d paperless]
@@ -46,21 +46,22 @@ services:
       - paperless_export:/usr/src/paperless/export
       - paperless_consume:/usr/src/paperless/consume
     environment:
+      - PAPERLESS_ADMIN_USER=admin
       - PAPERLESS_REDIS=redis://paperless-redis:6379
       - PAPERLESS_DBHOST=paperless-postgres
       - PAPERLESS_DBPORT=5432
       - PAPERLESS_DBNAME=${PAPERLESS_DBNAME:-paperless}
       - PAPERLESS_DBUSER=${PAPERLESS_DBUSER:-paperless}
       - PAPERLESS_DBPASS=${PAPERLESS_DBPASS:?Set PAPERLESS_DBPASS in .env, direnv,
-        or Portainer}
+        or Dockhand}
       - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY:?Generate a key using `openssl
         rand -hex 32 2>/dev/null`}
+      - PAPERLESS_URL=https://paper.${DOMAIN:-traefik.me}
       - PAPERLESS_OCR_LANGUAGE=${PAPERLESS_OCR_LANGUAGE:-eng}
       - PAPERLESS_TIKA_ENABLED=1
       - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://paperless-gotenberg:3000
       - PAPERLESS_TIKA_ENDPOINT=http://paperless-tika:9998
     labels:
-      - traefik.enable=true
       - sablier.enable=true
       - sablier.group=paperless
       - homepage.group=Media & Files
@@ -107,9 +108,10 @@ services:
       - PAPERLESS_DBNAME=${PAPERLESS_DBNAME:-paperless}
       - PAPERLESS_DBUSER=${PAPERLESS_DBUSER:-paperless}
       - PAPERLESS_DBPASS=${PAPERLESS_DBPASS:?Set PAPERLESS_DBPASS in .env, direnv,
-        or Portainer}
+        or Dockhand}
       - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY:?Generate a key using `openssl
         rand -hex 32 2>/dev/null`}
+      - PAPERLESS_URL=https://paper.${DOMAIN:-traefik.me}
       - PAPERLESS_OCR_LANGUAGE=${PAPERLESS_OCR_LANGUAGE:-eng}
       - PAPERLESS_CONSUMER_POLLING=30
     healthcheck:
