@@ -48,7 +48,6 @@ services:
       - --remote-debugging-address=0.0.0.0
       - --remote-debugging-port=9222
       - --hide-scrollbars
-    labels: [sablier.enable=true, sablier.group=keep]
     deploy:
       resources:
         limits:
@@ -73,7 +72,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    labels: [sablier.enable=true, sablier.group=keep]
     deploy:
       resources:
         limits:

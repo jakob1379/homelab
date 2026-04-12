@@ -91,7 +91,7 @@ Complete list of services and configuration points.
 - **Required env:** `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`
 - **Sablier:** Yes
 - **Dependencies:** Chrome, Meilisearch
-- **Sleep behavior:** `keep`, `chrome`, and `meilisearch` share one Sablier group and sleep together after 15 minutes of inactivity
+- **Sleep behavior:** Only `keep` is Sablier-managed; Chrome and Meilisearch stay running while Karakeep sleeps after 15 minutes of inactivity
 
 ### Listmonk
 - **Purpose:** Newsletter & mailing list manager
