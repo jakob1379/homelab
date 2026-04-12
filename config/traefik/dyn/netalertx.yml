@@ -1,0 +1,13 @@
+---
+http:
+  routers:
+    netalertx:
+      rule: Host(`netalertx.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      service: netalertx
+      middlewares: [startup-retry@file]
+  services:
+    netalertx:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:20211/

@@ -17,6 +17,7 @@ services:
       - ../config/traefik/dyn:/etc/traefik/dyn:ro
       - ../config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
     networks: [traefik_public]
+    extra_hosts: [host.docker.internal:host-gateway]
     labels:
       - traefik.enable=true
       # Traefik dashboard
@@ -153,7 +154,7 @@ services:
       - homepage.group=Networking
       - homepage.name=NetAlertX
       - homepage.icon=netalertx.png
-      - homepage.href=http://localhost:20211
+      - homepage.href=https://netalertx.${DOMAIN:-traefik.me}
       - homepage.description=See what devices are connected to the network
     restart: always
     deploy:
