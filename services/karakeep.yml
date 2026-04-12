@@ -12,6 +12,8 @@ services:
     networks: [traefik_public, keep]
     volumes: [karakeep_data:/data]
     environment:
+      OPENAI_SERVICE_TIER: flex
+      INFERENCE_TEXT_MODEL: gpt-5.4-nano
       MEILI_ADDR: http://meilisearch:7700
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?Generate a key using `openssl rand -hex
         32 2>/dev/null`}
