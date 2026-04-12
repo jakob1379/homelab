@@ -4,7 +4,7 @@ Use this pattern when a service has **background workers** and a **queue** (for 
 
 Wake is not limited to a browser request. In this pattern, wake can be triggered by:
 
-- HTTP request through Traefik/Sablier
+- HTTP request through Traefik/Sablier for user-facing services
 - Cron pre-warm schedule
 - Queue backlog monitor calling Sablier API
 
@@ -15,8 +15,8 @@ This is not one-size-fits-all. You must tune it per stack.
 This verifies the wake-up path without waiting for user traffic.
 
 ```bash title="Verify the Immich worker wake path"
-# 1. Start stack with experimental queue monitor
-$ docker compose --profile all --profile experimental up -d
+# 1. Start the Immich stack
+$ docker compose --profile all up -d
 [+] Running ...
  ✔ Container homelab-traefik-1  Started
  ✔ Container homelab-sablier-1  Started
@@ -31,15 +31,15 @@ homelab-immich-postgres-1 pgvector/pgvector:pg17            Up
 homelab-sablier-1       sablierapp/sablier:1.8.1            Up
 
 # 3. Simulate idle workers
-$ docker compose stop immich-microservices immich-machine-learning
+$ docker compose stop immich-microservices
 
-# 4. Trigger a worker session through Sablier API
-$ curl -i "http://localhost:10000/api/strategies/blocking?group=immich-workers&session_duration=10m&timeout=4m"
+# 4. Trigger a worker session through the monitor path
+$ docker compose exec immich-queue-monitor curl -i "http://sablier:10000/api/strategies/blocking?group=immich-workers&session_duration=10m&timeout=90s"
 HTTP/1.1 200 OK
 X-Sablier-Session-Status: ready
 ...
 
-# 5. Confirm workers are back
+# 5. Confirm the worker is back and ML stayed up
 $ docker compose ps immich-microservices immich-machine-learning
 NAME                               IMAGE                                      STATUS
 homelab-immich-microservices-1     ghcr.io/immich-app/immich-server:release  Up
@@ -61,18 +61,17 @@ If you sleep these, jobs either never trigger or wake-up logic cannot run.
 
 The public Immich route stays `photos.${DOMAIN}` via `config/traefik/dyn/immich.yml`; `immich-server` is not exposed through Docker-provider routing.
 
-### 2) Put only workers in a Sablier group
+### 2) Put only queue-woken workers in a Sablier group
 
-Workers should share a dedicated group (`immich-workers`) so they start and stop together.
+Only `immich-microservices` belongs in `immich-workers`.
 
-- `immich-microservices`
-- `immich-machine-learning`
+`immich-machine-learning` stays always on.
 
 ### 3) Add queue-aware wake logic
 
 Because queue jobs are not HTTP requests, add a small monitor that polls queue depth and calls Sablier when backlog exists.
 
-This repo does that with `immich-queue-monitor` under the `experimental` profile.
+This repo does that with `immich-queue-monitor` as part of the Immich stack.
 
 ## Not One-Size-Fits-All
 
@@ -102,7 +101,7 @@ Use scheduled wakeups for predictable usage windows, imports, or nightly tasks.
 
 ```bash title="Trigger a worker session manually"
 # Wake workers for 20 minutes
-$ curl -i "http://localhost:10000/api/strategies/blocking?group=immich-workers&session_duration=20m&timeout=4m"
+$ docker compose exec immich-queue-monitor curl -i "http://sablier:10000/api/strategies/blocking?group=immich-workers&session_duration=20m&timeout=90s"
 HTTP/1.1 200 OK
 X-Sablier-Session-Status: ready
 ```
@@ -112,20 +111,19 @@ Host cron example:
 ```bash title="Host cron pre-warm example"
 # Every day at 21:00, pre-warm Immich workers
 $ crontab -l
-0 21 * * * curl -fsS "http://localhost:10000/api/strategies/blocking?group=immich-workers&session_duration=30m&timeout=4m" >/dev/null
+0 21 * * * docker compose exec -T immich-queue-monitor curl -fsS "http://sablier:10000/api/strategies/blocking?group=immich-workers&session_duration=30m&timeout=90s" >/dev/null
 ```
 
 ## Full Sleep/Wake Cycle (Hybrid Pattern)
 
 This is the cycle you asked for when a service can sleep, wake, enqueue work, then sleep again:
 
-1. **Idle state**: producer/API group and worker group are stopped.
-2. **Wake**: HTTP access or scheduled pre-warm starts producer/API group.
-3. **Enqueue**: producer writes jobs to queue.
-4. **Process**: queue monitor detects backlog and starts/extents worker group session.
-5. **Active use**: middleware keeps producer/API session alive while there is user traffic.
-6. **Cooldown**: no traffic and no backlog, sessions expire, groups stop.
-7. **Repeat**: next access/schedule/backlog triggers wake again.
+1. **Idle state**: worker group is stopped while API/control-plane services stay up.
+2. **Enqueue**: API or scheduled work writes jobs to queue.
+3. **Wake**: queue monitor detects backlog and starts or extends the worker group session.
+4. **Process**: workers drain queued jobs.
+5. **Cooldown**: no backlog, session expires, worker group stops.
+6. **Repeat**: next backlog or pre-warm event triggers wake again.
 
 This cycle only works safely when:
 
@@ -137,13 +135,12 @@ This cycle only works safely when:
 ## Current Immich Mapping
 
 - Worker labels: `services/immich.yml`
-  - `sablier.enable=true`
-  - `sablier.group=immich-workers`
+  - `immich-microservices` only
 - Queue monitor: `services/immich.yml`
   - `immich-queue-monitor`
   - Calls Sablier API with `group=immich-workers`
-- Worker router middleware: `config/traefik/dyn/immich.yml`
-  - `immich-workers-sablier`
+- Traefik: `config/traefik/dyn/immich.yml`
+  - public `photos.${DOMAIN}` route only
 
 ## Tuning Knobs
 
@@ -151,7 +148,7 @@ Start with these values and tune later:
 
 - `CHECK_INTERVAL=15` seconds
 - `EXTEND_DURATION=10m`
-- `BLOCKING_TIMEOUT=4m`
+- `BLOCKING_TIMEOUT=90s`
 
 If workers flap too often, increase `EXTEND_DURATION`.
 If wake-up feels slow, reduce `CHECK_INTERVAL` carefully.
@@ -188,7 +185,7 @@ If you stay on Docker Compose, keep Sablier and use this queue-monitor pattern.
 
 ## Recommendation
 
-- Keep Sablier for user-facing HTTP apps and grouped workers.
+- Keep Sablier for user-facing HTTP apps and the queue-woken worker group.
 - Keep DB/queue/control plane always on.
 - Use queue monitor only where queue-driven wake is needed.
 - Move to KEDA/Knative only if you are ready to migrate to Kubernetes.

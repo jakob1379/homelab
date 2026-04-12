@@ -200,11 +200,10 @@ Complete list of services and configuration points.
 - **Access:** `https://photos.${DOMAIN}`
 - **Profile:** apps
 - **Required env:** `IMMICH_DB_PASSWORD`
-- **Sablier:** Partial (API/UI always on; workers can be queue-woken)
-- **Notes:** `immich-server` is routed by `config/traefik/dyn/immich.yml` at `photos.${DOMAIN}`; `immich-microservices` and `immich-machine-learning` are grouped as `immich-workers`
-- **Notes:** Queue-based wake logic is experimental via profile `experimental` (not included in `all`)
+- **Sablier:** Partial (API/UI and ML always on; only `immich-microservices` is queue-woken)
+- **Notes:** `immich-server` is routed by `config/traefik/dyn/immich.yml` at `photos.${DOMAIN}`; the real wake path is `immich-queue-monitor` calling Sablier for `immich-workers`
+- **Notes:** `immich-queue-monitor` starts with the Immich stack under the standard `apps` and `all` profiles
 - **Dependencies:** `immich-postgres`, `redis`
-- **Enable experimental mode:** `docker compose --profile all --profile experimental up -d`
 
 ### Paperless-ngx
 - **Purpose:** Document management system with OCR and full-text search
