@@ -16,7 +16,6 @@ This PR updates the homelab Docker Compose setup with improvements to service co
      - `networking.yml`: Traefik, Sablier, Forward Auth, Whoami, AdGuard, NetAlertX
      - `postgres.yml`: PostgreSQL
      - `rustfs.yml`: RustFS (S3-compatible storage)
-     - `monitoring.yml`: Shepherd, Dozzle
       - `tools.yml`: IT Tools, CloudBeaver, BentoPDF
       - Application-specific stacks: `listmonk.yml`, `hoarder.yml`
       - Bootstrap stack: `docker-compose.pods.yml` includes `services/pods.yml`

@@ -6,7 +6,6 @@ include:
   # Core infrastructure
   - services/networking.yml  # Traefik, Sablier, Whoami, AdGuard
   - services/rustfs.yml  # RustFS S3-compatible storage
-  - services/monitoring.yml  # Dozzle
 
   # Developer tools
   - services/tools.yml  # IT Tools, CloudBeaver, BentoPDF
