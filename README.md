@@ -180,11 +180,10 @@ IP: 172.20.0.2
 | **Karakeep** | Bookmark manager | `https://keep.${DOMAIN}` |
 | **Listmonk** | Newsletters | `https://listmonk.${DOMAIN}` |
 | **Omni Tools** | General utilities | `https://omni.${DOMAIN}` |
-| **Paperless-ngx** | Document management | `https://paperless.${DOMAIN}` |
+| **Paperless-ngx** | Document management | `https://paper.${DOMAIN}` |
 | **IT Tools** | Dev utilities | `https://it.${DOMAIN}` |
 | **CloudBeaver** | Database UI | `https://cbeaver.${DOMAIN}` |
 | **BentoPDF** | PDF tools | `https://pdf.${DOMAIN}` |
-| **Dozzle** | Docker log viewer | `https://dozzle.${DOMAIN}` |
 | **Speedtest Tracker** | Internet speed history | `https://speed.${DOMAIN}` |
 | **VERT** | Local file converter | `https://vert.${DOMAIN}` |
 | **Immich** | Photo management | `https://photos.${DOMAIN}` |

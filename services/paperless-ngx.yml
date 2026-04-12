@@ -66,7 +66,7 @@ services:
       - homepage.group=Media & Files
       - homepage.name=Paperless-ngx
       - homepage.icon=paperless-ngx.png
-      - homepage.href=https://paperless.${DOMAIN:-traefik.me}
+      - homepage.href=https://paper.${DOMAIN:-traefik.me}
       - homepage.description=Scan, store, and search all your documents
     healthcheck:
       test: [CMD, curl, -fs, http://localhost:8000/api/health/]

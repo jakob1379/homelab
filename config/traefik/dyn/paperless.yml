@@ -1,0 +1,26 @@
+---
+http:
+  routers:
+    paperless:
+      rule: Host(`paper.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      tls: {}
+      service: paperless
+      middlewares: [sablier-paperless@file, startup-retry@file]
+  services:
+    paperless:
+      loadBalancer:
+        servers:
+          - url: http://paperless-web:8000/
+  middlewares:
+    sablier-paperless:
+      plugin:
+        sablier:
+          group: paperless
+          dynamic:
+            displayName: service
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 15m

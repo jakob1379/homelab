@@ -174,12 +174,6 @@ Complete list of services and configuration points.
 - **Sablier:** Yes
 - **Notes:** Has built-in authentication
 
-### Dozzle
-- **Purpose:** Real-time Docker log viewer
-- **Access:** `https://dozzle.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
-
 ### BentoPDF
 - **Purpose:** PDF manipulation tools
 - **Access:** `https://pdf.${DOMAIN}`
@@ -214,7 +208,7 @@ Complete list of services and configuration points.
 
 ### Paperless-ngx
 - **Purpose:** Document management system with OCR and full-text search
-- **Access:** `https://paperless.${DOMAIN}`
+- **Access:** `https://paper.${DOMAIN}`
 - **Profile:** apps
 - **Required env:** `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`
 - **Sablier:** Yes
@@ -254,7 +248,6 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | Paperless-ngx | `paperless` |
 | Jellyfin | `jellyfin` |
 | Seerr | `requests` |
-| Dozzle | `dozzle` |
 | Karakeep | `keep` |
 | Listmonk | `listmonk` |
 | Omni Tools | `omni` |
