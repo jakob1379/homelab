@@ -4,7 +4,6 @@ http:
     bentopdf:
       rule: Host(`pdf.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: bentopdf
       middlewares: [sablier-bentopdf@file, startup-retry@file]
   services:

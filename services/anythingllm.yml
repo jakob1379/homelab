@@ -10,7 +10,6 @@ services:
     networks: [traefik_public]
     volumes: [anythingllm_storage:/app/server/storage]
     labels:
-      - traefik.enable=true
       - sablier.enable=true
       - sablier.group=anythingllm
       - homepage.group=Utilities

@@ -4,7 +4,6 @@ http:
     cbeaver:
       rule: Host(`cbeaver.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: cbeaver
       middlewares: [sablier-cbeaver@file, startup-retry@file]
   services:

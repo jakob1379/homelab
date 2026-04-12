@@ -4,7 +4,6 @@ http:
     home:
       rule: Host(`home.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: home
       middlewares: [sablier-home@file, startup-retry@file]
   services:

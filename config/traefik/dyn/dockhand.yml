@@ -4,7 +4,6 @@ http:
     dockhand:
       rule: Host(`docker.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: dockhand
       middlewares: [sablier-dockhand@file, startup-retry@file]
   services:

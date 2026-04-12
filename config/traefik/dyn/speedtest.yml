@@ -4,7 +4,6 @@ http:
     speedtest:
       rule: Host(`speed.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: speedtest
       middlewares: [sablier-speedtest@file, startup-retry@file]
   services:

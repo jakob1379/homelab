@@ -10,12 +10,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ../config/homepage:/app/config
       - homepage_logs:/app/config/logs
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.home.entrypoints=websecure
-      - traefik.http.services.home.loadbalancer.server.port=3000
-      - sablier.enable=true
-      - sablier.group=home
+    labels: [sablier.enable=true, sablier.group=home]
     restart: always
     deploy:
       resources:

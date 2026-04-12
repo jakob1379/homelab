@@ -10,19 +10,18 @@ services:
     environment:
       - RUSTFS_VOLUMES=/data
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:?Set RUSTFS_ACCESS_KEY in .env, direnv,
-        or Portainer}
+        or Dockhand}
       - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:?Set RUSTFS_SECRET_KEY in .env, direnv,
-        or Portainer}
+        or Dockhand}
       - RUSTFS_CONSOLE_ENABLE=true
       - RUSTFS_CONSOLE_ADDRESS=:9001
     networks: [traefik_public]
     security_opt: [no-new-privileges:true]
     labels:
-      - traefik.enable=true
       - homepage.group=Storage & Data
       - homepage.name=RustFS
       - homepage.icon=rustfs.png
-      - homepage.href=https://rustfs-console.${DOMAIN:-traefik.me}
+      - homepage.href=https://rustfs.${DOMAIN:-traefik.me}
       - homepage.description=Cloud file storage for backups
     restart: always
     healthcheck:

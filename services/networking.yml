@@ -6,10 +6,10 @@ services:
     ports: [80:80, 443:443]
     environment:
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:?Set CF_DNS_API_TOKEN in .env, direnv,
-        or Portainer}
+        or Dockhand}
       - DOMAIN=${DOMAIN:-traefik.me}
       - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${ACME_EMAIL:?Set ACME_EMAIL
-        in .env, direnv, or Portainer}
+        in .env, direnv, or Dockhand}
     command: [--configFile=/etc/traefik/traefik.yml]
     volumes:
       - letsencrypt:/letsencrypt
@@ -79,10 +79,6 @@ services:
         condition: service_started
     networks: [traefik_public]
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.whoami.entrypoints=websecure
-      - traefik.http.services.whoami.loadbalancer.server.port=80
       - sablier.enable=true
       - sablier.group=default
       - homepage.group=Developer
@@ -108,8 +104,6 @@ services:
     ports:
       - ${ADGUARD_DNS_PORT:-1053}:53/tcp
       - ${ADGUARD_DNS_PORT:-1053}:53/udp
-      - 5080:80
-      - 5003:3000
     volumes:
       - adguard_data:/opt/adguardhome/work
       - adguard_conf:/opt/adguardhome/conf

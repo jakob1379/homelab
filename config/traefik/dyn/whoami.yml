@@ -4,7 +4,6 @@ http:
     whoami:
       rule: Host(`whoami.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: whoami
       middlewares: [sablier-default@file, startup-retry@file]
   services:

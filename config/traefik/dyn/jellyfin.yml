@@ -4,7 +4,6 @@ http:
     jellyfin:
       rule: Host(`jellyfin.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: jellyfin
       middlewares: [sablier-jellyfin@file, startup-retry@file]
   services:

@@ -5,9 +5,6 @@ services:
     image: corentinth/it-tools:2024.10.22-7ca5933
     networks: [traefik_public]
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.ittools.entrypoints=websecure
-      - traefik.http.services.ittools.loadbalancer.server.port=80
       - sablier.enable=true
       - sablier.group=ittools
       - homepage.group=Utilities
@@ -33,9 +30,6 @@ services:
       - cbeaver_conf:/opt/cloudbeaver/conf
     networks: [traefik_public]
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.cloudbeaver.entrypoints=websecure
-      - traefik.http.services.cloudbeaver.loadbalancer.server.port=8978
       - sablier.enable=true
       - sablier.group=cbeaver
       - homepage.group=Storage & Data
@@ -58,9 +52,6 @@ services:
     restart: always
     networks: [traefik_public]
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.bentopdf.entrypoints=websecure
-      - traefik.http.services.bentopdf.loadbalancer.server.port=8080
       - sablier.enable=true
       - sablier.group=bentopdf
       - homepage.group=Utilities

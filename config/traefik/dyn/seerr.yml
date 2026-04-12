@@ -4,7 +4,6 @@ http:
     seerr:
       rule: Host(`requests.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: seerr
       middlewares: [sablier-seerr@file, startup-retry@file]
   services:

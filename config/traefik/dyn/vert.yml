@@ -4,7 +4,6 @@ http:
     vert:
       rule: Host(`vert.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: vert
       middlewares: [sablier-vert@file, startup-retry@file]
   services:

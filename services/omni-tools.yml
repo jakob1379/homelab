@@ -6,7 +6,6 @@ services:
     restart: always
     networks: [traefik_public]
     labels:
-      - traefik.enable=true
       - sablier.enable=true
       - sablier.group=omni-tools
       - homepage.group=Utilities

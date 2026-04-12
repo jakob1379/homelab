@@ -10,8 +10,8 @@ services:
       - TZ=Europe/Copenhagen
       - VPN_SERVICE_PROVIDER=protonvpn
       - VPN_TYPE=openvpn
-      # - OPENVPN_USER=${OPENVPN_USER:?Set OPENVPN_USER in .env, direnv, or Portainer}
-      # - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:?Set OPENVPN_PASSWORD in .env, direnv, or Portainer}
+      # - OPENVPN_USER=${OPENVPN_USER:?Set OPENVPN_USER in .env, direnv, or Dockhand}
+      # - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:?Set OPENVPN_PASSWORD in .env, direnv, or Dockhand}
       - SERVER_COUNTRIES=${VPN_SERVER_COUNTRIES:-Netherlands}
       - FIREWALL_INPUT_PORTS=8080,7878,8989,6881
     restart: always
@@ -32,9 +32,6 @@ services:
       - jellyfin_cache:/cache
       - media_data:/data
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.jellyfin.entrypoints=websecure
-      - traefik.http.services.jellyfin.loadbalancer.server.port=8096
       - sablier.enable=true
       - sablier.group=jellyfin
       - homepage.group=Media & Files
@@ -59,9 +56,6 @@ services:
     environment: [TZ=Europe/Copenhagen, LOG_LEVEL=info, PORT=5055]
     volumes: [seerr_config:/app/config]
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.seerr.entrypoints=websecure
-      - traefik.http.services.seerr.loadbalancer.server.port=5055
       - sablier.enable=true
       - sablier.group=seerr
       - homepage.group=Media & Files

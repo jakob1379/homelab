@@ -16,7 +16,6 @@ services:
     volumes: [speedtest_tracker_data:/config]
     networks: [traefik_public]
     labels:
-      - traefik.enable=true
       - sablier.enable=true
       - sablier.group=speedtest
       - homepage.group=Networking

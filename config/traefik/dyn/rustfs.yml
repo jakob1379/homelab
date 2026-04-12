@@ -2,15 +2,13 @@
 http:
   routers:
     rustfs-api:
-      rule: Host(`rustfs.{{ env "DOMAIN" }}`)
+      rule: Host(`rustfs-api.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: rustfs-api
       middlewares: [startup-retry@file]
     rustfs-console:
-      rule: Host(`rustfs-console.{{ env "DOMAIN" }}`)
+      rule: Host(`rustfs.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: rustfs-console
       middlewares: [startup-retry@file]
   services:

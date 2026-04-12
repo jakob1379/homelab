@@ -4,7 +4,6 @@ http:
     ittools:
       rule: Host(`it.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: ittools
       middlewares: [sablier-ittools@file, startup-retry@file]
   services:

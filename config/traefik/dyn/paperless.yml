@@ -4,7 +4,6 @@ http:
     paperless:
       rule: Host(`paper.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: paperless
       middlewares: [sablier-paperless@file, startup-retry@file]
   services:

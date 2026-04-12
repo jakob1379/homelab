@@ -4,7 +4,6 @@ http:
     keep:
       rule: Host(`keep.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
-      tls: {}
       service: keep
       middlewares: [sablier-keep@file, startup-retry@file]
   services:

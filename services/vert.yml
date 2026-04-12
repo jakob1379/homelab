@@ -9,7 +9,6 @@ services:
       - PUB_ENV=production
     networks: [traefik_public]
     labels:
-      - traefik.enable=true
       - sablier.enable=true
       - sablier.group=vert
       - homepage.group=Utilities
