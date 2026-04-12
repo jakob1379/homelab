@@ -47,6 +47,8 @@ services:
       - paperless_consume:/usr/src/paperless/consume
     environment:
       - PAPERLESS_ADMIN_USER=admin
+      - PAPERLESS_ADMIN_PASSWORD=${PAPERLESS_ADMIN_PASSWORD:?Set PAPERLESS_ADMIN_PASSWORD
+        in .env, direnv, or Dockhand}
       - PAPERLESS_REDIS=redis://paperless-redis:6379
       - PAPERLESS_DBHOST=paperless-postgres
       - PAPERLESS_DBPORT=5432
