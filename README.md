@@ -368,6 +368,7 @@ $ docker compose -f docker-compose.pods.yml up -d dockhand
 | `PAPERLESS_SECRET_KEY` | Yes | — | Paperless app secret key |
 | `NEXTAUTH_SECRET` | Yes | — | Karakeep auth secret |
 | `MEILI_MASTER_KEY` | Yes | — | Karakeep / Meilisearch shared key |
+| `KARAKEEP_OPENAI_API_KEY` | No | — | Optional Karakeep OpenAI API key exposed to the container as `OPENAI_API_KEY` |
 | `RUSTFS_ACCESS_KEY` | Yes | — | RustFS S3 access key |
 | `RUSTFS_SECRET_KEY` | Yes | — | RustFS S3 secret key |
 | `OPENVPN_USER` | For media VPN | — | ProtonVPN OpenVPN username for Gluetun |

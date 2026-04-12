@@ -89,6 +89,7 @@ Complete list of services and configuration points.
 - **Access:** `https://keep.${DOMAIN}`
 - **Profile:** apps
 - **Required env:** `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`
+- **Optional env:** `KARAKEEP_OPENAI_API_KEY` (mapped to `OPENAI_API_KEY` inside the container)
 - **Sablier:** Yes
 - **Dependencies:** Chrome, Meilisearch
 - **Sleep behavior:** Only `keep` is Sablier-managed; Chrome and Meilisearch stay running while Karakeep sleeps after 15 minutes of inactivity
@@ -258,6 +259,7 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | `PAPERLESS_SECRET_KEY` | Paperless-ngx | Django app secret |
 | `NEXTAUTH_SECRET` | Karakeep | Auth/session secret |
 | `MEILI_MASTER_KEY` | Karakeep / Meilisearch | Shared search API key |
+| `KARAKEEP_OPENAI_API_KEY` | Karakeep | Optional OpenAI key injected as `OPENAI_API_KEY` |
 | `RUSTFS_ACCESS_KEY` | RustFS | S3 access key |
 | `RUSTFS_SECRET_KEY` | RustFS | S3 secret key |
 | `OPENVPN_USER` | Gluetun | ProtonVPN OpenVPN username |
