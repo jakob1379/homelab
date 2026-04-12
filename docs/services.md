@@ -69,7 +69,7 @@ Complete list of services and configuration points.
 
 ### NetAlertX
 - **Purpose:** Network device scanner & alerts
-- **Access:** `http://localhost:20211`
+- **Access:** `https://netalertx.${DOMAIN}` (`http://localhost:20211` still works directly on the host)
 - **Profile:** infra
 - **Network:** host mode
 - **Defaults in compose:** `NETALERTX_SCAN_SUBNETS=192.168.1.0/24`, override via `.env` if needed
@@ -199,7 +199,7 @@ Complete list of services and configuration points.
 - **Purpose:** Document management system with OCR and full-text search
 - **Access:** `https://paper.${DOMAIN}`
 - **Profile:** apps
-- **Required env:** `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`
+- **Required env:** `PAPERLESS_DBPASS`, `PAPERLESS_ADMIN_PASSWORD`, `PAPERLESS_SECRET_KEY`
 - **Sablier:** Yes
 - **Dependencies:** `paperless-postgres`, `paperless-redis`, `paperless-gotenberg` (PDF conversion), `paperless-tika` (document parsing)
 - **Notes:** Supports document upload, OCR, tagging, and full-text search. `PAPERLESS_OCR_LANGUAGE` defaults to `eng` in compose
@@ -243,7 +243,7 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | RustFS API | `rustfs-api` |
 | Home Assistant | `ha` |
 | AdGuard | `dns` |
-| NetAlertX | N/A (port 20211) |
+| NetAlertX | `netalertx` |
 
 ## Required Variables Reference
 
@@ -254,6 +254,7 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | `IMMICH_DB_PASSWORD` | Immich | PostgreSQL password |
 | `LISTMONK_db__password` | Listmonk | PostgreSQL password |
 | `PAPERLESS_DBPASS` | Paperless-ngx | PostgreSQL password |
+| `PAPERLESS_ADMIN_PASSWORD` | Paperless-ngx | Initial admin password |
 | `PAPERLESS_SECRET_KEY` | Paperless-ngx | Django app secret |
 | `NEXTAUTH_SECRET` | Karakeep | Auth/session secret |
 | `MEILI_MASTER_KEY` | Karakeep / Meilisearch | Shared search API key |

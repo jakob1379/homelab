@@ -164,7 +164,7 @@ IP: 172.20.0.2
 | **Sablier** | Idle app management | Internal |
 | **RustFS** | S3-compatible storage | `https://rustfs.${DOMAIN}` (UI), `https://rustfs-api.${DOMAIN}` (API) |
 | **AdGuard** | DNS ad blocker | Port `${ADGUARD_DNS_PORT}` (default `1053`) + `https://dns.${DOMAIN}` |
-| **NetAlertX** | Network scanner | `http://localhost:20211` |
+| **NetAlertX** | Network scanner | `https://netalertx.${DOMAIN}` |
 | **whoami** | Debug endpoint | `https://whoami.${DOMAIN}` |
 
 ### Apps (Mostly 💤 On-Demand) - 15 apps
@@ -364,6 +364,7 @@ $ docker compose -f docker-compose.pods.yml up -d dockhand
 | `IMMICH_DB_PASSWORD` | Yes | — | Immich PostgreSQL password |
 | `LISTMONK_db__password` | Yes | — | Listmonk PostgreSQL password |
 | `PAPERLESS_DBPASS` | Yes | — | Paperless PostgreSQL password |
+| `PAPERLESS_ADMIN_PASSWORD` | Yes | — | Paperless initial admin password |
 | `PAPERLESS_SECRET_KEY` | Yes | — | Paperless app secret key |
 | `NEXTAUTH_SECRET` | Yes | — | Karakeep auth secret |
 | `MEILI_MASTER_KEY` | Yes | — | Karakeep / Meilisearch shared key |
