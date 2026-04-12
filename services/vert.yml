@@ -13,7 +13,7 @@ services:
       - sablier.group=vert
       - homepage.group=Utilities
       - homepage.name=VERT
-      - homepage.icon=mdi-file-sync
+      - homepage.icon=https://raw.githubusercontent.com/VERT-sh/VERT/main/src/lib/components/visual/svg/Logo.svelte
       - homepage.href=https://vert.${DOMAIN:-traefik.me}
       - homepage.description=Convert files locally in your browser
     deploy:
