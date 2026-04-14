@@ -13,6 +13,7 @@ services:
       - APP_URL=https://speed.${DOMAIN:-traefik.me}
       - ASSET_URL=https://speed.${DOMAIN:-traefik.me}
       - DB_CONNECTION=sqlite
+      - SPEEDTEST_SCHEDULE="${SPEEDTEST_SCHEDULE:-17 */3 * * *}"
     volumes: [speedtest_tracker_data:/config]
     networks: [traefik_public]
     labels:
