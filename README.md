@@ -369,6 +369,10 @@ $ docker compose -f docker-compose.pods.yml up -d dockhand
 | `NEXTAUTH_SECRET` | Yes | — | Karakeep auth secret |
 | `MEILI_MASTER_KEY` | Yes | — | Karakeep / Meilisearch shared key |
 | `KARAKEEP_OPENAI_API_KEY` | No | — | Optional Karakeep OpenAI API key exposed to the container as `OPENAI_API_KEY` |
+| `KARAKEEP_OAUTH_WELLKNOWN_URL` | No | — | Optional Karakeep OIDC discovery URL |
+| `KARAKEEP_OAUTH_CLIENT_ID` | No | — | Optional Karakeep OIDC client ID |
+| `KARAKEEP_OAUTH_CLIENT_SECRET` | No | — | Optional Karakeep OIDC client secret |
+| `KARAKEEP_OAUTH_PROVIDER_NAME` | No | `OIDC` | Optional Karakeep provider label shown in the sign-in UI |
 | `RUSTFS_ACCESS_KEY` | Yes | — | RustFS S3 access key |
 | `RUSTFS_SECRET_KEY` | Yes | — | RustFS S3 secret key |
 | `OPENVPN_USER` | For media VPN | — | ProtonVPN OpenVPN username for Gluetun |
@@ -381,6 +385,7 @@ $ docker compose -f docker-compose.pods.yml up -d dockhand
 Safe defaults now live in the compose files.
 Required secrets should be set through `.env`, `.envrc`, or Dockhand instead of repo-managed `services/.env-*` files.
 For local development, `setup-dev.sh` generates base64 app keys for `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, and `SPEEDTEST_APP_KEY` when they are missing.
+Karakeep OIDC stays off by default. Leave the optional Karakeep OIDC variables unset for development, and set them only when you want to add an OIDC sign-in option alongside the default password flow.
 If you use the Nix dev shell, `mkpasswd` is available for passwords and `openssl` is available for hex/base64 secrets.
 
 ### TLS / DNS Credentials

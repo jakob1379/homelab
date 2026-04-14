@@ -3,14 +3,17 @@ services:
   keep:
     profiles: [apps, all]
     image: ghcr.io/karakeep-app/karakeep:0.31.0
-    restart: always
+    entrypoint: [/bin/sh, /usr/local/bin/karakeep-entrypoint.sh]
+    restart: unless-stopped
     depends_on:
       chrome:
         condition: service_started
       meilisearch:
         condition: service_healthy
     networks: [traefik_public, keep]
-    volumes: [karakeep_data:/data]
+    volumes:
+      - karakeep_data:/data
+      - ../config/karakeep/entrypoint.sh:/usr/local/bin/karakeep-entrypoint.sh:ro
     environment:
       OPENAI_SERVICE_TIER: flex
       INFERENCE_TEXT_MODEL: gpt-5.4-nano
@@ -23,6 +26,10 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?Generate a key using `openssl rand -hex
         32 2>/dev/null`}
       OPENAI_API_KEY: ${KARAKEEP_OPENAI_API_KEY:-}
+      KARAKEEP_OAUTH_WELLKNOWN_URL: ${KARAKEEP_OAUTH_WELLKNOWN_URL:-}
+      OAUTH_CLIENT_SECRET: ${KARAKEEP_OAUTH_CLIENT_SECRET:-}
+      OAUTH_CLIENT_ID: ${KARAKEEP_OAUTH_CLIENT_ID:-}
+      OAUTH_PROVIDER_NAME: ${KARAKEEP_OAUTH_PROVIDER_NAME:-OIDC}
     labels:
       - sablier.enable=true
       - sablier.group=keep
@@ -42,7 +49,7 @@ services:
   chrome:
     profiles: [apps, all]
     image: gcr.io/zenika-hub/alpine-chrome@sha256:1a0046448e0bb6c275c88f86e01faf0de62b02ec8572901256ada0a8c08be23f
-    restart: always
+    restart: unless-stopped
     networks: [keep]
     command:
       - --no-sandbox
@@ -62,7 +69,7 @@ services:
   meilisearch:
     profiles: [apps, all]
     image: getmeili/meilisearch:v1.13.3
-    restart: always
+    restart: unless-stopped
     networks: [keep]
     environment:
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?Generate a key using `openssl rand -hex

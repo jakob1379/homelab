@@ -3,7 +3,7 @@ services:
   anythingllm:
     profiles: [apps, all]
     image: mintplexlabs/anythingllm:1.11.1
-    restart: always
+    restart: unless-stopped
     cap_add: [SYS_ADMIN]
     extra_hosts: [host.docker.internal:host-gateway]
     environment: [STORAGE_DIR=/app/server/storage, DISABLE_TELEMETRY=true]

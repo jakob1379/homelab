@@ -31,7 +31,7 @@ services:
       - homepage.href=https://traefik.${DOMAIN:-traefik.me}
       - homepage.description=Reverse proxy and routing dashboard
       - homepage.siteMonitor=http://traefik:8081/ping
-    restart: always
+    restart: unless-stopped
     healthcheck:
       test:
         - CMD
@@ -61,7 +61,7 @@ services:
         condition: service_healthy
     volumes: [/var/run/docker.sock:/var/run/docker.sock]
     networks: [traefik_public]
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -87,7 +87,7 @@ services:
       - homepage.icon=whoami.png
       - homepage.href=https://whoami.${DOMAIN:-traefik.me}
       - homepage.description=Check your connection details
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -119,7 +119,7 @@ services:
       - homepage.icon=adguard-home.png
       - homepage.href=https://dns.${DOMAIN:-traefik.me}
       - homepage.description=Block ads across the whole network
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -156,7 +156,7 @@ services:
       - homepage.icon=netalertx.png
       - homepage.href=https://netalertx.${DOMAIN:-traefik.me}
       - homepage.description=See what devices are connected to the network
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:

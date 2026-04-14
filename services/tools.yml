@@ -12,7 +12,7 @@ services:
       - homepage.icon=it-tools.png
       - homepage.href=https://it.${DOMAIN:-traefik.me}
       - homepage.description=Technical calculators and converters
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -37,7 +37,7 @@ services:
       - homepage.icon=cloudbeaver.png
       - homepage.href=https://cbeaver.${DOMAIN:-traefik.me}
       - homepage.description=Database editor for managing data tables
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -49,7 +49,7 @@ services:
   bentopdf:
     profiles: [apps, all]
     image: bentopdf/bentopdf:1.2.0
-    restart: always
+    restart: unless-stopped
     networks: [traefik_public]
     labels:
       - sablier.enable=true

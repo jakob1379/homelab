@@ -23,7 +23,7 @@ services:
       - homepage.icon=rustfs.png
       - homepage.href=https://rustfs.${DOMAIN:-traefik.me}
       - homepage.description=Cloud file storage for backups
-    restart: always
+    restart: unless-stopped
     healthcheck:
       test:
         - CMD

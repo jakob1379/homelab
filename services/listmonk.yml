@@ -17,7 +17,7 @@ services:
       retries: 5
       start_period: 30s
     networks: [listmonk]
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -59,7 +59,7 @@ services:
       - -c
       - ./listmonk --install --idempotent --yes --config '' && ./listmonk --upgrade
         --yes --config '' && ./listmonk --config ''
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -72,7 +72,7 @@ services:
     profiles: [tunnel]
     image: cloudflare/cloudflared:2025.1.0
     command: tunnel --no-autoupdate run
-    restart: always
+    restart: unless-stopped
     networks: [listmonk]
     deploy:
       resources:

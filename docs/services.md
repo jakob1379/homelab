@@ -89,10 +89,12 @@ Complete list of services and configuration points.
 - **Access:** `https://keep.${DOMAIN}`
 - **Profile:** apps
 - **Required env:** `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`
-- **Optional env:** `KARAKEEP_OPENAI_API_KEY` (mapped to `OPENAI_API_KEY` inside the container)
+- **Optional env:** `KARAKEEP_OPENAI_API_KEY` plus optional `KARAKEEP_OAUTH_WELLKNOWN_URL`, `KARAKEEP_OAUTH_CLIENT_ID`, `KARAKEEP_OAUTH_CLIENT_SECRET`, and `KARAKEEP_OAUTH_PROVIDER_NAME`
 - **Sablier:** Yes
 - **Dependencies:** Chrome, Meilisearch
 - **Sleep behavior:** Only `keep` is Sablier-managed; Chrome and Meilisearch stay running while Karakeep sleeps after 15 minutes of inactivity
+- **Auth:** Karakeep keeps its default password login behavior. If you set the optional OIDC variables, Karakeep also shows an OIDC sign-in option alongside password auth
+- **OIDC callback:** `https://keep.${DOMAIN}/api/auth/callback/custom`
 
 ### Listmonk
 - **Purpose:** Newsletter & mailing list manager
@@ -260,6 +262,12 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | `NEXTAUTH_SECRET` | Karakeep | Auth/session secret |
 | `MEILI_MASTER_KEY` | Karakeep / Meilisearch | Shared search API key |
 | `KARAKEEP_OPENAI_API_KEY` | Karakeep | Optional OpenAI key injected as `OPENAI_API_KEY` |
+| `KARAKEEP_DISABLE_PASSWORD_AUTH` | Karakeep | Optional production-only flag to disable password auth |
+| `KARAKEEP_OAUTH_AUTO_REDIRECT` | Karakeep | Optional production-only flag to redirect straight to OIDC |
+| `KARAKEEP_OAUTH_WELLKNOWN_URL` | Karakeep | Optional production-only OIDC discovery URL |
+| `KARAKEEP_OAUTH_CLIENT_ID` | Karakeep | Optional production-only OIDC client ID |
+| `KARAKEEP_OAUTH_CLIENT_SECRET` | Karakeep | Optional production-only OIDC client secret |
+| `KARAKEEP_OAUTH_PROVIDER_NAME` | Karakeep | Optional production-only provider label |
 | `RUSTFS_ACCESS_KEY` | RustFS | S3 access key |
 | `RUSTFS_SECRET_KEY` | RustFS | S3 secret key |
 | `OPENVPN_USER` | Gluetun | ProtonVPN OpenVPN username |

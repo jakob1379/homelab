@@ -14,7 +14,7 @@ services:
       # - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:?Set OPENVPN_PASSWORD in .env, direnv, or Dockhand}
       - SERVER_COUNTRIES=${VPN_SERVER_COUNTRIES:-Netherlands}
       - FIREWALL_INPUT_PORTS=8080,7878,8989,6881
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -39,7 +39,7 @@ services:
       - homepage.icon=jellyfin.png
       - homepage.href=https://jellyfin.${DOMAIN:-traefik.me}
       - homepage.description=Stream movies and series
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -72,7 +72,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -93,7 +93,7 @@ services:
       - WEBUI_PORT=8080
       - TORRENTING_PORT=6881
     volumes: [qbittorrent_config:/config, media_data:/data]
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -112,7 +112,7 @@ services:
       - PGID=${PGID:-1000}
       - TZ=Europe/Copenhagen
     volumes: [sonarr_config:/config, media_data:/data]
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -131,7 +131,7 @@ services:
       - PGID=${PGID:-1000}
       - TZ=Europe/Copenhagen
     volumes: [radarr_config:/config, media_data:/data]
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:

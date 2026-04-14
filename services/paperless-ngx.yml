@@ -3,7 +3,7 @@ services:
   paperless-postgres:
     profiles: [apps, all]
     image: postgres:17.9-alpine3.23
-    restart: always
+    restart: unless-stopped
     networks: [paperless]
     volumes: [paperless_postgres_data:/var/lib/postgresql/data]
     environment:
@@ -29,7 +29,7 @@ services:
   paperless-web:
     profiles: [apps, all]
     image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
-    restart: always
+    restart: unless-stopped
     depends_on:
       paperless-redis:
         condition: service_healthy
@@ -90,7 +90,7 @@ services:
   paperless-consumer:
     profiles: [apps, all]
     image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
-    restart: always
+    restart: unless-stopped
     depends_on:
       paperless-redis:
         condition: service_healthy
@@ -129,7 +129,7 @@ services:
   paperless-redis:
     profiles: [apps, all]
     image: redis:7.4.8-alpine3.21
-    restart: always
+    restart: unless-stopped
     networks: [paperless]
     volumes: [paperless_redis:/data]
     healthcheck:
@@ -148,7 +148,7 @@ services:
   paperless-gotenberg:
     profiles: [apps, all]
     image: gotenberg/gotenberg:8.30.1
-    restart: always
+    restart: unless-stopped
     networks: [paperless]
     command:
       - gotenberg
@@ -165,7 +165,7 @@ services:
   paperless-tika:
     profiles: [apps, all]
     image: apache/tika:3.1.0.0
-    restart: always
+    restart: unless-stopped
     networks: [paperless]
     deploy:
       resources:
