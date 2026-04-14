@@ -1,137 +1,70 @@
-# Project Overview
-This repo is a Docker Compose homelab with Traefik for HTTPS routing, Sablier for
-sleep-on-demand apps, and Dockhand for bootstrap and Git-based deployment. It is built
-to run locally with minimal setup and scale into a production-style self-hosted stack.
-## Repository Structure
-- `.github/` CI workflows, Dependabot config, and PR templates.
-- `config/` Runtime config for Traefik and Homepage.
-- `docs/` Source docs for the published documentation site.
-- `home-assistant/` Separate Home Assistant compose project on `traefik_public`.
-- `services/` Per-stack compose files and a few optional untracked local env paths.
-- `site/` Generated docs output; ignored by git.
-- `docker-compose.yml` Root compose entrypoint for the main homelab stack.
-- `docker-compose.pods.yml` Separate bootstrap stack for Dockhand.
-- `setup-dev.sh` Copies `.env.example` when needed and reports missing required vars.
-- `README.md` Main overview, quick start, and operator docs.
-- `backup_spec.md` Backup service design spec.
-- `template-stack.yml` Git stack template.
-- `flake.nix` Optional Nix dev shell.
-- `zensical.toml` Docs site config.
-- `AGENTS.md` Agent guide for this repo.
-## Build & Development Commands
-Install/bootstrap:
-```bash
-./setup-dev.sh
-Run:
-docker compose --profile all up -d
-docker compose --profile infra up -d
-docker compose --profile apps up -d
-docker compose -f docker-compose.pods.yml up -d
-cd home-assistant && docker compose --profile service up -d
-Test/validate:
-bash -n setup-dev.sh
-bash setup-dev.sh
-DOMAIN=test.traefik.me docker compose --profile all config
-DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config
-DOMAIN=test.traefik.me docker compose --profile all pull --dry-run
-DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run
-Lint:
-pre-commit install
-pre-commit run -a
-uvx pre-commit run -a
-Type-check:
-# > TODO: No dedicated type-check command is defined in this repo.
-Docs build:
-uv run zensical build --clean
-Debug:
-docker compose ps
-docker compose logs -f traefik
-curl -k https://whoami.traefik.me
-curl -I http://localhost:3000
-Deploy:
-docker compose -f docker-compose.pods.yml up -d
-Code Style & Conventions
-- Keep compose config split by stack under services/.
-- Put routing and middleware in config/traefik/dyn/*.yml.
-- Put static Traefik platform config in config/traefik/traefik.yml.
-- Use lowercase, hyphenated YAML filenames like paperless-ngx.yml.
-- Use uppercase snake case for env vars.
-- Shell scripts use Bash with set -euo pipefail.
-- Linting is driven by .pre-commit-config.yaml:
-  trailing-whitespace, end-of-file-fixer, check-yaml, check-json,
-  check-added-large-files, detect-private-key, yamlfix, and shellcheck.
-- home-assistant/configuration.yaml is excluded from check-yaml and yamlfix.
-Commit message template:
-type(scope): imperative summary
-Architecture Notes
-flowchart LR
-    User --> Traefik
-    Traefik --> Sablier
-    Traefik --> App
-    Sablier --> Docker
-    Docker --> services
-    Dockhand --> Docker
-    HomeAssistant --> traefik_public
-docker-compose.yml includes the main stack files from services/, while
-docker-compose.pods.yml loads the bootstrap control plane. Traefik handles ingress,
-TLS, and file-plus-Docker-provider routing. Sablier starts stopped app groups on demand.
-Most apps join traefik_public plus a private stack network; stateful services keep
-app-local databases and volumes. Dockhand bootstrap runs as a separate stack, then
-deploys the main stack from Git.
-Testing Strategy
-- Unit tests:
-  > TODO: No unit test suite is configured.
-- Integration/config tests:
-  Run bash -n setup-dev.sh,
-  bash setup-dev.sh,
-  DOMAIN=test.traefik.me docker compose --profile all config, and
-  DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config,
-  DOMAIN=test.traefik.me docker compose --profile all pull --dry-run, and
-  DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run.
-- E2E/smoke:
-  Run docker compose --profile all up -d and curl -k https://whoami.traefik.me.
-- CI:
-  .github/workflows/test-docker-compose.yml validates the setup script and Compose
-  config; .github/workflows/docs.yml builds docs; .github/workflows/yamlfix.yml
-  runs pre-commit auto-fixes.
-Security & Compliance
-- Secrets are untracked and environment-driven: `.env`, shell env / direnv,
-  optional local `services/.env-*` files for non-main stacks, and `services/secrets/*`.
-- setup-dev.sh does not generate dummy secrets; do not commit real credentials.
-- Traefik reads Cloudflare DNS credentials from `CF_DNS_API_TOKEN` in the environment.
-- Dependabot updates Docker dependencies monthly.
-- Pre-commit includes secret-oriented guardrails such as detect-private-key.
-- netalertx uses network_mode: host; review changes there carefully.
-- License: MIT
-Agent Guardrails
-- Never edit or commit secret/state paths:
-  .env, services/.env-*, services/secrets/*,
-  home-assistant/config/, site/, .cache/, and log directories.
-- Treat docker-compose.yml, services/networking.yml,
-  config/traefik/traefik.yml, and home-assistant/docker-compose.yml as high-risk.
-- Validate config changes with pre-commit run -a and
-  DOMAIN=test.traefik.me docker compose --profile all config.
-- Prefer stack-local changes over repo-wide refactors.
-Extensibility Hooks
-- Add new main-stack services as services/<name>.yml, then include them in docker-compose.yml.
-- Keep Dockhand bootstrap changes in docker-compose.pods.yml and services/pods.yml.
-- Add routes and Sablier middleware in config/traefik/dyn/*.yml.
-- Use Compose profiles as feature flags:
-  infra, apps, all, experimental, tunnel.
-- Main env hooks:
-  DOMAIN, ACME_EMAIL, CF_DNS_API_TOKEN, ADGUARD_DNS_PORT,
-  IMMICH_DB_PASSWORD, LISTMONK_db__password, PAPERLESS_DBPASS,
-  PAPERLESS_ADMIN_PASSWORD, PAPERLESS_SECRET_KEY,
-  NEXTAUTH_SECRET, MEILI_MASTER_KEY, RUSTFS_ACCESS_KEY, RUSTFS_SECRET_KEY,
-  OPENVPN_USER, OPENVPN_PASSWORD, VPN_SERVER_COUNTRIES, SPEEDTEST_APP_KEY.
-- services/immich.yml contains the experimental queue-driven wake pattern.
-- template-stack.yml is the stack templating hook.
-Further Reading
-- README.md (README.md)
-- docs/architecture.md (docs/architecture.md)
-- docs/services.md (docs/services.md)
-- docs/customization.md (docs/customization.md)
-- docs/dockhand.md (docs/dockhand.md)
-- docs/queue-driven-sleep.md (docs/queue-driven-sleep.md)
-- docs/troubleshooting.md (docs/troubleshooting.md)
-- backup_spec.md (backup_spec.md)
+# Agent Guide
+
+This repo is a Docker Compose homelab. The main stack is `docker-compose.yml`, which includes `services/*.yml`. The Dockhand bootstrap stack is `docker-compose.pods.yml` + `services/pods.yml`. Home Assistant is a separate compose project under `home-assistant/`.
+
+## Source of truth
+- Local bootstrap / required env behavior: `setup-dev.sh`
+- Example env values: `.env.example`
+- Validation contract: `.github/workflows/test-docker-compose.yml`
+- Lint / formatting rules: `.pre-commit-config.yaml`
+- Operator overview: `README.md`
+- Architecture / profiles / routing model: `docs/architecture.md`
+- Service inventory / required vars: `docs/services.md`
+- Adding services / Traefik / Sablier wiring: `docs/customization.md`
+- Dockhand deployment flow: `docs/dockhand.md`
+- Queue-driven wake pattern: `docs/queue-driven-sleep.md`
+- Failure playbook: `docs/troubleshooting.md`
+
+## Do not edit or commit
+- `.env`
+- `services/.env-*`
+- `services/secrets/*`
+- `home-assistant/config/`
+- `site/`
+- `.cache/`
+- `config/homepage/logs/`
+- `services/config/homepage/logs/`
+- `config/homepage/custom.css`
+- `config/homepage/custom.js`
+- `config/homepage/kubernetes.yaml`
+
+## High-risk files
+Treat these as likely to break routing or deployment:
+- `docker-compose.yml`
+- `docker-compose.pods.yml`
+- `services/networking.yml`
+- `config/traefik/traefik.yml`
+- `config/traefik/dyn/*.yml`
+- `home-assistant/docker-compose.yml`
+
+## Change map
+- Add a main-stack service in `services/<name>.yml`, then include it from `docker-compose.yml`
+- Keep Dockhand/bootstrap changes in `docker-compose.pods.yml` and `services/pods.yml`
+- Put static Traefik config in `config/traefik/traefik.yml`
+- Put routes, middleware, and Sablier config in `config/traefik/dyn/*.yml`
+- Home Assistant is a separate compose project under `home-assistant/`
+- Use lowercase, hyphenated YAML filenames
+- Use uppercase snake case for env vars
+- Prefer stack-local changes over repo-wide refactors
+- Compose profiles are feature flags: `infra`, `apps`, `all`, `experimental`, `tunnel`
+
+## Traefik footgun
+- For the minimum Docker-label Traefik exposure without file-provider routing or Sablier, copy the pattern from `home-assistant/docker-compose.yml`: join `traefik_public`, set `traefik.enable=true`, add a router rule, set `entrypoints=websecure`, and set the internal service port with `traefik.http.services.<name>.loadbalancer.server.port=<port>`
+- If you need explicit routing or middleware chains, use `config/traefik/dyn/*.yml` instead of piling more logic into labels
+- If Traefik cannot reach the container, check network attachment first; missing `traefik_public` is the common failure mode
+
+## Homepage footgun
+- In this repo, Homepage service entries mostly come from Docker labels, not `config/homepage/services.yaml` (currently empty)
+- Minimal example is also in `home-assistant/docker-compose.yml`: add `homepage.group`, `homepage.name`, `homepage.icon`, `homepage.href`, and `homepage.description`
+- For more label patterns and grouping conventions, use `docs/customization.md`
+- Do not add `homepage.siteMonitor` or similar active health checks to Sablier-managed services unless you want Homepage to generate wake-up traffic and log noise
+
+## Sablier footgun
+- To enable Sablier, add `sablier.enable=true`, `sablier.group=<name>`, and a matching `sablier-<name>@file` middleware / router reference
+- To disable it, remove both the service labels and the router middleware reference
+- For the queue-driven wake special case, see `services/immich.yml` and `docs/queue-driven-sleep.md`
+
+## Validation
+- Run the checks defined in `.github/workflows/test-docker-compose.yml`
+- Run `prek run -a`
+- If you changed compose or routing, validate the affected stack config before calling the work done
