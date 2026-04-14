@@ -598,11 +598,11 @@ Remove **Sablier** labels and middleware:
 
 ```yaml title="Remove Sablier labels from a service"
 services:
-  dockhand:
+  myapp:
     labels:
       # Remove these:
       # - sablier.enable=true
-      # - sablier.group=dockhand
+      # - sablier.group=myapp
 ```
 
 And update the router:
@@ -610,9 +610,9 @@ And update the router:
 ```yaml title="Remove the Sablier middleware from the router"
 http:
   routers:
-    dockhand:
+    myapp:
       # ...
-      # middlewares: [sablier-dockhand@file]  # Remove this
+      # middlewares: [sablier-myapp@file]  # Remove this
 ```
 
 ---

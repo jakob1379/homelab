@@ -11,8 +11,11 @@ services:
     networks: [traefik_public]
     ports: [3000:3000]
     labels:
-      - sablier.enable=true
-      - sablier.group=dockhand
+      - traefik.enable=true
+      - traefik.http.routers.dockhand.rule=Host(`docker.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.dockhand.entrypoints=websecure
+      - traefik.http.routers.dockhand.middlewares=startup-retry@file
+      - traefik.http.services.dockhand.loadbalancer.server.port=3000
       - homepage.group=Developer
       - homepage.name=Dockhand
       - homepage.icon=docker.png

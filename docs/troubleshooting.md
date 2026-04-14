@@ -139,7 +139,7 @@ abc123def456   traefik_public    bridge    local
 $ curl -k https://traefik.traefik.me/api/rawdata 2>/dev/null | jq '.routers | keys'
 [
   "immich@file",
-  "dockhand@file",
+  "dockhand@docker",
   "traefik@file"
 ]
 ```

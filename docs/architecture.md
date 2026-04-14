@@ -32,7 +32,7 @@ $ curl -sk https://traefik.traefik.me/api/version | jq
 # List configured routers
 $ curl -sk https://traefik.traefik.me/api/http/routers | jq -r '.[].name'
 immich@file
-dockhand@file
+dockhand@docker
 home@file
 ...
 ```
@@ -97,12 +97,12 @@ flowchart LR
 
 **What's happening here:**
 
-When you type `https://docker.traefik.me` in your browser:
+When you type `https://keep.traefik.me` in your browser:
 
-1. **DNS Resolution**: Your browser looks up `docker.traefik.me` → gets your server's IP (or
+1. **DNS Resolution**: Your browser looks up `keep.traefik.me` → gets your server's IP (or
    `127.0.0.1` in dev)
 2. **HTTPS Handshake**: **Traefik** terminates TLS using its auto-generated certificate
-3. **Router Matching**: **Traefik** reads the `Host` header (`docker.traefik.me`) and finds the
+3. **Router Matching**: **Traefik** reads the `Host` header (`keep.traefik.me`) and finds the
    matching router rule
 4. **Middleware Chain**: **Sablier** middleware intercepts the request for sleep-enabled routes
 5. **State Check**: If the container is stopped, **Sablier** scales it to 1 replica via Docker API
@@ -114,16 +114,16 @@ The inline code for this flow:
 
 ```yaml title="Traefik routing and Sablier labels"
 # Traefik router matches the Host header
-rule: Host(`docker.${DOMAIN}`)
+rule: Host(`keep.${DOMAIN}`)
 
 # Sablier middleware checks container state
 middlewares:
-  - sablier-dockhand@file
+  - sablier-keep@file
 
 # Docker Compose labels enable Sablier
 labels:
   - sablier.enable=true
-  - sablier.group=dockhand
+  - sablier.group=keep
 ```
 
 ---
@@ -194,7 +194,6 @@ screwdriver is much easier when you have a dedicated toolbox.
         │   ├── common.yml      # Shared middlewares (auth, headers, Sablier)
         │   ├── bentopdf.yml    # Per-service routing rules
         │   ├── immich.yml
-        │   ├── dockhand.yml
         │   ├── speedtest.yml
         │   ├── vert.yml
         │   └── ...             # One file per external service
@@ -439,10 +438,10 @@ Here's the thing about self-hosting: most of your apps sit idle 90% of the time.
 uploading photos at 3 AM. You're not generating PDFs while you're asleep. But traditional Docker
 keeps those containers running 24/7, hogging resources for no reason.
 
-**Sablier** is our "smart receptionist." When you visit `docker.yourdomain.com`, it checks if
-**Dockhand** is awake. If not, it puts you in a waiting room while it starts the container. When
-you're done and 30 minutes pass with no activity, it puts the app back to sleep. Your server thanks
-you.
+**Sablier** is our "smart receptionist." When you visit a sleep-enabled route such as
+`keep.yourdomain.com`, it checks if the app is awake. If not, it puts you in a waiting room while
+it starts the container. When you're done and 30 minutes pass with no activity, it puts the app
+back to sleep. Your server thanks you.
 
 ### How It Works
 
@@ -455,7 +454,7 @@ sequenceDiagram
     participant Docker
     participant App
 
-    User->>Browser: Navigate to https://docker.traefik.me
+    User->>Browser: Navigate to https://keep.traefik.me
     Browser->>Traefik: GET / (request)
 
     rect rgb(240, 248, 255)
@@ -509,14 +508,14 @@ The sequence diagram shows the three phases:
 
 The inline code that enables this:
 
-```yaml title="config/traefik/dyn/dockhand.yml"
-# config/traefik/dyn/dockhand.yml
+```yaml title="config/traefik/dyn/myapp.yml"
+# config/traefik/dyn/myapp.yml
 http:
   middlewares:
-    sablier-dockhand:
+    sablier-myapp:
       plugin:
         sablier:
-          group: dockhand
+          group: myapp
           sablierUrl: http://sablier:10000
           sessionDuration: 30m
 ```

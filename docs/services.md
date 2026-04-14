@@ -80,8 +80,8 @@ Complete list of services and configuration points.
 ### Dockhand
 - **Purpose:** Modern Docker management UI
 - **Access:** `https://docker.${DOMAIN}` after the full deploy, or `http://localhost:3000` from the separate bootstrap stack
-- **Stack:** `docker-compose.pods.yml`; after the main deploy, Traefik routes `docker.${DOMAIN}` to that separate stack
-- **Sablier:** Yes
+- **Stack:** `docker-compose.pods.yml`; after the main deploy, Traefik discovers that separate stack through Docker labels on the shared `traefik_public` network
+- **Sablier:** No
 - **Notes:** Mounts the local Docker socket, stores stack data on a matching host path via `DOCKHAND_DATA_DIR`, and publishes a direct bootstrap port on `3000`
 
 ### Karakeep

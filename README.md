@@ -114,8 +114,8 @@ flowchart LR
 ```
 
 **What's happening here:**
-1. You visit `https://docker.traefik.me` (Dockhand)
-2. If **Dockhand** is stopped, **Sablier** intercepts the request and starts the container (~2 seconds)
+1. You visit `https://keep.traefik.me`
+2. If the app is stopped, **Sablier** intercepts the request and starts the container (~2 seconds)
 3. You see a "Starting..." page while the container boots
 4. Once healthy, your request is proxied to the application
 5. After the configured `sessionDuration` expires, **Sablier** stops the container to save resources. In this repo, those timeouts vary by route: **Immich workers** use `5m`, **Karakeep** uses `15m`, and most routed apps use `30m`.
@@ -173,7 +173,7 @@ IP: 172.20.0.2
 |---------|---------|--------|
 | **Homepage** | Service dashboard | `https://home.${DOMAIN}` |
 | **AnythingLLM** | Private AI workspace | `https://llm.${DOMAIN}` |
-| **Dockhand** | Docker management | `https://docker.${DOMAIN}` |
+| **Dockhand** | Docker management (bootstrap control plane) | `https://docker.${DOMAIN}` |
 | **Karakeep** | Bookmark manager | `https://keep.${DOMAIN}` |
 | **Listmonk** | Newsletters | `https://listmonk.${DOMAIN}` |
 | **Omni Tools** | General utilities | `https://omni.${DOMAIN}` |
@@ -187,7 +187,7 @@ IP: 172.20.0.2
 | **Jellyfin** | Media streaming | `https://jellyfin.${DOMAIN}` |
 | **Seerr** | Media requests | `https://requests.${DOMAIN}` |
 
-**First visit** to on-demand apps shows "Starting..." for ~2 seconds, then loads. **Immich** is routed by Traefik file-provider config at `https://photos.${DOMAIN}`.
+**First visit** to on-demand apps shows "Starting..." for ~2 seconds, then loads. **Dockhand** stays up as the separate bootstrap control plane, and **Immich** is routed by Traefik file-provider config at `https://photos.${DOMAIN}`.
 
 For movie/series request automation (`Seerr` + `Radarr` + `Sonarr` + `qBittorrent`), set `OPENVPN_USER` and `OPENVPN_PASSWORD` in `.env` so Gluetun can establish the ProtonVPN tunnel. For local secret generation, the Nix dev shell includes `mkpasswd` and `openssl`.
 
@@ -336,15 +336,15 @@ $ echo "ADGUARD_DNS_PORT=1053" >> .env
 
 ```bash title="Inspect a Sablier-managed service that will not wake"
 # Check service health
-$ docker compose -f docker-compose.pods.yml ps dockhand
+$ docker compose ps keep
 NAME                STATUS
-homelab-pods-dockhand-1 Restarting (1) 30 seconds ago
+homelab-keep-1      Restarting (1) 30 seconds ago
 
 # Check logs for crash loop
-$ docker compose -f docker-compose.pods.yml logs dockhand --tail 50
+$ docker compose logs keep --tail 50
 
 # Force start
-$ docker compose -f docker-compose.pods.yml up -d dockhand
+$ docker compose up -d keep
 ```
 
 [More troubleshooting →](docs/troubleshooting.md)
