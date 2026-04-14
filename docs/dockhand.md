@@ -20,6 +20,7 @@ $ ./setup-dev.sh
 
 # 2. Set your real deployment domain and required secrets
 $ cat > .env <<'EOF'
+TZ=Europe/Copenhagen
 DOMAIN=lab.example.com
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cf_api_token
@@ -64,12 +65,13 @@ This matters for two reasons:
 
 You need the following before the full deploy works:
 
-- A root `.env` with `DOMAIN`, `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and the app secrets required by the profiles you plan to run
+- A root `.env` with `TZ`, `DOMAIN`, `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and the app secrets required by the profiles you plan to run
 - `DOCKHAND_DATA_DIR` set to a real host path such as `/opt/dockhand` if you want Dockhand Git stacks to support relative bind mounts
 - Any shell or direnv-provided values you intentionally keep out of `.env`, such as `SPEEDTEST_APP_KEY`
 
 ```bash title="Create the root deployment file"
 $ cat > .env <<'EOF'
+TZ=Europe/Copenhagen
 DOMAIN=lab.example.com
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cf_api_token

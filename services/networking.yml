@@ -140,7 +140,7 @@ services:
     read_only: true
     environment:
       - PORT=20211
-      - TZ=Europe/Copenhagen
+      - TZ=${TZ:-Europe/Copenhagen}
       - NETALERTX_SCAN_SUBNETS=${NETALERTX_SCAN_SUBNETS:-192.168.1.0/24}
     cap_drop: [ALL]
     cap_add:

@@ -8,7 +8,7 @@ services:
       - POSTGRES_PASSWORD=${LISTMONK_db__password:?Set LISTMONK_db__password in .env,
         direnv, or Dockhand}
       - POSTGRES_DB=${LISTMONK_db__database:-listmonk}
-      - TZ=Europe/Copenhagen
+      - TZ=${TZ:-Europe/Copenhagen}
     volumes: [listmonk_postgres_data:/var/lib/postgresql/data]
     healthcheck:
       test: [CMD-SHELL, pg_isready -U listmonk -d listmonk]
@@ -33,7 +33,7 @@ services:
       listmonk-postgres:
         condition: service_healthy
     environment:
-      - TZ=Europe/Copenhagen
+      - TZ=${TZ:-Europe/Copenhagen}
       - LISTMONK_app__address=0.0.0.0:9000
       - LISTMONK_db__user=listmonk
       - LISTMONK_db__password=${LISTMONK_db__password:?Set LISTMONK_db__password in

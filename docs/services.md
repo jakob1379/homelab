@@ -217,7 +217,7 @@ Complete list of services and configuration points.
 - **Purpose:** Home automation and device control
 - **Access:** `https://ha.${DOMAIN}`
 - **Compose file:** `home-assistant/docker-compose.yml`
-- **Start command:** `cd home-assistant && docker compose --profile service up -d`
+- **Start command:** `cd home-assistant && docker compose --env-file ../.env --profile service up -d`
 - **Config storage:** Docker named volume `ha_config` mounted at `/config`
 
 ## URL Patterns

@@ -7,7 +7,7 @@ services:
     devices: [/dev/net/tun:/dev/net/tun]
     networks: [media]
     environment:
-      - TZ=Europe/Copenhagen
+      - TZ=${TZ:-Europe/Copenhagen}
       - VPN_SERVICE_PROVIDER=protonvpn
       - VPN_TYPE=openvpn
       # - OPENVPN_USER=${OPENVPN_USER:?Set OPENVPN_USER in .env, direnv, or Dockhand}
@@ -53,7 +53,7 @@ services:
     image: ghcr.io/seerr-team/seerr:v3.1.0
     init: true
     networks: [traefik_public, media]
-    environment: [TZ=Europe/Copenhagen, LOG_LEVEL=info, PORT=5055]
+    environment: ['TZ=${TZ:-Europe/Copenhagen}', LOG_LEVEL=info, PORT=5055]
     volumes: [seerr_config:/app/config]
     labels:
       - sablier.enable=true
@@ -89,7 +89,7 @@ services:
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
-      - TZ=Europe/Copenhagen
+      - TZ=${TZ:-Europe/Copenhagen}
       - WEBUI_PORT=8080
       - TORRENTING_PORT=6881
     volumes: [qbittorrent_config:/config, media_data:/data]
@@ -110,7 +110,7 @@ services:
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
-      - TZ=Europe/Copenhagen
+      - TZ=${TZ:-Europe/Copenhagen}
     volumes: [sonarr_config:/config, media_data:/data]
     restart: unless-stopped
     deploy:
@@ -129,7 +129,7 @@ services:
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
-      - TZ=Europe/Copenhagen
+      - TZ=${TZ:-Europe/Copenhagen}
     volumes: [radarr_config:/config, media_data:/data]
     restart: unless-stopped
     deploy:

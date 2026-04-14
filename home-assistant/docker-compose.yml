@@ -7,10 +7,11 @@ services:
     image: homeassistant/home-assistant:2026.4.1
     volumes:
       - ha_config:/config
+      - ./configuration.yaml:/config/configuration.yaml:ro
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - /run/dbus:/run/dbus:ro
-    environment: [TZ=Europe/Copenhagen]
+    environment: ['TZ=${TZ:-Europe/Copenhagen}']
     networks: [traefik_public]
     labels:
       - traefik.enable=true

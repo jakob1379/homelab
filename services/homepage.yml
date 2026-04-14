@@ -5,7 +5,7 @@ services:
     image: ghcr.io/gethomepage/homepage:v0.10.9
     container_name: home
     networks: [traefik_public]
-    environment: [TZ=Europe/Copenhagen]
+    environment: ['TZ=${TZ:-Europe/Copenhagen}']
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ../config/homepage:/app/config

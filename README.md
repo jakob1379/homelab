@@ -197,7 +197,7 @@ For movie/series request automation (`Seerr` + `Radarr` + `Sonarr` + `qBittorren
 
 ```bash title="Start the Home Assistant stack"
 $ cd home-assistant
-$ docker compose --profile service up -d
+$ docker compose --env-file ../.env --profile service up -d
 [+] Running 1/1
  ✔ Container home-assistant-ha-1  Started
 ```
@@ -358,6 +358,7 @@ $ docker compose -f docker-compose.pods.yml up -d dockhand
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `DOMAIN` | No | `traefik.me` | Base domain |
+| `TZ` | No | `Europe/Copenhagen` | Container timezone shared by the main, pods, and Home Assistant stacks |
 | `ACME_EMAIL` | Yes | — | Let's Encrypt ACME contact email for Traefik |
 | `CF_DNS_API_TOKEN` | Yes | — | Cloudflare DNS API token for DNS-01 |
 | `ADGUARD_DNS_PORT` | No | `1053` | Host DNS port mapped to AdGuard 53 |

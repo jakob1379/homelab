@@ -2,7 +2,9 @@
 services:
   dockhand:
     image: fnsys/dockhand:v1.0.24
-    environment: ['DATA_DIR=${DOCKHAND_DATA_DIR:-/opt/dockhand}']
+    environment:
+      - DATA_DIR=${DOCKHAND_DATA_DIR:-/opt/dockhand}
+      - TZ=${TZ:-Europe/Copenhagen}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${DOCKHAND_DATA_DIR:-/opt/dockhand}:${DOCKHAND_DATA_DIR:-/opt/dockhand}

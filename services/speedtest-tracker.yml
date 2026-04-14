@@ -9,7 +9,7 @@ services:
         2>/dev/null`}
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
-      - TZ=Europe/Copenhagen
+      - TZ=${TZ:-Europe/Copenhagen}
       - APP_URL=https://speed.${DOMAIN:-traefik.me}
       - ASSET_URL=https://speed.${DOMAIN:-traefik.me}
       - DB_CONNECTION=sqlite
