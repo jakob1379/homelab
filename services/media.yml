@@ -19,6 +19,11 @@ services:
       - traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN:-traefik.me}`)
       - traefik.http.routers.sonarr.entrypoints=websecure
       - traefik.http.services.sonarr.loadbalancer.server.port=8989
+      - homepage.group=Media & Files
+      - homepage.name=Sonarr
+      - homepage.icon=sonarr.png
+      - homepage.href=https://sonarr.${DOMAIN:-traefik.me}
+      - homepage.description=Automate TV series downloads and library imports
     restart: unless-stopped
     deploy:
       resources:

@@ -245,6 +245,7 @@ All services follow: `https://<subdomain>.${DOMAIN}`
 | Paperless-ngx | `paper` |
 | Jellyfin | `jellyfin` |
 | Seerr | `requests` |
+| Sonarr | `sonarr` |
 | Karakeep | `keep` |
 | Listmonk | `listmonk` |
 | Omni Tools | `omni` |
