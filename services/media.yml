@@ -16,7 +16,6 @@ services:
       - FIREWALL_INPUT_PORTS=8080,7878,8989,6881
     labels:
       - traefik.enable=true
-      - traefik.docker.network=traefik_public
       - traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN:-traefik.me}`)
       - traefik.http.routers.sonarr.entrypoints=websecure
       - traefik.http.services.sonarr.loadbalancer.server.port=8989

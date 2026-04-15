@@ -90,7 +90,12 @@ has_config_value() {
 }
 
 generate_base64_key() {
-    openssl rand -base64 32 | tr -d '\n'
+    if command -v openssl >/dev/null 2>&1; then
+        openssl rand -base64 32 | tr -d '\n'
+        return 0
+    fi
+
+    head -c 32 /dev/urandom | base64 | tr -d '\n'
 }
 
 set_env_value() {
@@ -116,11 +121,6 @@ ensure_generated_dev_key() {
         return 0
     fi
 
-    if ! command -v openssl >/dev/null 2>&1; then
-        log_warn "openssl is not available, so $var_name was not generated"
-        return 1
-    fi
-
     if [[ ! -f ".env" ]]; then
         log_warn ".env is missing, so $var_name was not generated"
         return 1
@@ -128,6 +128,27 @@ ensure_generated_dev_key() {
 
     set_env_value "$var_name" "$(generate_base64_key)" ".env"
     log_info "Generated development key: $var_name"
+}
+
+ensure_ci_placeholder() {
+    local var_name="$1"
+    local var_value="$2"
+
+    if [[ "${CI:-}" != "true" ]]; then
+        return 0
+    fi
+
+    if has_config_value "$var_name"; then
+        return 0
+    fi
+
+    if [[ ! -f ".env" ]]; then
+        log_warn ".env is missing, so $var_name was not set for CI validation"
+        return 1
+    fi
+
+    set_env_value "$var_name" "$var_value" ".env"
+    log_info "Set CI placeholder: $var_name"
 }
 
 show_generation_hints() {
@@ -201,6 +222,10 @@ if [[ ! -f ".env" && -f ".env.example" ]]; then
 elif [[ ! -f ".env" ]]; then
     log_info "No .env file found. You can create one for custom environment variables."
 fi
+
+ensure_ci_placeholder ACME_EMAIL ci@example.invalid || true
+ensure_ci_placeholder CF_DNS_API_TOKEN ci-dummy-cloudflare-token || true
+ensure_ci_placeholder PAPERLESS_ADMIN_PASSWORD ci-paperless-admin-password || true
 
 generated_key_failures=0
 for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_db__password PAPERLESS_SECRET_KEY NEXTAUTH_SECRET MEILI_MASTER_KEY SPEEDTEST_APP_KEY; do
