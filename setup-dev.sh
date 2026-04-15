@@ -134,9 +134,10 @@ ensure_ci_placeholder() {
     local var_name="$1"
     local var_value="$2"
 
-    if [[ "${CI:-}" != "true" ]]; then
-        return 0
-    fi
+    case "${CI,,}" in
+        1|true|yes|on) ;;
+        *) return 0 ;;
+    esac
 
     if has_config_value "$var_name"; then
         return 0
@@ -223,9 +224,15 @@ elif [[ ! -f ".env" ]]; then
     log_info "No .env file found. You can create one for custom environment variables."
 fi
 
-ensure_ci_placeholder ACME_EMAIL ci@example.invalid || true
-ensure_ci_placeholder CF_DNS_API_TOKEN ci-dummy-cloudflare-token || true
-ensure_ci_placeholder PAPERLESS_ADMIN_PASSWORD ci-paperless-admin-password || true
+ci_placeholder_failures=0
+ensure_ci_placeholder ACME_EMAIL ci@example.invalid || ci_placeholder_failures=1
+ensure_ci_placeholder CF_DNS_API_TOKEN ci-dummy-cloudflare-token || ci_placeholder_failures=1
+ensure_ci_placeholder PAPERLESS_ADMIN_PASSWORD ci-paperless-admin-password || ci_placeholder_failures=1
+
+if (( ci_placeholder_failures > 0 )); then
+    log_error "Failed to set one or more CI placeholders"
+    exit 1
+fi
 
 generated_key_failures=0
 for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_db__password PAPERLESS_SECRET_KEY NEXTAUTH_SECRET MEILI_MASTER_KEY SPEEDTEST_APP_KEY; do
