@@ -5,7 +5,7 @@ services:
     image: qmcgaw/gluetun:v3.41.1
     cap_add: [NET_ADMIN]
     devices: [/dev/net/tun:/dev/net/tun]
-    networks: [media]
+    networks: [media, traefik_public]
     environment:
       - TZ=${TZ:-Europe/Copenhagen}
       - VPN_SERVICE_PROVIDER=protonvpn

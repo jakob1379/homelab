@@ -167,7 +167,7 @@ IP: 172.20.0.2
 | **NetAlertX** | Network scanner | `https://netalertx.${DOMAIN}` |
 | **whoami** | Debug endpoint | `https://whoami.${DOMAIN}` |
 
-### Apps (Mostly 💤 On-Demand) - 15 apps
+### Apps (Mostly 💤 On-Demand) - 16 apps
 
 | Service | Purpose | Access |
 |---------|---------|--------|
@@ -186,6 +186,7 @@ IP: 172.20.0.2
 | **Immich** | Photo management | `https://photos.${DOMAIN}` |
 | **Jellyfin** | Media streaming | `https://jellyfin.${DOMAIN}` |
 | **Seerr** | Media requests | `https://requests.${DOMAIN}` |
+| **Sonarr** | Series automation | `https://sonarr.${DOMAIN}` |
 
 **First visit** to on-demand apps shows "Starting..." for ~2 seconds, then loads. **Dockhand** stays up as the separate bootstrap control plane, and **Immich** is routed by Traefik file-provider config at `https://photos.${DOMAIN}`.
 
