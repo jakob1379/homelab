@@ -141,13 +141,13 @@ Complete list of services and configuration points.
 - **Purpose:** TV series automation and indexer management
 - **Access:** `https://sonarr.${DOMAIN}`
 - **Profile:** apps
-- **Routing model:** Traefik routes to `gluetun:8989` because Sonarr shares Gluetun's network namespace
+- **Routing model:** Docker-label Traefik route on `gluetun`, forwarding to port `8989` because Sonarr shares Gluetun's network namespace
 
 ### Media Automation
 - **Purpose:** Fetch and import requested content into Jellyfin libraries
 - **Services:** `gluetun`, `qbittorrent`, `sonarr`, `radarr`
 - **Profile:** apps
-- **Network:** Internal `media` network, plus `traefik_public` on `gluetun` so Traefik can reach Sonarr
+- **Network:** Internal `media` network, plus `traefik_public` on `gluetun` so Traefik can reach Sonarr via Docker labels
 - **Path model:** Single shared root mount `media_data:/data` across downloader and Arr apps for reliable imports/hardlinks
 - **Privacy model:** `qbittorrent`, `sonarr`, and `radarr` share Gluetun's network namespace so all outbound download/indexer traffic exits through ProtonVPN
 - **Required env:** Set `OPENVPN_USER` and `OPENVPN_PASSWORD` in `.env` (optionally `VPN_SERVER_COUNTRIES`) before enabling on-demand downloading

@@ -14,6 +14,12 @@ services:
       # - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:?Set OPENVPN_PASSWORD in .env, direnv, or Dockhand}
       - SERVER_COUNTRIES=${VPN_SERVER_COUNTRIES:-Netherlands}
       - FIREWALL_INPUT_PORTS=8080,7878,8989,6881
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_public
+      - traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.sonarr.entrypoints=websecure
+      - traefik.http.services.sonarr.loadbalancer.server.port=8989
     restart: unless-stopped
     deploy:
       resources:
