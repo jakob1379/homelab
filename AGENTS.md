@@ -49,12 +49,38 @@ Treat these as likely to break routing or deployment:
 - Compose profiles are feature flags: `infra`, `apps`, `all`, `experimental`, `tunnel`
 
 ## Traefik footgun
-- For the minimum Docker-label Traefik exposure without file-provider routing or Sablier, copy the pattern from `home-assistant/docker-compose.yml`: join `traefik_public`, set `traefik.enable=true`, add a router rule, set `entrypoints=websecure`, and set the internal service port with `traefik.http.services.<name>.loadbalancer.server.port=<port>`
+- For the minimum Docker-label Traefik exposure without file-provider routing or Sablier, use this example:
+
+``` yaml
+volumes:
+  <service_name>_data: # or better name that matches usage
+services:
+  <service_name>: # this name is used as url <service_name>.${DOMAIN}
+    profiles: [service, all]
+    image: some_docker_image:lagest
+    volumes:
+      - <service_name>_data:/app_data
+      - /etc/localtime:/etc/localtime:ro
+    environment: ['TZ=${TZ:-Europe/Copenhagen}']
+    networks: [traefik_public]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ha.entrypoints=websecure
+      - traefik.http.services.ha.loadbalancer.server.port=<service_port>
+      - homepage.group=<some sensible group>
+      - homepage.name=<service nice name>
+      - homepage.icon=<service icon>
+      - homepage.href=https://<service_name>.${DOMAIN:-traefik.me}
+      - homepage.description=<service description>
+networks:
+  traefik_public:
+    external: true
+
+```
+
 - If you need explicit routing or middleware chains, use `config/traefik/dyn/*.yml` instead of piling more logic into labels
-- If Traefik cannot reach the container, check network attachment first; missing `traefik_public` is the common failure mode
 
 ## Homepage footgun
-- In this repo, Homepage service entries mostly come from Docker labels, not `config/homepage/services.yaml` (currently empty)
 - Minimal example is also in `home-assistant/docker-compose.yml`: add `homepage.group`, `homepage.name`, `homepage.icon`, `homepage.href`, and `homepage.description`
 - For more label patterns and grouping conventions, use `docs/customization.md`
 - Do not add `homepage.siteMonitor` or similar active health checks to Sablier-managed services unless you want Homepage to generate wake-up traffic and log noise
