@@ -199,9 +199,9 @@ Complete list of services and configuration points.
 - **Access:** `https://photos.${DOMAIN}`
 - **Profile:** apps
 - **Required env:** `IMMICH_DB_PASSWORD`
-- **Sablier:** Partial (API/UI and ML always on; only `immich-microservices` is queue-woken)
-- **Notes:** `immich-server` is routed by `config/traefik/dyn/immich.yml` at `photos.${DOMAIN}`; the real wake path is `immich-queue-monitor` calling Sablier for `immich-workers`
-- **Notes:** `immich-queue-monitor` starts with the Immich stack under the standard `apps` and `all` profiles
+- **Sablier:** No
+- **Notes:** `immich-server` is exposed directly through Traefik Docker labels on `traefik_public`
+- **Notes:** The full Immich stack stays up; there is no queue-driven worker wake path in the current configuration
 - **Dependencies:** `immich-postgres`, `redis`
 
 ### Paperless-ngx

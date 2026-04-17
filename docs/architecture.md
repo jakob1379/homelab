@@ -203,14 +203,14 @@ screwdriver is much easier when you have a dedicated toolbox.
     **What's happening here:**
     Dynamic configs in `dyn/` are hot-reloaded by **Traefik**—no restart needed when adding routes. This separation means you can modify proxy behavior without touching service definitions.
 
-    ```yaml title="config/traefik/dyn/immich.yml"
-    # config/traefik/dyn/immich.yml
-    http:
-      routers:
-        immich:
-          rule: 'Host(`photos.{{ env "DOMAIN" }}`)'
-          service: immich
-          middlewares: [startup-retry@file]
+    ```yaml title="services/immich.yml"
+    immich-server:
+      networks: [traefik_public, immich]
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-traefik.me}`)
+        - traefik.http.routers.immich.entrypoints=websecure
+        - traefik.http.services.immich.loadbalancer.server.port=2283
     ```
 
 === "Standalone"
@@ -231,17 +231,17 @@ Traefik configuration comes from three places in this repo, each with a differen
 |---|---|---|
 | `config/traefik/traefik.yml` | Static bootstrap config | EntryPoints, providers, ACME resolver, plugin loading |
 | `config/traefik/dyn/*.yml` | Dynamic routing behavior | Routers, services, middlewares (including Sablier middleware) |
-| Service labels in `services/*.yml` | Service metadata and discovery hints | homepage labels, optional `traefik.enable=true` for Docker-discovered apps, optional `sablier.*` group labels |
+| Service labels in `services/*.yml` | Docker-discovered service routing and metadata | homepage labels, direct `traefik.*` router/service labels, optional `sablier.*` group labels |
 
 How we use them:
 
-- We keep routing logic in dynamic files (`dyn/*.yml`) so it stays explicit and reviewable.
-- We use labels for discovery/exposure metadata, not complex router chains.
+- We use dynamic files when the route needs shared middleware chains or file-provider services.
+- We use labels for simpler Docker-discovered apps where the route can stay next to the service definition.
 - We treat static config as platform-level behavior and change it rarely.
 
 Practical rule:
 
-- If you are changing **how traffic is routed**, edit `config/traefik/dyn/*.yml`.
+- If you are changing **how traffic is routed**, edit either `config/traefik/dyn/*.yml` or the service's `traefik.*` labels, depending on where that route lives today.
 - If you are changing **Traefik platform behavior**, edit `config/traefik/traefik.yml`.
 - If you are adding a service and want Traefik to auto-discover it via the Docker provider, add `traefik.enable=true` in service labels. If routing is defined in a file-provider config, keep service labels for metadata only.
 
