@@ -53,7 +53,7 @@ services:
       - homepage.name=Jellyfin
       - homepage.icon=jellyfin.png
       - homepage.href=https://jellyfin.${DOMAIN:-traefik.me}
-      - homepage.description=Stream movies and series
+      - homepage.description=Stream and manage your media library
     restart: unless-stopped
     deploy:
       resources:
@@ -109,7 +109,7 @@ services:
       - homepage.name=QBittorrent
       - homepage.icon=qbittorrent.png
       - homepage.href=https://torrent.${DOMAIN:-traefik.me}
-      - homepage.description=Automate Torrent engine
+      - homepage.description=Torrent client
 
     # depends_on: [gluetun]
     environment:
@@ -157,7 +157,7 @@ services:
       - homepage.name=Sonarr
       - homepage.icon=sonarr.png
       - homepage.href=https://sonarr.${DOMAIN:-traefik.me}
-      - homepage.description=Automate TV series downloads and library imports
+      - homepage.description=Track, download, and organize TV series automatically
     networks: [traefik_public, media]
   radarr:
     profiles: [apps, all]
@@ -189,7 +189,23 @@ services:
       - homepage.name=Radarr
       - homepage.icon=radarr.png
       - homepage.href=https://radarr.${DOMAIN:-traefik.me}
-      - homepage.description=Automate Moview downloads and library imports
+      - homepage.description=Track, download, and organize movies automatically
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    networks: [traefik_public, media]
+    environment: [PUID=1000, PGID=1000, TZ=Etc/UTC]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.prowlarr.entrypoints=websecure
+      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+      - homepage.group=Media & Files
+      - homepage.name=Prowlarr
+      - homepage.icon=prowlarr.png
+      - homepage.href=https://prowlarr.${DOMAIN:-traefik.me}
+      - homepage.description=Manage indexers and sync them with Sonarr and Radarr
+    volumes: [prowlarr_config:/config]
+    restart: unless-stopped
 networks:
   media:
   traefik_public:
@@ -204,3 +220,4 @@ volumes:
   qbittorrent_config:
   sonarr_config:
   radarr_config:
+  prowlarr_config:
