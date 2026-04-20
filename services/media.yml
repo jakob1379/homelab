@@ -143,6 +143,7 @@ services:
       - homepage.icon=sonarr.png
       - homepage.href=https://sonarr.${DOMAIN:-traefik.me}
       - homepage.description=Automate TV series downloads and library imports
+    networks: [traefik_public]
   radarr:
     profiles: [apps, all]
     image: lscr.io/linuxserver/radarr:6.1.1.10360-ls298
@@ -155,6 +156,7 @@ services:
       - TZ=${TZ:-Europe/Copenhagen}
     volumes: [radarr_config:/config, media_data:/data]
     restart: unless-stopped
+    networks: [traefik_public]
     deploy:
       resources:
         limits:
