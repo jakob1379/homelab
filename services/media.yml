@@ -36,7 +36,8 @@ services:
   #         memory: 256M
   jellyfin:
     profiles: [apps, all]
-    image: jellyfin/jellyfin:10.11.8
+    image: jellyfin/jellyfin-vue:unstable
+    user: ${PUID:-1000}:${PGID:-1000}
     networks: [traefik_public, media]
     volumes:
       - jellyfin_config:/config
