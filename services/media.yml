@@ -96,7 +96,7 @@ services:
     profiles: [apps, all]
     image: lscr.io/linuxserver/qbittorrent:5.1.4-r2-ls448
     # network_mode: service:gluetun
-    depends_on: [gluetun]
+    # depends_on: [gluetun]
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
@@ -117,7 +117,8 @@ services:
     profiles: [apps, all]
     image: lscr.io/linuxserver/sonarr:4.0.17.2952-ls306
     # network_mode: service:gluetun
-    depends_on: [gluetun, qbittorrent]
+    depends_on: [qbittorrent]
+      # - gluetun
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
@@ -146,7 +147,8 @@ services:
     profiles: [apps, all]
     image: lscr.io/linuxserver/radarr:6.1.1.10360-ls298
     # network_mode: service:gluetun
-    depends_on: [gluetun, qbittorrent]
+    depends_on: [qbittorrent]
+      # - gluetun,
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
