@@ -2,7 +2,7 @@
 services:
   home:
     profiles: [apps, all]
-    image: ghcr.io/gethomepage/homepage:v0.10.9
+    image: ghcr.io/gethomepage/homepage:v1.12.3
     container_name: home
     networks: [traefik_public]
     environment: ['TZ=${TZ:-Europe/Copenhagen}']
