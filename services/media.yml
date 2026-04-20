@@ -65,7 +65,7 @@ services:
           memory: 512M
   seerr:
     profiles: [apps, all]
-    image: ghcr.io/seerr-team/seerr:v3.1.0
+    image: ghcr.io/seerr-team/seerr:v3.2.0
     init: true
     networks: [traefik_public, media]
     environment: ['TZ=${TZ:-Europe/Copenhagen}', LOG_LEVEL=info, PORT=5055]
