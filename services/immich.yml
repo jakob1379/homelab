@@ -95,7 +95,7 @@ services:
       - IMMICH_WORKERS_EXCLUDE=api
     networks: [immich]
     healthcheck:
-      test: [CMD-SHELL, pgrep -f microservices || exit 1]
+      test: [CMD, bash, -c, exec 5<>/dev/tcp/127.0.0.1/3002]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -121,7 +121,7 @@ services:
     environment: [REDIS_HOSTNAME=redis]
     networks: [immich]
     healthcheck:
-      test: [CMD, curl, -f, http://localhost:3003/health]
+      test: [CMD, bash, -c, exec 5<>/dev/tcp/127.0.0.1/3003]
       interval: 10s
       timeout: 5s
       retries: 5
