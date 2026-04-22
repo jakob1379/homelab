@@ -58,12 +58,6 @@ services:
       - homepage.icon=immich.png
       - homepage.href=https://photos.${DOMAIN:-traefik.me}
       - homepage.description=Family photo and video library
-    healthcheck:
-      test: [CMD, curl, -f, http://localhost:2283/api/server/ping]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     restart: unless-stopped
     deploy:
       resources:
@@ -94,12 +88,6 @@ services:
       - REDIS_HOSTNAME=redis
       - IMMICH_WORKERS_EXCLUDE=api
     networks: [immich]
-    healthcheck:
-      test: [CMD, bash, -c, exec 5<>/dev/tcp/127.0.0.1/3002]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
     restart: unless-stopped
     # deploy:
     #   resources:
@@ -120,12 +108,6 @@ services:
     volumes: [immich_model_cache:/cache]
     environment: [REDIS_HOSTNAME=redis]
     networks: [immich]
-    healthcheck:
-      test: [CMD, bash, -c, exec 5<>/dev/tcp/127.0.0.1/3003]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
     restart: unless-stopped
     deploy:
       resources:
