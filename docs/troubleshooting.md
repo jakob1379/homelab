@@ -212,24 +212,15 @@ $ docker compose up -d gluetun qbittorrent sonarr radarr
 
 **Fix:**
 ```bash title="Repair the Home Assistant shared network"
-# Create the network if it doesn't exist
-$ docker network create traefik_public
-traefik_public
-
-# In home-assistant/docker-compose.yml, the network is marked external: true
-# So you must let the main stack create the network first
+# Let the main stack create the shared network
 $ docker compose --profile infra up -d
 [+] Running 6/6
- ✔ Container homelab-traefik-1   Started
- ✔ Container homelab-sablier-1   Started
- ...
-
-# If you deploy through Dockhand, let Dockhand deploy the full
-# stack before starting Home Assistant.
+  ✔ Container homelab-traefik-1   Started
+  ✔ Container homelab-sablier-1   Started
+  ...
 
 # Then start Home Assistant
-$ cd home-assistant
-$ docker compose --profile service up -d
+$ docker compose --profile apps up -d ha
 [+] Running 1/1
- ✔ Container homeassistant  Started
+ ✔ Container homelab-ha-1  Started
 ```

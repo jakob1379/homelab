@@ -133,8 +133,9 @@ ensure_generated_dev_key() {
 ensure_ci_placeholder() {
     local var_name="$1"
     local var_value="$2"
+    local ci_value="${CI-}"
 
-    case "${CI,,}" in
+    case "${ci_value,,}" in
         1|true|yes|on) ;;
         *) return 0 ;;
     esac
@@ -287,8 +288,8 @@ log_info "3. Start only infrastructure:"
 log_info "   docker compose --profile infra up -d"
 log_info "4. Start only applications (requires infra running):"
 log_info "   docker compose --profile apps up -d"
-log_info "5. Start Home Assistant (separate stack):"
-log_info "   cd home-assistant && docker compose --env-file ../.env --profile service up -d"
+log_info "5. Start Home Assistant:"
+log_info "   docker compose --profile apps up -d ha"
 log_info "6. Set required secrets in .env, direnv, or Dockhand before docker compose up"
 log_info ""
 log_info "View main stack status: docker compose ps"

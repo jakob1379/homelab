@@ -1,6 +1,6 @@
 # Agent Guide
 
-This repo is a Docker Compose homelab. The main stack is `docker-compose.yml`, which includes `services/*.yml`. The Dockhand bootstrap stack is `docker-compose.pods.yml` + `services/pods.yml`. Home Assistant is a separate compose project under `home-assistant/`.
+This repo is a Docker Compose homelab. The main stack is `docker-compose.yml`, which includes `services/*.yml` plus `home-assistant/docker-compose.yml`. The Dockhand bootstrap stack is `docker-compose.pods.yml` + `services/pods.yml`.
 
 ## Source of truth
 - Local bootstrap / required env behavior: `setup-dev.sh`
@@ -42,7 +42,7 @@ Treat these as likely to break routing or deployment:
 - Keep Dockhand/bootstrap changes in `docker-compose.pods.yml` and `services/pods.yml`
 - Put static Traefik config in `config/traefik/traefik.yml`
 - Put routes, middleware, and Sablier config in `config/traefik/dyn/*.yml`
-- Home Assistant is a separate compose project under `home-assistant/`
+- Home Assistant lives under `home-assistant/` but is included from the main `docker-compose.yml`
 - Use lowercase, hyphenated YAML filenames
 - Use uppercase snake case for env vars
 - Prefer stack-local changes over repo-wide refactors

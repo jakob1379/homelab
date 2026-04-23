@@ -217,11 +217,11 @@ screwdriver is much easier when you have a dedicated toolbox.
 
     ```text title="home-assistant/"
     home-assistant/
-    └── docker-compose.yml      # Separate compose stack (uses named volume ha_config for /config)
+    └── docker-compose.yml      # Home Assistant stack included from the main compose file
     ```
 
     **What's happening here:**
-    **Home Assistant** runs as its own compose project but attaches to the shared `traefik_public` network. This pattern lets us add complex, stateful services without cluttering the main homelab files. As a rule of thumb, if a stack needs more than a `.env` file, move it to its own folder at the repo root.
+    **Home Assistant** keeps its files under `home-assistant/`, but the service is included from the root `docker-compose.yml` and joins the same `traefik_public` network as the rest of the routed stack. This keeps the stack layout isolated without splitting startup and validation paths.
 
 ## Traefik Labels vs Static Config vs Dynamic Config
 

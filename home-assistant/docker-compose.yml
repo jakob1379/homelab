@@ -3,7 +3,7 @@ volumes:
   ha_config:
 services:
   ha:
-    profiles: [service]
+    profiles: [apps, all, service]
     image: homeassistant/home-assistant:2026.4.1
     volumes:
       - ha_config:/config
@@ -23,6 +23,4 @@ services:
       - homepage.icon=home-assistant.png
       - homepage.href=https://ha.${DOMAIN:-traefik.me}
       - homepage.description=Home automation and device control
-networks:
-  traefik_public:
-    external: true
+    restart: unless-stopped

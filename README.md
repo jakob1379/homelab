@@ -192,15 +192,14 @@ IP: 172.20.0.2
 
 For movie/series request automation (`Seerr` + `Radarr` + `Sonarr` + `qBittorrent`), set `OPENVPN_USER` and `OPENVPN_PASSWORD` in `.env` so Gluetun can establish the ProtonVPN tunnel. For local secret generation, the Nix dev shell includes `mkpasswd` and `openssl`.
 
-### Smart Home (Standalone Stack)
+### Smart Home
 
-**Home Assistant** runs as a separate compose project and joins `traefik_public`.
+**Home Assistant** is included in the main compose stack from `home-assistant/docker-compose.yml`.
 
 ```bash title="Start the Home Assistant stack"
-$ cd home-assistant
-$ docker compose --env-file ../.env --profile service up -d
+$ docker compose --profile apps up -d ha
 [+] Running 1/1
- ✔ Container home-assistant-ha-1  Started
+ ✔ Container homelab-ha-1  Started
 ```
 
 Access: `https://ha.${DOMAIN}`

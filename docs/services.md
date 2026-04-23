@@ -219,11 +219,12 @@ Complete list of services and configuration points.
 - **Profile:** infra
 - **Sablier:** Yes
 
-### Home Assistant (Standalone)
+### Home Assistant
 - **Purpose:** Home automation and device control
 - **Access:** `https://ha.${DOMAIN}`
 - **Compose file:** `home-assistant/docker-compose.yml`
-- **Start command:** `cd home-assistant && docker compose --env-file ../.env --profile service up -d`
+- **Profile:** apps
+- **Start command:** `docker compose --profile apps up -d ha`
 - **Config storage:** Docker named volume `ha_config` mounted at `/config`
 
 ## URL Patterns
