@@ -1,0 +1,42 @@
+---
+services:
+  hermes:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes
+    restart: unless-stopped
+    command: gateway run
+    # ports:
+    #   - "8642:8642"
+    volumes: [hermes_data:/opt/data]
+    networks:
+      - hermes-net
+    # uncomment to forward specific env vars instead of using .env file:
+    # environment:
+    #   - anthropic_api_key=${anthropic_api_key}
+    #   - openai_api_key=${openai_api_key}
+    #   - telegram_bot_token=${telegram_bot_token}
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: '2.0'
+  dashboard:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes-dashboard
+    restart: unless-stopped
+    command: dashboard --host 0.0.0.0 --insecure
+    ports: [127.0.0.1:9119:9119]
+    volumes: [hermes_data:/opt/data]
+    environment: [gateway_health_url=http://hermes:8642]
+    networks: [hermes-net]
+    depends_on: [hermes]
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+networks:
+  hermes-net:
+    driver: bridge
+volumes:
+  hermes_data:

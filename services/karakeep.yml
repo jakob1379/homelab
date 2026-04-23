@@ -82,14 +82,14 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
-        reservations:
-          cpus: '0.25'
-          memory: 512M
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.5'
+    #       memory: 1G
+    #     reservations:
+    #       cpus: '0.25'
+    #       memory: 512M
 networks:
   keep:
   traefik_public:
