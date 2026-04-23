@@ -174,6 +174,7 @@ This script:
 - Generates random app keys in .env when safe for local development
 - Verifies required env_file references from included compose files
 - Reports required secrets that must be set manually
+- Leaves optional service env overrides optional
 
 Run this script before starting the homelab and pods stacks with docker compose.
 EOF
@@ -195,7 +196,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 log_info "Setting up the homelab development environment..."
-log_info "setup-dev.sh leaves password-style credentials alone and only generates app keys"
+log_info "setup-dev.sh leaves password-style credentials alone, only generates app keys, and leaves optional service env overrides optional"
 
 ENV_FILES_DIR="services"
 

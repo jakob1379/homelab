@@ -96,6 +96,48 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
+  immich-power-tools:
+    profiles: [apps, all]
+    image: ghcr.io/immich-power-tools/immich-power-tools:latest
+    depends_on:
+      immich-postgres:
+        condition: service_healthy
+      immich-server:
+        condition: service_healthy
+    networks: [traefik_public, immich]
+    environment:
+      - TZ=${TZ:-Europe/Copenhagen}
+      - IMMICH_API_KEY=${IMMICH_API_KEY:-}
+      - IMMICH_URL=${IMMICH_URL:-http://immich-server:2283}
+      - EXTERNAL_IMMICH_URL=${EXTERNAL_IMMICH_URL:-}
+      - DB_USERNAME=${IMMICH_DB_USERNAME:-immich}
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD:?Set IMMICH_DB_PASSWORD in .env, direnv,
+        or Dockhand}
+      - DB_HOST=immich-postgres
+      - DB_PORT=5432
+      - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME:-immich}
+      - AI_API_KEY=${AI_API_KEY:-}
+      - AI_BASE_URL=${AI_BASE_URL:-https://api.openai.com/v1}
+      - AI_MODEL=${AI_MODEL:-gpt-4o-mini}
+      - POWER_TOOLS_ENDPOINT_URL=${POWER_TOOLS_ENDPOINT_URL:-https://immich-tools.${DOMAIN:-traefik.me}}
+    volumes: [immich_power_tools_data:/app/data]
+    labels:
+      - sablier.enable=true
+      - sablier.group=immich-power-tools
+      - homepage.group=Media & Files
+      - homepage.name=Immich Power Tools
+      - homepage.icon=immich.png
+      - homepage.href=https://immich-tools.${DOMAIN:-traefik.me}
+      - homepage.description=Extra utilities for your Immich library
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
   torrent:
     profiles: [apps, all]
     image: lscr.io/linuxserver/qbittorrent:5.1.4-r2-ls448
@@ -208,6 +250,7 @@ services:
     restart: unless-stopped
 networks:
   media:
+  immich:
   traefik_public:
     name: traefik_public
     driver: bridge
@@ -221,3 +264,4 @@ volumes:
   sonarr_config:
   radarr_config:
   prowlarr_config:
+  immich_power_tools_data:

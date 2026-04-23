@@ -1,0 +1,25 @@
+---
+http:
+  routers:
+    immich-power-tools:
+      rule: Host(`immich-tools.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      service: immich-power-tools
+      middlewares: [sablier-immich-power-tools@file, startup-retry@file]
+  services:
+    immich-power-tools:
+      loadBalancer:
+        servers:
+          - url: http://immich-power-tools:3000/
+  middlewares:
+    sablier-immich-power-tools:
+      plugin:
+        sablier:
+          group: immich-power-tools
+          dynamic:
+            displayName: Immich Power Tools
+            refreshFrequency: 2s
+            showDetails: 'true'
+            theme: ghost
+          sablierUrl: http://sablier:10000
+          sessionDuration: 30m
