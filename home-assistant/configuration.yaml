@@ -15,3 +15,5 @@ http:
   use_x_forwarded_for: true
   trusted_proxies:
     - 172.16.0.0/12
+  cors_allowed_origins:
+    - !env_var HA_CORS_ORIGIN https://ha.traefik.me

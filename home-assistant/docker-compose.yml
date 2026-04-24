@@ -11,12 +11,15 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - /run/dbus:/run/dbus:ro
-    environment: ['TZ=${TZ:-Europe/Copenhagen}']
+    environment:
+      - TZ=${TZ:-Europe/Copenhagen}
+      - HA_CORS_ORIGIN=https://ha.${DOMAIN:-traefik.me}
     networks: [traefik_public]
     labels:
       - traefik.enable=true
       - traefik.http.routers.ha.rule=Host(`ha.${DOMAIN:-traefik.me}`)
       - traefik.http.routers.ha.entrypoints=websecure
+      - traefik.http.routers.ha.middlewares=netbird-users-only@file
       - traefik.http.services.ha.loadbalancer.server.port=8123
       - homepage.group=Smart Home
       - homepage.name=Home Assistant
