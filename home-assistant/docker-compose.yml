@@ -8,6 +8,9 @@ services:
     volumes:
       - ha_config:/config
       - ./configuration.yaml:/config/configuration.yaml:ro
+      - ./automations.yaml:/config/automations.yaml:ro
+      - ./scripts.yaml:/config/scripts.yaml:ro
+      - ./scenes.yaml:/config/scenes.yaml:ro
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - /run/dbus:/run/dbus:ro
