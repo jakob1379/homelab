@@ -186,21 +186,23 @@ $ docker compose --profile service up -d ha
 
 ## Media Stack Does Not Match Older Docs Or Muscle Memory
 
-Yes. The current repo is inconsistent here.
+Yes. The current repo changed here.
 
 Current facts:
 
 - the active qBittorrent service name is `torrent`
-- **Gluetun** is commented out in `services/media.yml`
+- `gluetun` is active for `torrent`, `sonarr`, and `radarr`
+- `gluetun` carries `torrent`, `sonarr`, and `radarr` aliases on `media`
 - `prowlarr` has no profile
 - **Seerr** is still routed through a file-provider **Sablier** route
-- `setup-dev.sh` still warns about `OPENVPN_USER` and `OPENVPN_PASSWORD`
+- `setup-dev.sh` requires `OPENVPN_USER` and `OPENVPN_PASSWORD`
 
 Use commands that match the current service names.
 
 ```bash title="Check the current media services"
-$ docker compose ps torrent sonarr radarr prowlarr seerr jellyfin
+$ docker compose ps gluetun torrent sonarr radarr prowlarr seerr jellyfin
 NAME                IMAGE                                 STATUS
+homelab-gluetun-1   qmcgaw/gluetun:...                    Up
 homelab-torrent-1   lscr.io/linuxserver/qbittorrent:...  Up
 homelab-sonarr-1    lscr.io/linuxserver/sonarr:...       Up
 homelab-radarr-1    lscr.io/linuxserver/radarr:...       Up
@@ -209,4 +211,4 @@ homelab-seerr-1     ghcr.io/seerr-team/seerr:...         Up
 homelab-jellyfin-1  linuxserver/jellyfin:...             Up
 ```
 
-If you debug `qbittorrent` or `gluetun`, you are debugging the wrong thing for the active stack.
+If `torrent`, `sonarr`, or `radarr` cannot reach the network, debug `gluetun` first.

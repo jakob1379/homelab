@@ -138,16 +138,17 @@ Required vars:
 | **Jellyfin** | `https://jellyfin.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/jellyfin.yml` | Yes, `30m` | media server |
 | **Seerr** | `https://requests.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/seerr.yml` | Yes, `30m` | request UI |
 | **Immich Power Tools** | `https://immich-tools.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/immich-power-tools.yml` | Yes, `30m` | separate helper app, not core Immich routing |
-| **torrent** | `https://torrent.${DOMAIN}` | `apps`, `all` | Docker labels | No | qBittorrent service name is `torrent` |
-| **Sonarr** | `https://sonarr.${DOMAIN}` | `apps`, `all` | Docker labels | No | direct route |
-| **Radarr** | `https://radarr.${DOMAIN}` | `apps`, `all` | Docker labels | No | direct route |
+| **torrent** | `https://torrent.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | qBittorrent service name is `torrent`; shares `gluetun` network namespace |
+| **Sonarr** | `https://sonarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
+| **Radarr** | `https://radarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
 | **Prowlarr** | `https://prowlarr.${DOMAIN}` | no explicit profile | Docker labels | No | starts by default in the main stack because it has no profile |
 
 Current caveat:
 
-- the old **Gluetun** block is still present in comments
-- the active repo does **not** currently run `gluetun`
-- `setup-dev.sh` still flags `OPENVPN_USER` and `OPENVPN_PASSWORD` for `--profile all`
+- `gluetun` now carries the routed network path for `torrent`, `sonarr`, and `radarr`
+- `gluetun` also carries `torrent`, `sonarr`, and `radarr` aliases on `media` to preserve internal service-name reachability
+- `setup-dev.sh` requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for `--profile apps` and `--profile all`
+- `VPN_SERVER_COUNTRIES` is optional and defaults to `Netherlands`
 
 ### Home Assistant
 
@@ -183,8 +184,8 @@ These are the variables that matter for the active stack.
 | `NEXTAUTH_SECRET` | **Karakeep** |
 | `MEILI_MASTER_KEY` | **Karakeep**, **Meilisearch** |
 | `SPEEDTEST_APP_KEY` | **Speedtest Tracker** |
-| `OPENVPN_USER` | flagged by `setup-dev.sh` for full-profile validation |
-| `OPENVPN_PASSWORD` | flagged by `setup-dev.sh` for full-profile validation |
+| `OPENVPN_USER` | **Gluetun** ProtonVPN OpenVPN username |
+| `OPENVPN_PASSWORD` | **Gluetun** ProtonVPN OpenVPN password |
 
 ---
 

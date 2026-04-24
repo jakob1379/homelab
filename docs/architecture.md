@@ -241,17 +241,18 @@ but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That
 | `immich` | **Immich** internals | `immich-*`, `redis`, `immich-power-tools` |
 | `paperless` | **Paperless** internals | `paperless-*` |
 | `listmonk` | **Listmonk** isolation | `listmonk`, `listmonk-postgres`, optional `cftunnel` |
-| `media` | media apps | `jellyfin`, `seerr`, `torrent`, `sonarr`, `radarr`, `prowlarr` |
+| `media` | media apps | `jellyfin`, `seerr`, `gluetun`, `prowlarr` |
 
 ### Current media-stack reality
 
-`services/media.yml` still contains a large commented **Gluetun** block, but the active services now run directly on `traefik_public` and `media`.
+`services/media.yml` runs **Gluetun** for the download-automation path.
 
 That means:
 
-- `torrent` is the active qBittorrent service name
-- `sonarr`, `radarr`, and `prowlarr` are exposed directly
-- the docs should not pretend **Gluetun** is live when it is commented out
+- `gluetun` is attached to `media` and `traefik_public`
+- `torrent`, `sonarr`, and `radarr` share the `gluetun` network namespace
+- `gluetun` carries `torrent`, `sonarr`, and `radarr` aliases on `media` so existing service names still resolve internally
+- `prowlarr` remains directly attached to `media` and `traefik_public`
 
 ---
 

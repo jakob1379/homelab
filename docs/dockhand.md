@@ -86,14 +86,14 @@ AI_MODEL=gpt-4o-mini
 
 ### Current media caveat
 
-`setup-dev.sh` still flags these for `--profile all`:
+`setup-dev.sh` requires these for `--profile apps` and `--profile all`:
 
 ```text
 OPENVPN_USER=...
 OPENVPN_PASSWORD=...
 ```
 
-That matches the bootstrap script today, even though the active media stack no longer runs **Gluetun**.
+That matches the active media stack: `gluetun` uses ProtonVPN OpenVPN credentials for `torrent`, `sonarr`, and `radarr`.
 
 ---
 

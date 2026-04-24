@@ -1,39 +1,47 @@
 ---
 services:
-  # TODO: enabe gluetun and set traefik labels for sonarr, radarr here
-  # gluetun:
-  #   profiles: [apps, all]
-  #   image: qmcgaw/gluetun:v3.41.1
-  #   cap_add: [NET_ADMIN]
-  #   devices: [/dev/net/tun:/dev/net/tun]
-  #   networks: [media, traefik_public]
-  #   environment:
-  #     - TZ=${TZ:-Europe/Copenhagen}
-  #     - VPN_SERVICE_PROVIDER=protonvpn
-  #     - VPN_TYPE=openvpn
-  #  # - OPENVPN_USER=${OPENVPN_USER:?Set OPENVPN_USER in .env, direnv, or Dockhand}
-  #  # - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:?Set OPENVPN_PASSWORD in .env, direnv, or Dockhand}
-  #     - SERVER_COUNTRIES=${VPN_SERVER_COUNTRIES:-Netherlands}
-  #     - FIREWALL_INPUT_PORTS=8080,7878,8989,6881
-  #  # labels:
-  #  #   - traefik.enable=true
-  #  #   - traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN:-traefik.me}`)
-  #  #   - traefik.http.routers.sonarr.entrypoints=websecure
-  #  #   - traefik.http.services.sonarr.loadbalancer.server.port=8989
-  #  #   - homepage.group=Media & Files
-  #  #   - homepage.name=Sonarr
-  #  #   - homepage.icon=sonarr.png
-  #  #   - homepage.href=https://sonarr.${DOMAIN:-traefik.me}
-  #  #   - homepage.description=Automate TV series downloads and library imports
-  #   restart: unless-stopped
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.5'
-  #         memory: 512M
-  #       reservations:
-  #         cpus: '0.25'
-  #         memory: 256M
+  gluetun:
+    profiles: [apps, all]
+    image: qmcgaw/gluetun:v3.41.1
+    cap_add: [NET_ADMIN]
+    devices: [/dev/net/tun:/dev/net/tun]
+    networks:
+      media:
+        aliases: [torrent, sonarr, radarr]
+      traefik_public:
+    environment:
+      - TZ=${TZ:-Europe/Copenhagen}
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER=${OPENVPN_USER:?Set OPENVPN_USER in .env, direnv, or Dockhand}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD:?Set OPENVPN_PASSWORD in .env, direnv,
+        or Dockhand}
+      - SERVER_COUNTRIES=${VPN_SERVER_COUNTRIES:-Netherlands}
+      - FIREWALL_INPUT_PORTS=8080,7878,8989,6881
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_public
+      - traefik.http.routers.torrent.rule=Host(`torrent.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.torrent.entrypoints=websecure
+      - traefik.http.routers.torrent.service=torrent
+      - traefik.http.services.torrent.loadbalancer.server.port=8080
+      - traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.sonarr.entrypoints=websecure
+      - traefik.http.routers.sonarr.service=sonarr
+      - traefik.http.services.sonarr.loadbalancer.server.port=8989
+      - traefik.http.routers.radarr.rule=Host(`radarr.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.radarr.entrypoints=websecure
+      - traefik.http.routers.radarr.service=radarr
+      - traefik.http.services.radarr.loadbalancer.server.port=7878
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
   jellyfin:
     profiles: [apps, all]
     image: linuxserver/jellyfin:10.11.8
@@ -141,19 +149,14 @@ services:
   torrent:
     profiles: [apps, all]
     image: lscr.io/linuxserver/qbittorrent:5.1.4-r2-ls448
-    # network_mode: service:gluetun
-    networks: [traefik_public, media]
+    network_mode: service:gluetun
+    depends_on: [gluetun]
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.qbittor.entrypoints=websecure
-      - traefik.http.services.qbittor.loadbalancer.server.port=8080
       - homepage.group=Media & Files
       - homepage.name=QBittorrent
       - homepage.icon=qbittorrent.png
       - homepage.href=https://torrent.${DOMAIN:-traefik.me}
       - homepage.description=Torrent client
-
-    # depends_on: [gluetun]
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
@@ -173,9 +176,8 @@ services:
   sonarr:
     profiles: [apps, all]
     image: lscr.io/linuxserver/sonarr:4.0.17.2952-ls306
-    # network_mode: service:gluetun
-    depends_on: [torrent]
-      # - gluetun
+    network_mode: service:gluetun
+    depends_on: [gluetun, torrent]
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
@@ -191,29 +193,22 @@ services:
           cpus: '0.25'
           memory: 256M
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.sonarr.entrypoints=websecure
-      - traefik.http.services.sonarr.loadbalancer.server.port=8989
       - homepage.group=Media & Files
       - homepage.name=Sonarr
       - homepage.icon=sonarr.png
       - homepage.href=https://sonarr.${DOMAIN:-traefik.me}
       - homepage.description=Track, download, and organize TV series automatically
-    networks: [traefik_public, media]
   radarr:
     profiles: [apps, all]
     image: lscr.io/linuxserver/radarr:6.1.1.10360-ls298
-    # network_mode: service:gluetun
-    depends_on: [torrent]
-      # - gluetun,
+    network_mode: service:gluetun
+    depends_on: [gluetun, torrent]
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
       - TZ=${TZ:-Europe/Copenhagen}
     volumes: [radarr_config:/config, media_data:/data]
     restart: unless-stopped
-    networks: [traefik_public, media]
     deploy:
       resources:
         limits:
@@ -223,10 +218,6 @@ services:
           cpus: '0.25'
           memory: 256M
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.radarr.rule=Host(`radarr.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.radarr.entrypoints=websecure
-      - traefik.http.services.radarr.loadbalancer.server.port=7878
       - homepage.group=Media & Files
       - homepage.name=Radarr
       - homepage.icon=radarr.png
