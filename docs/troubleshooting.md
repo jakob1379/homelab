@@ -1,226 +1,212 @@
 # Troubleshooting
 
-Use this page when a service does not start, does not wake, or does not resolve. Start with [Architecture](architecture.md) to understand the request path, then match the symptom below. For the deployment flow, read [Deployment](dockhand.md).
+Use this page when the current repo shape gets in your way: missing main-stack variables, bootstrap vs routed Dockhand confusion, stuck Sablier routes, or media-stack drift.
+
+Read [Architecture](architecture.md) first if you do not know which stack you are actually debugging.
+
+---
 
 ## Try It Now
 
-Run these two checks before you dig into a specific failure:
-
-```bash title="Check the current container state"
-# 1. Check the bootstrap or full-stack containers
+```bash title="Check the bootstrap and main stacks first"
+# 1. Pods stack
 $ docker compose -f docker-compose.pods.yml ps
-NAME                    IMAGE                    STATUS
-homelab-pods-dockhand-1 fnsys/dockhand:v1.0.24   Up
+NAME                    IMAGE                  STATUS
+homelab-pods-dockhand-1 fnsys/dockhand:v1.0.26 Up
+
+# 2. Main stack foundation
+$ docker compose ps traefik sablier whoami
+NAME                IMAGE                   STATUS
+homelab-traefik-1   traefik:3.6.9           Up (healthy)
+homelab-sablier-1   sablierapp/sablier:1.8.1 Up
+homelab-whoami-1    traefik/whoami:v1.10.4  Up
 ```
 
-```bash title="Check whether Dockhand is still in bootstrap mode"
-# 2. Check whether you are still on bootstrap or already on routed traffic
+Those two commands tell you whether you are debugging:
+
+- only the bootstrap control plane
+- only the main stack
+- or both
+
+---
+
+## Dockhand Works On `:3000` But Not On `docker.${DOMAIN}`
+
+This is the normal bootstrap state.
+
+```bash title="Check whether you are still in bootstrap mode"
 $ curl -I http://localhost:3000
 HTTP/1.1 200 OK
 ```
 
-If the direct `3000` endpoint works but `https://docker.${DOMAIN}` does not, you are still in bootstrap mode. That is expected until Dockhand deploys the full stack.
+If that works but `https://docker.${DOMAIN}` does not, the main **Traefik** stack is not up yet.
 
-## The "Starting..." Screen That Never Ends
+Fix:
 
-**What you see:** You visit your app and get a loading page that says "Starting..." forever, then a "Bad Gateway" error or a browser error page.
+1. deploy the main stack
+2. verify `traefik` is healthy
+3. verify both stacks share `traefik_public`
 
-**What's happening:** Traefik cannot reach the app because the container is stopped, unhealthy, or not on the right network.
+---
 
-```bash title="Debug a stuck wake-up flow"
-# 1. Check if service is running
-$ docker compose ps | grep immich
-homelab-immich-server-1   ghcr.io/immich-app/immich-server:release   Up 2 hours (healthy)
+## `docker compose --profile all config` Fails Immediately
 
-# 2. Check service logs
-$ docker compose logs immich-server
-immich-server  | [Nest] 1  - 02/19/2026, 10:00:00 AM     LOG [NestFactory] Starting Nest application...
-immich-server  | [Nest] 1  - 02/19/2026, 10:00:01 AM     LOG [InstanceLoader] DatabaseModule dependencies initialized
+The usual reason is missing required variables.
 
-# 3. Common: Missing required variable
-$ docker compose config
-required variable IMMICH_DB_PASSWORD is missing a value: Set IMMICH_DB_PASSWORD in .env, direnv, or Dockhand
-
-# 4. Common: Network not connected
-$ docker network ls | grep traefik_public
-NETWORK ID     NAME              DRIVER    SCOPE
-abc123def456   traefik_public    bridge    local
+```bash title="Render the main stack and read the first failure"
+$ docker compose --profile all config
+required variable CF_DNS_API_TOKEN is missing a value: Set CF_DNS_API_TOKEN in .env, direnv, or Dockhand
 ```
 
-## Certificate Warning
+The current repo expects at least these for the main ingress path:
 
-**Symptom:** Chrome/Firefox warns about self-signed certificate.
+- `ACME_EMAIL`
+- `CF_DNS_API_TOKEN`
 
-**Fix:** This is expected in development mode with `traefik.me`:
-- Click "Advanced" → "Proceed anyway" (Chrome)
-- Or add `-k` flag to curl: `curl -k https://...`
+and app secrets for the services you include.
 
-For production, ensure the Cloudflare token is valid and NetBird DNS points clients to AdGuard wildcard records that resolve hostnames to your server VPN IP. See [Deployment](dockhand.md).
+If you only want the control plane, use `docker-compose.pods.yml` instead of fighting the full stack.
 
-## Sablier "Starting..." Forever
+---
 
-**Symptom:** Service never becomes ready.
+## Sablier Shows "Starting..." Forever
 
-```bash title="Inspect Sablier and app readiness"
-# Check Sablier logs
-$ docker compose logs sablier
-sablier  | INFO[0001] Successfully registered provider: Docker
-sablier  | INFO[0001] Sablier started on :10000
+This means one of three things:
 
-# Check if service has healthcheck issues
-$ docker compose ps karakeep
-NAME                    IMAGE                        STATUS
-homelab-karakeep-1      karakeep/karakeep:latest     Up 5 seconds (health: starting)
+1. the container is crashing
+2. the route points at the wrong internal port
+3. the Sablier group name does not match between the service and the middleware
 
-$ docker compose logs karakeep
-karakeep  | Failed to connect to database: connection refused
+```bash title="Inspect a stuck Sablier-managed route"
+# 1. Check Sablier itself
+$ docker compose logs sablier --tail 20
+INFO[0001] Successfully registered provider: Docker
 
-# Force restart
-$ docker compose restart karakeep
-[+] Restarting 1/1
- ✔ Container homelab-karakeep-1  Started
+# 2. Check the target service
+$ docker compose ps keep
+NAME              IMAGE                               STATUS
+homelab-keep-1    ghcr.io/karakeep-app/karakeep:...  Up
 
-# Check if replicas are stuck at 0 - start manually
-$ docker compose up -d karakeep
-[+] Running 1/1
- ✔ Container homelab-karakeep-1  Started
+# 3. Check the target logs
+$ docker compose logs keep --tail 50
+...
 ```
 
-## Port Conflicts (53 for AdGuard)
+Then compare:
 
-**Symptom:** `Bind for 0.0.0.0:53 failed: port is already allocated`
+- `sablier.group=keep` in `services/karakeep.yml`
+- `group: keep` in `config/traefik/dyn/keep.yml`
 
-**Fix:**
-```bash title="Resolve an AdGuard port binding conflict"
-# Default dev setup uses ADGUARD_DNS_PORT=1053 to avoid this.
-# If you explicitly set ADGUARD_DNS_PORT=53, check conflicts with:
-# Find what's using port 53
-$ sudo lsof -i :53
-COMMAND  PID   USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
-systemd- 123   root   12u  IPv4  12345      0t0  UDP localhost:53
+If those do not match, the wake flow is broken.
 
-# On Ubuntu/Debian, disable systemd-resolved
-$ sudo systemctl stop systemd-resolved
-$ sudo systemctl disable systemd-resolved
+---
 
-# Or keep AdGuard on a non-conflicting host port
-$ echo "ADGUARD_DNS_PORT=1053" >> .env
-```
+## 502 / Bad Gateway
 
-## Can't Access Services
+The issue is usually network attachment or a wrong port.
 
-**Symptom:** `whoami.traefik.me` doesn't resolve or connection refused.
+```bash title="Check network attachment and route target"
+# 1. Verify traefik_public exists
+$ docker network ls
+NETWORK ID     NAME            DRIVER    SCOPE
+...            traefik_public  bridge    local
 
-**Checklist:**
-```bash title="Check routing, DNS, and Traefik state"
-# 1. Is Traefik running?
-$ docker compose ps traefik
-NAME                IMAGE                STATUS
-homelab-traefik-1   traefik:3.6.9        Up 3 hours (healthy)
-
-# 2. Check if DNS resolves (traefik.me should resolve to 127.0.0.1)
-$ nslookup whoami.traefik.me
-Server:  127.0.0.53
-Address: 127.0.0.53#53
-
-Name: whoami.traefik.me
-Address: 127.0.0.1
-
-# 3. Check Traefik logs for config errors
-$ docker compose logs traefik | grep error
-traefik  | ERROR: Failed to retrieve ACME certificate: rate limit exceeded
-
-# 4. Verify Docker network exists
-$ docker network ls | grep traefik_public
-NETWORK ID     NAME              DRIVER    SCOPE
-abc123def456   traefik_public    bridge    local
-
-# 5. Check dynamic config is loaded
-$ curl -k https://traefik.traefik.me/api/rawdata 2>/dev/null | jq '.routers | keys'
-[
-  "immich@file",
-  "dockhand@docker",
-  "traefik@file"
-]
-```
-
-## Database Connection Refused
-
-**Symptom:** One app starts, but logs show database connection errors.
-
-```bash title="Inspect app-local database connectivity"
-# Check app-local database containers
-$ docker compose ps immich-postgres listmonk-postgres paperless-postgres
-NAME                         IMAGE                    STATUS
-homelab-immich-postgres-1    pgvector/pgvector:pg17  Up 20 minutes (healthy)
-homelab-listmonk-postgres-1  postgres:17-alpine      Up 20 minutes (healthy)
-homelab-paperless-postgres-1 postgres:17-alpine      Up 20 minutes (healthy)
-
-# Check the failing app logs
-$ docker compose logs immich-server --tail 30
-immich-server  | [Nest] ... LOG [DatabaseRepository] Connected to database
-
-# Check the matching DB logs
-$ docker compose logs immich-postgres --tail 30
-immich-postgres  | LOG:  database system is ready to accept connections
-
-# Verify each app points to its own DB host
-$ docker compose config | grep -E "DB_HOSTNAME|PAPERLESS_DBHOST|LISTMONK_db__host"
-      DB_HOSTNAME: immich-postgres
-      PAPERLESS_DBHOST: paperless-postgres
-      LISTMONK_db__host: listmonk-postgres
-```
-
-If one database is unhealthy, restart only that app stack:
-
-```bash title="Restart only the affected Immich stack"
-$ docker compose up -d immich-postgres immich-server immich-microservices
-```
-
-## Media Requests Stuck or Never Download
-
-**Symptom:** You request a movie/show in `requests.${DOMAIN}` but nothing starts downloading.
-
-```bash title="Check media automation prerequisites"
-# 1. Check VPN tunnel status
-$ docker compose logs gluetun --tail 50
-gluetun  | ERROR VPN settings: OPENVPN_USER is not set
-
-# 2. Confirm VPN credentials are set
-$ grep -E '^OPENVPN_USER=|^OPENVPN_PASSWORD=' .env
-OPENVPN_USER=your_proton_openvpn_username
-OPENVPN_PASSWORD=your_proton_openvpn_password
-
-# 3. Check downloader + Arr services
-$ docker compose ps gluetun qbittorrent sonarr radarr
+# 2. Check the service is attached to traefik_public
+$ docker compose ps immich-server
 NAME                    IMAGE                               STATUS
-homelab-gluetun-1       qmcgaw/gluetun:latest              Up (healthy)
-homelab-qbittorrent-1   lscr.io/linuxserver/qbittorrent    Up
-homelab-sonarr-1        lscr.io/linuxserver/sonarr         Up
-homelab-radarr-1        lscr.io/linuxserver/radarr         Up
+homelab-immich-server-1 ghcr.io/immich-app/immich-server... Up (healthy)
+
+# 3. Check the service logs
+$ docker compose logs immich-server --tail 30
+...
 ```
 
-If credentials were missing, set them in `.env` and restart media automation:
+If the app is supposed to be routed by **Traefik**, it usually needs `traefik_public`.
 
-```bash title="Restart the media automation stack"
-$ docker compose up -d gluetun qbittorrent sonarr radarr
+Missing that network is the common failure mode.
+
+---
+
+## AdGuard Cannot Bind Port 53
+
+The default dev port is `1053`. If you changed it to `53`, you may be fighting the host resolver.
+
+```bash title="Check port 53 conflicts"
+$ sudo lsof -i :53
+COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+systemd   123 root   12u  IPv4  12345      0t0  UDP localhost:53
 ```
 
-## Home Assistant Network Issues
+Fix one of these ways:
 
-**Symptom:** Home Assistant can't connect to `traefik_public`.
+- keep `ADGUARD_DNS_PORT=1053`
+- or stop the host resolver that already owns port `53`
 
-**Fix:**
-```bash title="Repair the Home Assistant shared network"
-# Let the main stack create the shared network
+```bash title="Keep the non-conflicting dev port"
+$ printf '%s\n' 'ADGUARD_DNS_PORT=1053' >> .env
+```
+
+---
+
+## Local Browser Shows A Certificate Warning
+
+That is expected when you run the local `traefik.me` path without a trusted local CA.
+
+```bash title="Use curl with the insecure flag in local dev"
+$ curl -k https://whoami.traefik.me
+Hostname: homelab-whoami-1
+```
+
+If this is production and you still get a bad cert, check:
+
+1. `CF_DNS_API_TOKEN`
+2. `ACME_EMAIL`
+3. DNS resolution to the correct host
+4. `docker compose logs traefik --tail 100`
+
+---
+
+## Home Assistant Cannot Reach The Shared Network
+
+Bring up the foundation first so `traefik_public` exists, then start `ha`.
+
+```bash title="Repair Home Assistant startup ordering"
+# 1. Let the main stack create traefik_public
 $ docker compose --profile infra up -d
-[+] Running 6/6
-  ✔ Container homelab-traefik-1   Started
-  ✔ Container homelab-sablier-1   Started
-  ...
+[+] Running ...
+ ✔ Container homelab-traefik-1  Started
 
-# Then start Home Assistant
-$ docker compose --profile apps up -d ha
+# 2. Start Home Assistant with its narrow profile
+$ docker compose --profile service up -d ha
 [+] Running 1/1
  ✔ Container homelab-ha-1  Started
 ```
+
+---
+
+## Media Stack Does Not Match Older Docs Or Muscle Memory
+
+Yes. The current repo is inconsistent here.
+
+Current facts:
+
+- the active qBittorrent service name is `torrent`
+- **Gluetun** is commented out in `services/media.yml`
+- `prowlarr` has no profile
+- **Seerr** is still routed through a file-provider **Sablier** route
+- `setup-dev.sh` still warns about `OPENVPN_USER` and `OPENVPN_PASSWORD`
+
+Use commands that match the current service names.
+
+```bash title="Check the current media services"
+$ docker compose ps torrent sonarr radarr prowlarr seerr jellyfin
+NAME                IMAGE                                 STATUS
+homelab-torrent-1   lscr.io/linuxserver/qbittorrent:...  Up
+homelab-sonarr-1    lscr.io/linuxserver/sonarr:...       Up
+homelab-radarr-1    lscr.io/linuxserver/radarr:...       Up
+homelab-prowlarr-1  lscr.io/linuxserver/prowlarr:...     Up
+homelab-seerr-1     ghcr.io/seerr-team/seerr:...         Up
+homelab-jellyfin-1  linuxserver/jellyfin:...             Up
+```
+
+If you debug `qbittorrent` or `gluetun`, you are debugging the wrong thing for the active stack.

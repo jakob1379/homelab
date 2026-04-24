@@ -1,290 +1,197 @@
 # Service Reference
 
-This page lists every service, its purpose, and how to access it. If you need the system model first, read [Architecture](architecture.md). For deployment and changes, use [Configuration](customization.md) and [Deployment](dockhand.md).
-
-## Try It Now
-
-Start with these three services:
-
-1. **Traefik** (included in `infra`), the traffic director
-2. **Dockhand**, Docker management UI
-3. **IT Tools**, Developer utilities
-
-```bash title="Start a minimal sample set"
-$ docker compose --profile infra up -d
-[+] Running 6/6
- ✔ Container homelab-traefik-1  Started
- ...
-
-$ docker compose --profile apps up -d ittools
-[+] Running 1/1
-  ✔ Container homelab-ittools-1    Started
-
-$ docker compose -f docker-compose.pods.yml up -d
-[+] Running 1/1
-  ✔ Container homelab-pods-dockhand-1  Started
-```
-
-Then open `https://docker.${DOMAIN}` and `https://it.${DOMAIN}`.
+This page lists the active services, their URLs, their profile membership, and their current sleep behavior. If you need the routing model first, read [Architecture](architecture.md).
 
 ---
 
-Complete list of services and configuration points.
+## Try It Now
 
-## Infrastructure Services
+```bash title="Start a small but representative slice"
+# 1. Start the foundation
+$ docker compose --profile infra up -d
+[+] Running ...
+ ✔ Container homelab-traefik-1   Started
+ ✔ Container homelab-sablier-1   Started
 
-### Traefik: The Traffic Director
-- **What it does:** Sits at the edge of your homelab. It receives requests for `photos.yourdomain.com`, forwards them to the right container, and handles HTTPS certificates.
-- **Access:** `https://traefik.${DOMAIN}`
-- **Profile:** infra
-- **Ports:** 80, 443
-- **Config:** `config/traefik/traefik.yml`
+# 2. Start one sleeping app and one direct-label app
+$ docker compose --profile apps up -d keep speedtest-tracker
+[+] Running ...
+ ✔ Container homelab-keep-1               Started
+ ✔ Container homelab-speedtest-tracker-1  Started
 
-### Sablier: Sleep Controller
-- **What it does:** Stops sleep-enabled apps when idle and wakes them on request in about 2 seconds. Services not wired to Sablier (for example, Immich API/UI) stay running.
-- **Why it matters:** It reduces idle resource usage.
-- **Profile:** infra
-- **Network:** traefik_public
+# 3. Verify both routes
+$ curl -k https://keep.traefik.me
+<!doctype html>
+...
 
-### App-Local Databases
-- **What it does:** Each stateful app owns its database container. This avoids cross-app coupling and removes shared DB bootstrap logic.
-- **Services:** `immich-postgres`, `listmonk-postgres`, `paperless-postgres`
-- **Profile:** apps
-- **Network:** Each database stays on its app network only (`immich`, `listmonk`, `paperless`)
+$ curl -k https://speed.traefik.me
+<!DOCTYPE html>
+...
+```
 
-### RustFS
-- **Purpose:** S3-compatible object storage
-- **Access:** `https://rustfs.${DOMAIN}` (UI), `https://rustfs-api.${DOMAIN}` (API)
-- **Profile:** infra
-- **Required env:** `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`
-- **Sablier:** No (always on for backup/automation reliability)
-- **Homepage link:** points to `https://rustfs.${DOMAIN}` (admin UI)
+`keep` goes through a file-provider **Sablier** route. `speedtest-tracker` uses direct Docker labels.
 
-### AdGuard Home
-- **Purpose:** Network-wide ad blocker & DNS
-- **Access:** Port `${ADGUARD_DNS_PORT}` (default `1053`) + `https://dns.${DOMAIN}`
-- **Profile:** infra
-- **Ports:** `${ADGUARD_DNS_PORT}:53/tcp`, `${ADGUARD_DNS_PORT}:53/udp`
-- **Note:** If DNS is routed through a VPN sidecar network (for example NetBird), you can remove host DNS port publishing.
+---
 
-### NetAlertX
-- **Purpose:** Network device scanner & alerts
-- **Access:** `https://netalertx.${DOMAIN}` (`http://localhost:20211` still works directly on the host)
-- **Profile:** infra
-- **Network:** host mode
-- **Defaults in compose:** `NETALERTX_SCAN_SUBNETS=192.168.1.0/24`, override via `.env` if needed
-- **Security:** Read-only root filesystem with minimal Linux caps (`CHOWN`, `SETGID`, `SETUID`, `NET_ADMIN`, `NET_RAW`, `NET_BIND_SERVICE`)
+## Bootstrap Control Plane
 
-## Application Services
+| Service | Access | Compose file | Sleep | Notes |
+|---|---|---|---|---|
+| **Dockhand** | `http://localhost:3000` during bootstrap, `https://docker.${DOMAIN}` after the main stack is up | `services/pods.yml` via `docker-compose.pods.yml` | No | separate stack on shared `traefik_public` |
 
-### Dockhand
-- **Purpose:** Modern Docker management UI
-- **Access:** `https://docker.${DOMAIN}` after the full deploy, or `http://localhost:3000` from the separate bootstrap stack
-- **Stack:** `docker-compose.pods.yml`; after the main deploy, Traefik discovers that separate stack through Docker labels on the shared `traefik_public` network
-- **Sablier:** No
-- **Notes:** Mounts the local Docker socket, stores stack data on a matching host path via `DOCKHAND_DATA_DIR`, and publishes a direct bootstrap port on `3000`
+---
 
-### Karakeep
-- **Purpose:** Bookmark manager with AI tagging
-- **Access:** `https://keep.${DOMAIN}`
-- **Profile:** apps
-- **Required env:** `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`
-- **Optional env:** `KARAKEEP_OPENAI_API_KEY` plus optional `KARAKEEP_OAUTH_WELLKNOWN_URL`, `KARAKEEP_OAUTH_CLIENT_ID`, `KARAKEEP_OAUTH_CLIENT_SECRET`, and `KARAKEEP_OAUTH_PROVIDER_NAME`
-- **Sablier:** Yes
-- **Dependencies:** Chrome, Meilisearch
-- **Sleep behavior:** Only `keep` is Sablier-managed; Chrome and Meilisearch stay running while Karakeep sleeps after 15 minutes of inactivity
-- **Auth:** Karakeep keeps its default password login behavior. If you set the optional OIDC variables, Karakeep also shows an OIDC sign-in option alongside password auth
-- **OIDC callback:** `https://keep.${DOMAIN}/api/auth/callback/custom`
+## Foundation Services
 
-### Listmonk
-- **Purpose:** Newsletter & mailing list manager
-- **Access:** `https://listmonk.${DOMAIN}`
-- **Profile:** apps
-- **Required env:** `LISTMONK_db__password`
-- **Sablier:** Yes
-- **Dependencies:** `listmonk-postgres`
-- **Extras:** Optional Cloudflare tunnel (`cftunnel`) via `--profile tunnel`
+| Service | Access | Profile(s) | Routing source | Sleep | Notes |
+|---|---|---|---|---|---|
+| **Traefik** | `https://traefik.${DOMAIN}` | `infra`, `all` | Docker labels | No | reverse proxy and dashboard |
+| **Sablier** | internal only | `infra`, `all` | none | No | Docker provider for sleep-on-request |
+| **whoami** | `https://whoami.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/whoami.yml` | Yes, `10m` | uses `sablier-default@file` |
+| **RustFS** | `https://rustfs.${DOMAIN}`, `https://rustfs-api.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/rustfs.yml` | No | object storage and console |
+| **AdGuard Home** | `https://dns.${DOMAIN}` and host DNS port `${ADGUARD_DNS_PORT}` | `infra`, `all` | Docker labels | No | publishes port `53` on the configured host port |
+| **NetAlertX** | `https://netalertx.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/netalertx.yml` | No | service itself runs in `network_mode: host` |
 
-### Homepage
-- **Purpose:** Service dashboard with quick links to all services
-- **Access:** `https://home.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
-- **Notes:** Auto-discovers services via Docker labels and uses the `home` Sablier group
+---
 
-### AnythingLLM
-- **Purpose:** Private AI workspace for chat, document Q&A, and agent tooling
-- **Access:** `https://llm.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
-- **Recommended host baseline:** 2 GB RAM, 2 CPU cores, 5 GB storage
-- **Notes:** Uses the official Docker image with persistent storage at `/app/server/storage`
-- **Notes:** Keeps `SYS_ADMIN` for upstream Docker compatibility with browser-backed features
-- **Notes:** Includes `host.docker.internal` mapping so host-run services such as Ollama can be reached from the container
+## Utilities And Dashboards
 
-### Jellyfin
-- **Purpose:** Media server for movies and shows
-- **Access:** `https://jellyfin.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
-- **Service port:** 8096
-- **Volumes:** `jellyfin_config`, `jellyfin_cache`, shared `media_data` (`/data`)
+| Service | Access | Profile(s) | Routing source | Sleep | Notes |
+|---|---|---|---|---|---|
+| **Homepage** | `https://home.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/home.yml` | Yes, `30m` | auto-discovers most entries from Docker labels |
+| **AnythingLLM** | `https://llm.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/anythingllm.yml` | Yes, `30m` | keeps `SYS_ADMIN` and `host.docker.internal` mapping |
+| **IT Tools** | `https://it.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/ittools.yml` | Yes, `30m` | developer utilities |
+| **CloudBeaver** | `https://cbeaver.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/cbeaver.yml` | Yes, `30m` | DB UI |
+| **BentoPDF** | `https://pdf.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/bentopdf.yml` | Yes, `30m` | PDF tools |
+| **Omni Tools** | `https://omni.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/omni-tools.yml` | Yes, `30m` | general utilities |
+| **VERT** | `https://vert.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/vert.yml` | Yes, `30m` | browser-side file conversion |
+| **Speedtest Tracker** | `https://speed.${DOMAIN}` | `apps`, `all` | Docker labels | No | stores SQLite data under `/config` |
 
-### Seerr
-- **Purpose:** Request portal for on-demand movies and shows
-- **Access:** `https://requests.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
-- **Dependencies:** Integrates with Jellyfin + Sonarr + Radarr (use `gluetun` as host for Sonarr/Radarr in Seerr)
+---
 
-### Sonarr
-- **Purpose:** TV series automation and indexer management
-- **Access:** `https://sonarr.${DOMAIN}`
-- **Profile:** apps
-- **Routing model:** Docker-label Traefik route on `gluetun`, forwarding to port `8989` because Sonarr shares Gluetun's network namespace
+## App Stacks
 
-### Media Automation
-- **Purpose:** Fetch and import requested content into Jellyfin libraries
-- **Services:** `gluetun`, `qbittorrent`, `sonarr`, `radarr`
-- **Profile:** apps
-- **Network:** Internal `media` network, plus `traefik_public` on `gluetun` so Traefik can reach Sonarr via Docker labels
-- **Path model:** Single shared root mount `media_data:/data` across downloader and Arr apps for reliable imports/hardlinks
-- **Privacy model:** `qbittorrent`, `sonarr`, and `radarr` share Gluetun's network namespace so all outbound download/indexer traffic exits through ProtonVPN
-- **Required env:** Set `OPENVPN_USER` and `OPENVPN_PASSWORD` in `.env` (optionally `VPN_SERVER_COUNTRIES`) before enabling on-demand downloading
+### Karakeep stack
 
-## Developer Tools
+| Service | Access | Profile(s) | Sleep | Notes |
+|---|---|---|---|---|
+| **keep** | `https://keep.${DOMAIN}` | `apps`, `all` | Yes, `15m` | file-provider route in `config/traefik/dyn/keep.yml` |
+| `chrome` | internal only | `apps`, `all` | No | browser worker |
+| `meilisearch` | internal only | `apps`, `all` | No | search backend |
 
-### IT Tools
-- **Purpose:** 50+ dev utilities (formatters, converters, etc.)
-- **Access:** `https://it.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
+Required vars:
 
-### Omni Tools
-- **Purpose:** Collection of 100+ web-based utilities (converters, generators, parsers)
-- **Access:** `https://omni.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
+- `NEXTAUTH_SECRET`
+- `MEILI_MASTER_KEY`
 
-### CloudBeaver
-- **Purpose:** Web-based database management
-- **Access:** `https://cbeaver.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
-- **Notes:** Has built-in authentication
+Optional vars:
 
-### BentoPDF
-- **Purpose:** PDF manipulation tools
-- **Access:** `https://pdf.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
+- `KARAKEEP_OPENAI_API_KEY`
+- `KARAKEEP_OAUTH_WELLKNOWN_URL`
+- `KARAKEEP_OAUTH_CLIENT_ID`
+- `KARAKEEP_OAUTH_CLIENT_SECRET`
+- `KARAKEEP_OAUTH_PROVIDER_NAME`
 
-### Speedtest Tracker
-- **Purpose:** Track internet speed, latency, and uptime over time
-- **Access:** `https://speed.${DOMAIN}`
-- **Profile:** apps
-- **Required env:** `SPEEDTEST_APP_KEY` (for example via `.envrc`)
-- **Sablier:** Yes
-- **Storage:** `speedtest_tracker_data` named volume with SQLite in `/config`
+### Listmonk stack
 
-### VERT
-- **Purpose:** Browser-based local file converter using WebAssembly
-- **Access:** `https://vert.${DOMAIN}`
-- **Profile:** apps
-- **Sablier:** Yes
-- **Notes:** Follows the upstream container defaults; browser-local conversions work directly and optional hosted video conversion can use VERT's default backend
+| Service | Access | Profile(s) | Sleep | Notes |
+|---|---|---|---|---|
+| **listmonk** | `https://listmonk.${DOMAIN}` | `apps`, `all` | No in current routing | route file is `config/traefik/dyn/listmonk.yml` |
+| `listmonk-postgres` | internal only | `apps`, `all` | No | app-local PostgreSQL |
+| `cftunnel` | internal only | `tunnel` | No | optional sidecar |
 
-### Immich
-- **Purpose:** Photo and video management with AI features
-- **Access:** `https://photos.${DOMAIN}`
-- **Profile:** apps
-- **Required env:** `IMMICH_DB_PASSWORD`
-- **Sablier:** No
-- **Notes:** `immich-server` is exposed directly through Traefik Docker labels on `traefik_public`
-- **Notes:** The full Immich stack stays up; there is no queue-driven worker wake path in the current configuration
-- **Dependencies:** `immich-postgres`, `redis`
+Required var: `LISTMONK_db__password`
 
-### Paperless-ngx
-- **Purpose:** Document management system with OCR and full-text search
-- **Access:** `https://paper.${DOMAIN}`
-- **Profile:** apps
-- **Required env:** `PAPERLESS_DBPASS`, `PAPERLESS_ADMIN_PASSWORD`, `PAPERLESS_SECRET_KEY`
-- **Sablier:** Yes
-- **Dependencies:** `paperless-postgres`, `paperless-redis`, `paperless-gotenberg` (PDF conversion), `paperless-tika` (document parsing)
-- **Notes:** Supports document upload, OCR, tagging, and full-text search. `PAPERLESS_OCR_LANGUAGE` defaults to `eng` in compose
+### Immich stack
 
-### Whoami
-- **Purpose:** Debug endpoint (shows request info)
-- **Access:** `https://whoami.${DOMAIN}`
-- **Profile:** infra
-- **Sablier:** Yes
+| Service | Access | Profile(s) | Sleep | Notes |
+|---|---|---|---|---|
+| **immich-server** | `https://photos.${DOMAIN}` | `apps`, `all` | No | Docker-label route in `services/immich.yml` |
+| `immich-microservices` | internal only | `apps`, `all` | No | background workers |
+| `immich-machine-learning` | internal only | `apps`, `all` | No | ML service |
+| `redis` | internal only | `apps`, `all` | No | queue/cache |
+| `immich-postgres` | internal only | `apps`, `all` | No | app-local PostgreSQL |
+
+Required var: `IMMICH_DB_PASSWORD`
+
+### Paperless-ngx stack
+
+| Service | Access | Profile(s) | Sleep | Notes |
+|---|---|---|---|---|
+| **paperless-web** | `https://paper.${DOMAIN}` | `apps`, `all` | Yes, `15m` | route file is `config/traefik/dyn/paperless.yml` |
+| `paperless-consumer` | internal only | `apps`, `all` | No | background consumer |
+| `paperless-postgres` | internal only | `apps`, `all` | No | app-local PostgreSQL |
+| `paperless-redis` | internal only | `apps`, `all` | No | Redis |
+| `paperless-gotenberg` | internal only | `apps`, `all` | No | document conversion |
+| `paperless-tika` | internal only | `apps`, `all` | No | document parsing |
+
+Required vars:
+
+- `PAPERLESS_DBPASS`
+- `PAPERLESS_ADMIN_PASSWORD`
+- `PAPERLESS_SECRET_KEY`
+
+### Media stack
+
+| Service | Access | Profile(s) | Routing source | Sleep | Notes |
+|---|---|---|---|---|---|
+| **Jellyfin** | `https://jellyfin.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/jellyfin.yml` | Yes, `30m` | media server |
+| **Seerr** | `https://requests.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/seerr.yml` | Yes, `30m` | request UI |
+| **Immich Power Tools** | `https://immich-tools.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/immich-power-tools.yml` | Yes, `30m` | separate helper app, not core Immich routing |
+| **torrent** | `https://torrent.${DOMAIN}` | `apps`, `all` | Docker labels | No | qBittorrent service name is `torrent` |
+| **Sonarr** | `https://sonarr.${DOMAIN}` | `apps`, `all` | Docker labels | No | direct route |
+| **Radarr** | `https://radarr.${DOMAIN}` | `apps`, `all` | Docker labels | No | direct route |
+| **Prowlarr** | `https://prowlarr.${DOMAIN}` | no explicit profile | Docker labels | No | starts by default in the main stack because it has no profile |
+
+Current caveat:
+
+- the old **Gluetun** block is still present in comments
+- the active repo does **not** currently run `gluetun`
+- `setup-dev.sh` still flags `OPENVPN_USER` and `OPENVPN_PASSWORD` for `--profile all`
 
 ### Home Assistant
-- **Purpose:** Home automation and device control
-- **Access:** `https://ha.${DOMAIN}`
-- **Compose file:** `home-assistant/docker-compose.yml`
-- **Profile:** apps
-- **Start command:** `docker compose --profile apps up -d ha`
-- **Config storage:** Docker named volume `ha_config` mounted at `/config`
 
-## URL Patterns
+| Service | Access | Profile(s) | Routing source | Sleep | Notes |
+|---|---|---|---|---|---|
+| **ha** | `https://ha.${DOMAIN}` | `apps`, `all`, `service` | Docker labels | No | files live under `home-assistant/` |
 
-All services follow: `https://<subdomain>.${DOMAIN}`
+Narrow start command:
 
-| Service | Subdomain |
-|---------|-----------|
-| Traefik Dashboard | `traefik` |
-| Whoami | `whoami` |
-| IT Tools | `it` |
-| AnythingLLM | `llm` |
-| Dockhand | `docker` |
-| CloudBeaver | `cbeaver` |
-| BentoPDF | `pdf` |
-| Speedtest Tracker | `speed` |
-| VERT | `vert` |
-| Immich | `photos` |
-| Paperless-ngx | `paper` |
-| Jellyfin | `jellyfin` |
-| Seerr | `requests` |
-| Sonarr | `sonarr` |
-| Karakeep | `keep` |
-| Listmonk | `listmonk` |
-| Omni Tools | `omni` |
-| RustFS | `rustfs` |
-| RustFS API | `rustfs-api` |
-| Home Assistant | `ha` |
-| AdGuard | `dns` |
-| NetAlertX | `netalertx` |
+```bash title="Start only Home Assistant"
+$ docker compose --profile service up -d ha
+[+] Running 1/1
+ ✔ Container homelab-ha-1  Started
+```
 
-## Required Variables Reference
+---
 
-| Variable | Service | Purpose |
-|----------|---------|---------|
-| `ACME_EMAIL` | Traefik | Let's Encrypt ACME contact email |
-| `CF_DNS_API_TOKEN` | Traefik | Cloudflare DNS-01 challenge token |
-| `IMMICH_DB_PASSWORD` | Immich | PostgreSQL password |
-| `LISTMONK_db__password` | Listmonk | PostgreSQL password |
-| `PAPERLESS_DBPASS` | Paperless-ngx | PostgreSQL password |
-| `PAPERLESS_ADMIN_PASSWORD` | Paperless-ngx | Initial admin password |
-| `PAPERLESS_SECRET_KEY` | Paperless-ngx | Django app secret |
-| `NEXTAUTH_SECRET` | Karakeep | Auth/session secret |
-| `MEILI_MASTER_KEY` | Karakeep / Meilisearch | Shared search API key |
-| `KARAKEEP_OPENAI_API_KEY` | Karakeep | Optional OpenAI key injected as `OPENAI_API_KEY` |
-| `KARAKEEP_DISABLE_PASSWORD_AUTH` | Karakeep | Optional production-only flag to disable password auth |
-| `KARAKEEP_OAUTH_AUTO_REDIRECT` | Karakeep | Optional production-only flag to redirect straight to OIDC |
-| `KARAKEEP_OAUTH_WELLKNOWN_URL` | Karakeep | Optional production-only OIDC discovery URL |
-| `KARAKEEP_OAUTH_CLIENT_ID` | Karakeep | Optional production-only OIDC client ID |
-| `KARAKEEP_OAUTH_CLIENT_SECRET` | Karakeep | Optional production-only OIDC client secret |
-| `KARAKEEP_OAUTH_PROVIDER_NAME` | Karakeep | Optional production-only provider label |
-| `RUSTFS_ACCESS_KEY` | RustFS | S3 access key |
-| `RUSTFS_SECRET_KEY` | RustFS | S3 secret key |
-| `OPENVPN_USER` | Gluetun | ProtonVPN OpenVPN username |
-| `OPENVPN_PASSWORD` | Gluetun | ProtonVPN OpenVPN password |
-| `SPEEDTEST_APP_KEY` | Speedtest Tracker | Laravel app key |
+## Required Variables
 
-## TLS / DNS Credentials
+These are the variables that matter for the active stack.
 
-| Variable | Used By | Purpose |
-|----------|---------|---------|
-| `ACME_EMAIL` | Traefik | Let's Encrypt ACME contact email |
-| `CF_DNS_API_TOKEN` | Traefik | Cloudflare DNS-01 challenge |
+| Variable | Used by |
+|---|---|
+| `ACME_EMAIL` | **Traefik** |
+| `CF_DNS_API_TOKEN` | **Traefik** |
+| `RUSTFS_ACCESS_KEY` | **RustFS** |
+| `RUSTFS_SECRET_KEY` | **RustFS** |
+| `IMMICH_DB_PASSWORD` | **Immich**, **Immich Power Tools** |
+| `LISTMONK_db__password` | **Listmonk** |
+| `PAPERLESS_DBPASS` | **Paperless-ngx** |
+| `PAPERLESS_ADMIN_PASSWORD` | **Paperless-ngx** |
+| `PAPERLESS_SECRET_KEY` | **Paperless-ngx** |
+| `NEXTAUTH_SECRET` | **Karakeep** |
+| `MEILI_MASTER_KEY` | **Karakeep**, **Meilisearch** |
+| `SPEEDTEST_APP_KEY` | **Speedtest Tracker** |
+| `OPENVPN_USER` | flagged by `setup-dev.sh` for full-profile validation |
+| `OPENVPN_PASSWORD` | flagged by `setup-dev.sh` for full-profile validation |
+
+---
+
+## Parked Definitions
+
+These service files exist but are not active because the root include list does not reference them:
+
+- `services/hermes.yml`
+- `services/teable.yml`
+- `services/teable-migrate.yml`

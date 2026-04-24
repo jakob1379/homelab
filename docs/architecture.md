@@ -2,628 +2,279 @@
 title: Architecture
 ---
 
-# Homelab Architecture
+# Architecture
 
-This page explains how requests flow from your browser to your containers, how service stacks are organized, and how sleep-on-demand works. Read this before editing [services](services.md), [customization](customization.md), or [Deployment](dockhand.md).
+This page explains how the repo is wired now: entrypoints, profiles, routing sources, networks, and current exceptions. If you need the concrete service list, read [Service Reference](services.md). If you want to add a service, read [Configuration](customization.md).
 
 ---
 
 ## Try It Now
 
-Explore your running system with these commands:
+```bash title="Bring up the bootstrap and foundation layers"
+# 1. Start the separate Dockhand stack
+$ docker compose -f docker-compose.pods.yml up -d
+[+] Running 1/1
+ ✔ Container homelab-pods-dockhand-1  Started
 
-```bash title="Check the running foundation services"
-# Check that services are healthy
-$ docker compose ps
-NAME                IMAGE                STATUS
-homelab-traefik-1   traefik:3.6.9        Up 2 hours (healthy)
-homelab-rustfs-1    rustfs/rustfs:latest Up 2 hours (healthy)
-```
+# 2. Start the always-on foundation
+$ docker compose --profile infra up -d
+[+] Running ...
+ ✔ Container homelab-traefik-1   Started
+ ✔ Container homelab-sablier-1   Started
+ ✔ Container homelab-rustfs-1    Started
 
-```bash title="Query the Traefik API version"
-# View the Traefik dashboard API
-$ curl -sk https://traefik.traefik.me/api/version | jq
-{
-  "version": "3.6.9"
-}
-```
-
-```bash title="List active Traefik routers"
-# List configured routers
+# 3. Inspect live routers
 $ curl -sk https://traefik.traefik.me/api/http/routers | jq -r '.[].name'
-immich@file
+api@docker
 dockhand@docker
+whoami@file
 home@file
 ...
 ```
 
-## What We Mean By "Stack"
+That output tells you two things immediately:
 
-A **stack** is a set of services that run together to deliver one capability.
-
-Examples from this repo:
-
-- **Immich stack:** `immich-server`, `immich-microservices`, `immich-machine-learning`, `redis`, `immich-postgres`
-- **Paperless stack:** `paperless-web`, `paperless-consumer`, `paperless-redis`, `paperless-postgres`, `paperless-gotenberg`, `paperless-tika`
-- **Media stack:** `jellyfin`, `seerr`, `gluetun`, `qbittorrent`, `sonarr`, `radarr`
-
-This is the core mental model for the docs:
-
-- We design, document, and tune services as stacks.
-- We decide sleep/wake behavior per stack, not per random container.
-- We keep stateful dependencies (DB/queue) in the same stack definition so startup behavior stays
-  predictable.
+1. this repo uses both the **Docker** and **file** providers in **Traefik**
+2. **Dockhand** lives in the separate pods stack but is still discovered once **Traefik** is up
 
 ---
 
-## Request Flow
+## The Two Compose Entrypoints
 
-```mermaid
-flowchart LR
-    A[User] -->|Enter URL| B[Browser]
-    B -->|HTTPS Request :443| C[Traefik]
+### Main stack: `docker-compose.yml`
 
-    subgraph DNS["DNS Resolution & Routing"]
-        C -->|Match Host header| C
-        C -->|Apply middleware chain| C
-    end
+This is the runtime stack. It includes the active definitions under `services/` plus `home-assistant/docker-compose.yml`.
 
-    C -->|Check container state| D[Sablier]
-    D -->|Stopped<br/>0 replicas| C
-
-    subgraph SCALE["Scale on Demand"]
-        D -->|Scale to 1 replica| E[Docker]
-        E -->|Start container<br/>~2s| F[App]
-        F -->|Ready| E
-        E -->|Healthy| D
-    end
-
-    D -->|Container ready| C
-    C -->|Proxy request| F
-    F -->|Response| C
-    C -->|Content| B
-    B -->|Page loaded| A
-
-    G[After 30min idle] -.-> D
-    D -.->|Scale to 0| E
-    E -.->|Stop container| F
-
-    style A fill:#e1f5fe
-    style B fill:#e1f5fe
-    style C fill:#fff3e0
-    style D fill:#f3e5f5
-    style F fill:#e8f5e9
+```yaml title="docker-compose.yml"
+include:
+  - services/networking.yml
+  - services/rustfs.yml
+  - services/tools.yml
+  - services/omni-tools.yml
+  - services/speedtest-tracker.yml
+  - services/vert.yml
+  - services/anythingllm.yml
+  - services/listmonk.yml
+  - services/karakeep.yml
+  - services/immich.yml
+  - services/paperless-ngx.yml
+  - services/media.yml
+  - services/homepage.yml
+  - home-assistant/docker-compose.yml
 ```
 
-**What's happening here:**
+### Bootstrap stack: `docker-compose.pods.yml`
 
-When you type `https://keep.traefik.me` in your browser:
+This is intentionally small.
 
-1. **DNS Resolution**: Your browser looks up `keep.traefik.me` → gets your server's IP (or
-   `127.0.0.1` in dev)
-2. **HTTPS Handshake**: **Traefik** terminates TLS using its auto-generated certificate
-3. **Router Matching**: **Traefik** reads the `Host` header (`keep.traefik.me`) and finds the
-   matching router rule
-4. **Middleware Chain**: **Sablier** middleware intercepts the request for sleep-enabled routes
-5. **State Check**: If the container is stopped, **Sablier** scales it to 1 replica via Docker API
-6. **Startup Delay**: Container boots (~2 seconds), then passes health check
-7. **Proxy**: **Traefik** forwards your request to the running container
-8. **Response**: Container replies, **Traefik** sends it back to your browser
+```yaml title="docker-compose.pods.yml"
+include:
+  - services/pods.yml
+```
 
-The inline code for this flow:
+`services/pods.yml` defines only **Dockhand**.
 
-```yaml title="Traefik routing and Sablier labels"
-# Traefik router matches the Host header
-rule: Host(`keep.${DOMAIN}`)
+---
 
-# Sablier middleware checks container state
-middlewares:
-  - sablier-keep@file
+## Profiles That Actually Exist
 
-# Docker Compose labels enable Sablier
+| Profile | Used for |
+|---|---|
+| `infra` | **Traefik**, **Sablier**, **RustFS**, **AdGuard**, **NetAlertX**, **whoami** |
+| `apps` | Most application services |
+| `all` | Convenience profile for the full main stack |
+| `tunnel` | `cftunnel` in `services/listmonk.yml` |
+| `service` | Narrow profile currently used by **Home Assistant** |
+
+```bash title="Start only Home Assistant with its narrow profile"
+$ docker compose --profile service up -d ha
+[+] Running 1/1
+ ✔ Container homelab-ha-1  Started
+```
+
+!!! note
+    `ha` is also in `profiles: [apps, all, service]`, so `docker compose --profile apps up -d ha` still works. `service` is just the narrower switch.
+
+### Important profile footgun
+
+`prowlarr` in `services/media.yml` currently has **no profile**. In Compose, that means it is part of the default service set for the main stack.
+
+Treat that as current behavior, not a clean design choice.
+
+---
+
+## Routing Model
+
+This repo uses both **Traefik** providers.
+
+| Source | Lives in | Used for |
+|---|---|---|
+| **Docker provider** | service labels | simple direct routes and always-on services |
+| **File provider** | `config/traefik/dyn/*.yml` | explicit routers, middleware chains, and most **Sablier** routes |
+
+### File-provider route example
+
+`config/traefik/dyn/keep.yml` is a normal pattern in this repo.
+
+```yaml title="config/traefik/dyn/keep.yml"
+http:
+  routers:
+    keep:
+      rule: Host(`keep.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      service: keep
+      middlewares: [sablier-keep@file, startup-retry@file]
+```
+
+That route lives in the file provider because it needs both:
+
+- a **Sablier** middleware
+- the shared `startup-retry@file` middleware from `config/traefik/dyn/common.yml`
+
+### Docker-label route example
+
+`services/immich.yml` is the direct-label pattern.
+
+```yaml title="services/immich.yml"
+labels:
+  - traefik.enable=true
+  - traefik.docker.network=traefik_public
+  - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-traefik.me}`)
+  - traefik.http.routers.immich.entrypoints=websecure
+  - traefik.http.services.immich.loadbalancer.server.port=2283
+```
+
+That is the simpler option when you do not need a file-provider middleware chain.
+
+### What is currently in each bucket
+
+#### File-provider routes
+
+- `anythingllm.yml`
+- `bentopdf.yml`
+- `cbeaver.yml`
+- `home.yml`
+- `immich-power-tools.yml`
+- `ittools.yml`
+- `jellyfin.yml`
+- `keep.yml`
+- `listmonk.yml`
+- `netalertx.yml`
+- `omni-tools.yml`
+- `paperless.yml`
+- `rustfs.yml`
+- `seerr.yml`
+- `vert.yml`
+- `whoami.yml`
+
+#### Direct Docker-label routes
+
+- `traefik` dashboard from `services/networking.yml`
+- `adguard` from `services/networking.yml`
+- `dockhand` from `services/pods.yml`
+- `immich` from `services/immich.yml`
+- `speedtest-tracker` from `services/speedtest-tracker.yml`
+- `ha` from `home-assistant/docker-compose.yml`
+- `torrent`, `sonarr`, `radarr`, `prowlarr` from `services/media.yml`
+
+---
+
+## Sleep Model
+
+This repo does **not** put every routed app behind **Sablier**.
+
+### Currently Sablier-managed
+
+| Service | Middleware file | Idle timeout |
+|---|---|---|
+| `whoami` | `common.yml` (`sablier-default`) | `10m` |
+| `keep` | `keep.yml` | `15m` |
+| `paperless` | `paperless.yml` | `15m` |
+| `anythingllm` | `anythingllm.yml` | `30m` |
+| `bentopdf` | `bentopdf.yml` | `30m` |
+| `cbeaver` | `cbeaver.yml` | `30m` |
+| `home` | `home.yml` | `30m` |
+| `immich-power-tools` | `immich-power-tools.yml` | `30m` |
+| `ittools` | `ittools.yml` | `30m` |
+| `jellyfin` | `jellyfin.yml` | `30m` |
+| `omni-tools` | `omni-tools.yml` | `30m` |
+| `seerr` | `seerr.yml` | `30m` |
+| `vert` | `vert.yml` | `30m` |
+
+### Currently not behind a Sablier middleware
+
+- **Traefik**
+- **Sablier**
+- **RustFS**
+- **AdGuard**
+- **NetAlertX**
+- **Dockhand**
+- **Immich**
+- **Speedtest Tracker**
+- **Home Assistant**
+- **torrent**
+- **Sonarr**
+- **Radarr**
+- **Prowlarr**
+- **Listmonk**
+
+### Current exception: Listmonk
+
+`services/listmonk.yml` still sets:
+
+```yaml
 labels:
   - sablier.enable=true
-  - sablier.group=keep
+  - sablier.group=listmonk
 ```
 
----
-
-## Directory Structure
-
-Remember your first `docker-compose.yml` that grew to 300 lines and became impossible to read? We've been there. Instead of one giant file, it's easier to manage when we split services into separate files by purpose: networking stuff in one place, apps in another, databases somewhere else.
-
-Think of it like organizing your tools: dumping everything in one drawer works, but finding the
-screwdriver is much easier when you have a dedicated toolbox.
-
-### Structure Overview
-
-=== "Entry Point"
-
-    ```text title="Repo root"
-    .
-    ├── docker-compose.yml      # Main compose - includes all services/*.yml
-    ├── setup-dev.sh            # One-time development environment setup
-    └── zensical.toml           # Documentation site configuration
-    ```
-
-    **What's happening here:**
-    The main `docker-compose.yml` uses an `include:` directive to pull in the main homelab service definitions. The Dockhand bootstrap stack stays separate in `docker-compose.pods.yml`.
-
-    ```yaml title="docker-compose.yml (excerpt)"
-    # docker-compose.yml
-    include:
-      - services/networking.yml         # Traefik, Sablier, Whoami, AdGuard, NetAlertX
-      - services/tools.yml              # IT Tools, CloudBeaver, BentoPDF
-      - services/speedtest-tracker.yml  # Internet speed history
-      - services/vert.yml               # Local file converter
-    ```
-
-    ```yaml title="docker-compose.pods.yml"
-    include:
-      - services/pods.yml               # Dockhand bootstrap control plane
-    ```
-
-=== "Services"
-
-    ```text title="services/"
-    services/
-    ├── homepage.yml            # Homepage dashboard stack
-    ├── immich.yml              # Photo management
-    ├── karakeep.yml            # Bookmark manager
-    ├── listmonk.yml            # Newsletter/mailing lists
-    ├── media.yml               # Jellyfin + Seerr + media automation
-    ├── networking.yml          # Traefik, AdGuard, NetAlertX
-    ├── omni-tools.yml          # Web-based utilities
-    ├── paperless-ngx.yml       # Document management
-    ├── pods.yml                # Dockhand bootstrap control plane
-    ├── rustfs.yml              # S3-compatible object storage
-    ├── speedtest-tracker.yml   # Internet speed and uptime history
-    ├── tools.yml               # IT Tools, CloudBeaver, BentoPDF
-    └── vert.yml                # Browser-based file conversion
-    ```
-
-    **What's happening here:**
-    Each file defines a complete stack (volumes, networks, environment). Sensitive runtime values usually come from untracked `.env`, shell env, or direnv-managed exports. A few optional side stacks may still use local env files.
-
-=== "Routes"
-
-    ```text title="config/traefik/"
-    config/
-    └── traefik/
-        ├── dyn/                # Dynamic router configurations
-        │   ├── common.yml      # Shared middlewares (auth, headers, Sablier)
-        │   ├── bentopdf.yml    # Per-service routing rules
-        │   ├── immich.yml
-        │   ├── speedtest.yml
-        │   ├── vert.yml
-        │   └── ...             # One file per external service
-        └── traefik.yml         # Static Traefik configuration
-    ```
-
-    **What's happening here:**
-    Dynamic configs in `dyn/` are hot-reloaded by **Traefik**—no restart needed when adding routes. This separation means you can modify proxy behavior without touching service definitions.
-
-    ```yaml title="services/immich.yml"
-    immich-server:
-      networks: [traefik_public, immich]
-      labels:
-        - traefik.enable=true
-        - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-traefik.me}`)
-        - traefik.http.routers.immich.entrypoints=websecure
-        - traefik.http.services.immich.loadbalancer.server.port=2283
-    ```
-
-=== "Standalone"
-
-    ```text title="home-assistant/"
-    home-assistant/
-    └── docker-compose.yml      # Home Assistant stack included from the main compose file
-    ```
-
-    **What's happening here:**
-    **Home Assistant** keeps its files under `home-assistant/`, but the service is included from the root `docker-compose.yml` and joins the same `traefik_public` network as the rest of the routed stack. This keeps the stack layout isolated without splitting startup and validation paths.
-
-## Traefik Labels vs Static Config vs Dynamic Config
-
-Traefik configuration comes from three places in this repo, each with a different job.
-
-| Location | Purpose | Typical content |
-|---|---|---|
-| `config/traefik/traefik.yml` | Static bootstrap config | EntryPoints, providers, ACME resolver, plugin loading |
-| `config/traefik/dyn/*.yml` | Dynamic routing behavior | Routers, services, middlewares (including Sablier middleware) |
-| Service labels in `services/*.yml` | Docker-discovered service routing and metadata | homepage labels, direct `traefik.*` router/service labels, optional `sablier.*` group labels |
-
-How we use them:
-
-- We use dynamic files when the route needs shared middleware chains or file-provider services.
-- We use labels for simpler Docker-discovered apps where the route can stay next to the service definition.
-- We treat static config as platform-level behavior and change it rarely.
-
-Practical rule:
-
-- If you are changing **how traffic is routed**, edit either `config/traefik/dyn/*.yml` or the service's `traefik.*` labels, depending on where that route lives today.
-- If you are changing **Traefik platform behavior**, edit `config/traefik/traefik.yml`.
-- If you are adding a service and want Traefik to auto-discover it via the Docker provider, add `traefik.enable=true` in service labels. If routing is defined in a file-provider config, keep service labels for metadata only.
-
----
-
-## Profile Separation
-
-Here's a common problem: run the full stack when you're only testing **Traefik** and you wake a pile of containers you did not need. That's like starting your entire computer just to check email.
-
-**Docker Compose profiles** are a great solution: they're tags that say "start these services together." They let us group services into `infra` (the stuff that should always run) and `apps` (the stuff that can sleep until you need it).
-
-### The Problem
-
-Running everything at once wastes resources, since each idle container still consumes RAM and CPU:
-
-```bash title="Why profiles matter: starting everything at once"
-$ docker compose --profile all up -d  # Starts the full main stack
-$ docker stats --no-stream | awk 'NR>1 {sum+=$3} END {print "Total CPU: " sum"%"}'
-Total CPU: 23%
-```
-
-### The Solution
-
-This homelab uses **five profiles** in the main stack, plus a separate bootstrap stack for Dockhand:
-
-| Profile        | Purpose                            | When to Use                      |
-|----------------|------------------------------------|----------------------------------|
-| `infra`        | Always-on foundation services      | Run this first, leave it running |
-| `apps`         | On-demand applications             | Start only when needed           |
-| `all`          | Convenience profile                | Development or full testing      |
-| `experimental` | Things that most likely will break | Development only                 |
-| `tunnel`       | Optional Cloudflare tunnel sidecars | Remote access or edge exposure   |
-
-**Bootstrap stack** includes **Dockhand**. **Infra services** include **Traefik**, **Sablier**, **RustFS**, and **AdGuard**. Stateful apps run app-local databases (`immich-postgres`, `listmonk-postgres`, `paperless-postgres`) in the `apps` profile.
-
-**Most app services** start on-demand via **Sablier** when you access them. You can also wake groups via cron pre-warm or queue-monitor triggers where needed. **Immich API/UI** is the exception and stays online by default; only its worker wake flow is optional via the `experimental` profile.
-
-For queue-backed workloads, use the dedicated [Queue-Driven Sleep Pattern](queue-driven-sleep.md).
-
-### Start Only The Bootstrap Control Plane
-
-Use this when you want bootstrap management access before the full stack is up:
-
-```bash title="Start only the Dockhand bootstrap stack"
-$ docker compose -f docker-compose.pods.yml up -d
-[+] Running 1/1
-  ✔ Container homelab-pods-dockhand-1  Started
-```
-
-This is the deployment path described in [Deployment](dockhand.md). You access Dockhand directly on `http://localhost:3000` until the full stack deploy brings up **Traefik**.
-
-### Start Only Infrastructure
-
-Run the foundation services without any apps:
-
-```bash title="Start only the infrastructure profile"
-$ docker compose --profile infra up -d
-[+] Running 6/6
- ✔ Container traefik    Started
- ✔ Container adguard    Started
- ✔ Container rustfs     Started
-```
-
-Verify only infra services are running:
-
-```bash title="Verify only infrastructure services are running"
-$ docker compose ps --services
-rustfs
-traefik
-sablier
-adguard
-whoami
-```
-
-### Add Specific Apps
-
-Start individual apps on top of the running infra:
-
-```bash title="Start specific apps on top of infra"
-$ docker compose --profile infra up -d  # Foundation already running
-$ docker compose --profile apps up -d ittools cloudbeaver
-[+] Running 2/2
- ✔ Container ittools      Started
- ✔ Container cloudbeaver  Started
-```
-
-### Use the Convenience Profile
-
-For development or when you want the full main stack (not including *experimental*), after required variables are set:
-
-```bash title="Use the all profile from the shell"
-$ export COMPOSE_PROFILES=all
-$ docker compose up -d  # Starts the full main stack
-```
-
-Or in your `.env` file:
-
-```bash title="Use the all profile from .env"
-COMPOSE_PROFILES=all
-```
-
-### Check What's Running
-
-List services by profile:
-
-```bash title="List services by profile"
-$ docker compose ps --services --filter "profile=infra"
-rustfs
-traefik
-
-$ docker compose ps --services --filter "profile=apps"
-ittools
-cloudbeaver
-```
-
-### Profile Strategy in Practice
-
-1. **Production servers**: Set `COMPOSE_PROFILES=infra` and let **Sablier** start sleep-enabled apps on-demand
-2. **Development machines**: Use `COMPOSE_PROFILES=all` after filling the required variables for the full stack
-3. **CI/CD pipelines**: Test each profile independently to validate service boundaries
-
-The separation keeps your baseline resource usage low while giving you access to the full stack when needed.
+but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That means the route is not currently using sleep-on-request behavior.
 
 ---
 
 ## Networks
 
-| Network           | Purpose                    | Services                                                          |
-|-------------------|----------------------------|-------------------------------------------------------------------|
-| `traefik_public`  | External proxy access      | All web-facing services                                           |
-| `listmonk`        | Listmonk isolation         | listmonk, listmonk-postgres, cftunnel (optional `tunnel` profile) |
-| `keep`            | Karakeep isolation         | keep, chrome, meilisearch                                         |
-| `immich`          | Immich internals           | immich-server, workers, redis, immich-postgres                    |
-| `paperless`       | Paperless internals        | paperless services + paperless-postgres                           |
-| `media`           | Media automation internals | jellyfin, seerr, gluetun, qbittorrent, sonarr, radarr             |
+| Network | Purpose | Current users |
+|---|---|---|
+| `traefik_public` | shared ingress network | all routed services |
+| `keep` | **Karakeep** internals | `keep`, `chrome`, `meilisearch` |
+| `immich` | **Immich** internals | `immich-*`, `redis`, `immich-power-tools` |
+| `paperless` | **Paperless** internals | `paperless-*` |
+| `listmonk` | **Listmonk** isolation | `listmonk`, `listmonk-postgres`, optional `cftunnel` |
+| `media` | media apps | `jellyfin`, `seerr`, `torrent`, `sonarr`, `radarr`, `prowlarr` |
 
-**What's happening here:**
+### Current media-stack reality
 
-**Traefik** and all web-facing services connect to `traefik_public`. This is the only network that bridges to the outside world. Other networks isolate service groups for security:
+`services/media.yml` still contains a large commented **Gluetun** block, but the active services now run directly on `traefik_public` and `media`.
 
-```yaml title="services/karakeep.yml"
-# services/karakeep.yml
-services:
-  keep:
-    networks: [traefik_public, keep]  # External + internal
-  chrome:
-    networks: [keep]                   # Internal only
-  meilisearch:
-    networks: [keep]                   # Internal only
-```
+That means:
 
-The **Karakeep** web UI needs `traefik_public` to receive traffic, but **Chrome** and **Meilisearch** only need to talk to **Karakeep**—they don't need external access.
-
-This is also why we publish very few host ports. For proxied web apps, Traefik handles ingress, so app services usually expose no host ports at all.
-
-In this stack, host/network-level access is limited to core networking pieces:
-
-- `traefik` (`80/443`, plus `8080` dashboard)
-- `adguard` DNS port mapping
-- `dockhand` (`3000` bootstrap)
-- `netalertx` with `network_mode: host`
-
-If DNS is provided through a VPN sidecar network (for example NetBird), the AdGuard DNS host port mapping can be removed.
+- `torrent` is the active qBittorrent service name
+- `sonarr`, `radarr`, and `prowlarr` are exposed directly
+- the docs should not pretend **Gluetun** is live when it is commented out
 
 ---
 
-## Certificate Management
+## Home Assistant Placement
 
-| Environment | Certificate Source | Validation Method |
-|-------------|-------------------|-------------------|
-| **Development** | **Traefik** self-signed | None (local only) |
-| **Production** | **Let's Encrypt** | **Cloudflare** DNS-01 challenge |
+**Home Assistant** lives under `home-assistant/`, but the service is included from the root `docker-compose.yml`.
 
-**What's happening here:**
-
-DNS challenge enables wildcard certificates (`*.yourdomain.com`). Instead of requesting a certificate for each subdomain individually, you get one certificate that covers everything.
-
-```yaml title="config/traefik/traefik.yml"
-# config/traefik/traefik.yml
-certificatesResolvers:
-  cfresolver:
-    acme:
-      dnsChallenge:
-        provider: cloudflare
+```text title="Home Assistant location"
+home-assistant/
+├── docker-compose.yml
+└── configuration.yaml
 ```
 
-**Traefik** is configured to use the **Cloudflare** API token from `CF_DNS_API_TOKEN` to automatically add TXT to your DNS records, proving domain ownership. The ACME contact email comes from `ACME_EMAIL`.
+The service joins `traefik_public` and is routed by Docker labels, not a file-provider route.
 
 ---
 
-## Why Your Apps Can Sleep (and Why That's Good)
+## Parked Definitions
 
-Here's the thing about self-hosting: most of your apps sit idle 90% of the time. You're not
-uploading photos at 3 AM. You're not generating PDFs while you're asleep. But traditional Docker
-keeps those containers running 24/7, hogging resources for no reason.
+These files exist under `services/` but are not included from `docker-compose.yml`:
 
-**Sablier** is our "smart receptionist." When you visit a sleep-enabled route such as
-`keep.yourdomain.com`, it checks if the app is awake. If not, it puts you in a waiting room while
-it starts the container. When you're done and 30 minutes pass with no activity, it puts the app
-back to sleep. Your server thanks you.
+- `services/hermes.yml`
+- `services/teable.yml`
+- `services/teable-migrate.yml`
 
-### How It Works
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Browser
-    participant Traefik
-    participant Sablier
-    participant Docker
-    participant App
-
-    User->>Browser: Navigate to https://keep.traefik.me
-    Browser->>Traefik: GET / (request)
-
-    rect rgb(240, 248, 255)
-        Note over Traefik,App: Phase 1: State Check
-        Traefik->>Sablier: Query container state
-        alt Container is stopped (0 replicas)
-            Sablier-->>Traefik: Container stopped
-            rect rgb(255, 253, 208)
-                Note over Sablier,App: Phase 2: Container Startup
-                Sablier->>Docker: Scale to 1 replica
-                Docker->>App: Start container
-                Note right of App: ~2 second startup
-                App-->>Docker: Ready
-                Docker-->>Sablier: Healthy
-                Sablier-->>Traefik: Container ready
-            end
-            Traefik-->>Browser: 200 OK + "Starting..." page
-            Browser-->>User: Display loading page
-            Note over User,Browser: ~2 seconds later...
-            Traefik->>App: Proxy request
-            App-->>Traefik: Response
-        else Container is already running
-            Traefik->>App: Proxy request
-            App-->>Traefik: Response
-        end
-    end
-
-    Traefik-->>Browser: Content
-    Browser-->>User: Page loaded
-
-    rect rgb(255, 228, 225)
-        Note over Sablier,App: Phase 3: Idle Timeout
-        loop Every 30 minutes
-            Sablier->>App: Check for activity
-            alt No requests received
-                Note right of App: 30 min idle
-                Sablier->>Docker: Scale to 0
-                Docker->>App: Stop container
-            end
-        end
-    end
-```
-
-**What's happening here:**
-
-The sequence diagram shows the three phases:
-
-1. **State Check (Blue)**: **Traefik** asks **Sablier** if the container is running
-2. **Startup (Yellow)**: If stopped, **Sablier** scales to 1 replica via Docker API, waits for health check
-3. **Idle Timeout (Red)**: Every 30 minutes, **Sablier** checks for activity; if none, scales to 0
-
-The inline code that enables this:
-
-```yaml title="config/traefik/dyn/myapp.yml"
-# config/traefik/dyn/myapp.yml
-http:
-  middlewares:
-    sablier-myapp:
-      plugin:
-        sablier:
-          group: myapp
-          sablierUrl: http://sablier:10000
-          sessionDuration: 30m
-```
-
-### The Magic Behind Automatic URLs
-
-Labels are how containers send notes to **Traefik** and **Sablier**. You know how Docker containers
-are isolated by default? They can't see each other unless you connect them to the same
-network. Labels are like sticky notes you put on the container that say "hey **Traefik**, route
-traffic to me" or "hey **Sablier**, you can put me to sleep when I'm idle."
-
-This setup has evolved over time. In the beginning, every service needed at least five Traefik labels.
-That got repetitive quickly. Most of those labels can be generated from sensible defaults, so instead
-of manually writing URLs for every service, we use one line in **Traefik's** config that generates
-them automatically:
-
-```yaml title="config/traefik/traefik.yml"
-# config/traefik/traefik.yml
-defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\" | default .Name }}.{{ env \"DOMAIN\" }}`)"
-```
-
-**What's happening here?**
-
-Think of it like a mail sorting system. When **Traefik** sees a container, it reads the label
-`com.docker.compose.service` (which **Docker Compose** sets automatically). If your service is named
-`myapp`, **Traefik** can route `myapp.yourdomain.com` to that container without manual router
-labels.
-
-**The Template Breakdown:**
-
-| Part                                         | Plain English                                                     |
-|----------------------------------------------|-------------------------------------------------------------------|
-| `{{ ... }}`                                  | Go template syntax: **Traefik** evaluates this for each container |
-| `index .Labels "com.docker.compose.service"` | "Read the service name from the container's labels"               |
-| `\| default .Name`                           | "If that label doesn't exist, use the container name instead"     |
-| `.{{ env "DOMAIN" }}`                        | "Add the domain from Traefik's `DOMAIN` environment variable"     |
-
-**Why This Saves You Work:**
-
-Without `defaultRule`, every service needs four labels just to get a URL:
-
-```yaml title="Manual labels without defaultRule"
-labels:
-  - traefik.enable=true
-  - traefik.http.routers.myapp.rule=Host(`myapp.yourdomain.com`)
-  - traefik.http.routers.myapp.tls=true
-  - traefik.http.routers.myapp.entrypoints=websecure
-```
-
-With `defaultRule`, the minimum label for exposure is:
-
-```yaml title="Minimum label with defaultRule"
-labels:
-  - traefik.enable=true        # Required: expose this container to Traefik
-```
-
-That is enough for URL generation. `https://myapp.yourdomain.com` is generated automatically from the service name.
-
-For sleep-on-request behavior in this repo, add a Sablier middleware to the router (usually in `config/traefik/dyn/*.yml`) and keep `sablier.enable=true` on the service so Sablier can manage it.
-
-```yaml title="config/traefik/dyn/myapp.yml"
-# config/traefik/dyn/myapp.yml
-http:
-  routers:
-    myapp:
-      rule: Host(`myapp.${DOMAIN}`)
-      middlewares: [sablier-myapp@file]
-```
-
-**Current Homelab Example (explicit override):**
-
-Looking at `services/networking.yml`, `adguard` sets an explicit host rule instead of relying on `defaultRule`:
-
-```yaml title="services/networking.yml"
-services:
-  adguard:
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.adguard.entrypoints=websecure
-```
-
-That override keeps the URL stable and human-friendly.
-
-If routing is defined in a file-provider config, do not also set `traefik.enable=true` on the service unless you intentionally want a second Docker-provider route.
-
-**When to Override:**
-
-Sometimes you want a cleaner URL than the service name. Override per-service:
-
-```yaml title="Custom host override"
-labels:
-  - traefik.enable=true
-  - traefik.http.routers.myapp.rule=Host(`photos.yourdomain.com`)  # Custom URL
-```
-
-Common reasons to override:
-- Shorter URLs (`photos` vs `myapp`)
-- Multiple domains pointing to same service
-- Path-based routing (`yourdomain.com/immich`)
-- Complex rules with multiple hostnames or path prefixes
-
-### Session Flow
-
-1. **Idle**: Container at 0 replicas (0 RAM usage)
-2. **HTTP Request**: **Sablier** intercepts and scales container to 1
-3. **Loading Page**: User sees "Starting..." while container boots (~2 seconds)
-4. **Ready**: Container passes healthcheck, request is proxied
-5. **Timeout**: After 30 minutes of no requests, scales back to 0
-
-Session duration is configurable per service via `sessionDuration` in middleware config.
+Do not document them as part of the active stack unless they are added to the root include list.

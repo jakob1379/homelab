@@ -4,122 +4,111 @@ hide:
   - toc
 ---
 
-<p align="center">
-  <strong style="font-size: 1.5em;">Minimal-setup Docker Compose homelab</strong><br>
-  <span style="opacity: 0.7;">Auto HTTPS &middot; Services scale to 0</span>
-</p>
+# Homelab Docs
+
+This docs set describes the repo as it exists now.
+
+- `docker-compose.yml` is the **main stack**.
+- `docker-compose.pods.yml` is the separate **Dockhand bootstrap stack**.
+- Most sleep-on-request apps are routed through `config/traefik/dyn/*.yml`.
+- Some services are still routed directly with Docker labels.
+
+If you want the shortest path, start with the bootstrap stack.
 
 ---
 
+## Try It Now
 
-# What You'll Find Here
+```bash title="Bootstrap Dockhand first"
+# 1. Clone the repo
+$ git clone https://github.com/jakob1379/homelab.git && cd homelab
+Cloning into 'homelab'...
+done.
+
+# 2. Start only the control plane
+$ docker compose -f docker-compose.pods.yml up -d
+[+] Running 1/1
+ ✔ Container homelab-pods-dockhand-1  Started
+
+# 3. Verify the local bootstrap endpoint
+$ curl -I http://localhost:3000
+HTTP/1.1 200 OK
+```
+
+Then use one of these paths:
+
+- want the repo layout and routing model first? Read [Architecture](architecture.md)
+- want the live services and URLs? Read [Service Reference](services.md)
+- want the Git-managed deployment path? Read [Deployment](dockhand.md)
+- want to add your own app? Read [Configuration](customization.md)
+
+---
+
+## What You'll Find Here
 
 <div class="grid cards" markdown>
 
--   🖥️ **Architecture**
+-   🧭 **Architecture**
 
     ---
 
-    How it all works under the hood: Traefik routing, Sablier magic, and network topology.
+    Entry points, profiles, routing sources, networks, and current caveats.
 
-    [→ Learn the internals](architecture.md)
+    [→ Read architecture](architecture.md)
 
 -   📦 **Services**
 
     ---
 
-    Complete reference for all services, their URLs, and configuration.
+    Current service inventory, URLs, sleep behavior, and required variables.
 
-    [→ Browse services](services.md)
+    [→ Read services](services.md)
 
--   🛠️ **Customization**
-
-    ---
-
-    Add your own services, configure backups, set up IP restrictions.
-
-    [→ Make it yours](customization.md)
-
--   🔁 **Queue-Driven Sleep**
+-   🛠️ **Configuration**
 
     ---
 
-    Use Sablier with queue-backed workers (Immich pattern) without breaking background jobs.
+    Add a new service using the same Traefik, Sablier, and Homepage patterns as the active stack.
 
-    [→ See the pattern](queue-driven-sleep.md)
-
--   ⚠️ **Troubleshooting**
-
-    ---
-
-    Stuck? Common issues and step-by-step fixes.
-
-    [→ Get unstuck](troubleshooting.md)
+    [→ Read configuration](customization.md)
 
 -   🐳 **Deployment**
 
     ---
 
-    Bootstrap with `docker-compose.pods.yml`, then let Dockhand deploy the main homelab stack from Git, including the production DNS and TLS checklist.
+    Bootstrap **Dockhand**, point it at this repo, and verify the routed stack.
 
-    [→ Deploy the stack](dockhand.md)
+    [→ Read deployment](dockhand.md)
+
+-   ⚠️ **Troubleshooting**
+
+    ---
+
+    Missing variables, stuck Sablier routes, AdGuard port conflicts, and current media-stack footguns.
+
+    [→ Read troubleshooting](troubleshooting.md)
+
+-   🔁 **Queue-Driven Sleep**
+
+    ---
+
+    Current status: not active for **Immich** in this repo.
+
+    [→ Read status](queue-driven-sleep.md)
 
 </div>
 
 ---
 
-!!! info "Quick Start: Bootstrap The Repo"
+## Current Repo Shape
 
-    **Prerequisites:** Docker + Docker Compose v2+
-
-    ```bash
-    # Clone & configure
-    $ git clone https://github.com/jakob1379/homelab.git && cd homelab
-    Cloning into 'homelab'...
-    done.
-
-    $ ./setup-dev.sh
-    [INFO] Setting up the homelab development environment...
-    [INFO] setup-dev.sh leaves password-style credentials alone and only generates app keys
-    [INFO] Setup complete!
-
-    # Fill the required values in .env / .envrc, then start the stacks
-    $ docker compose --profile all up -d
-    $ docker compose -f docker-compose.pods.yml up -d
-    [+] Running ...
-      ✔ Container homelab-traefik-1  Started
-      ✔ Container homelab-pods-dockhand-1  Started
-
-    # Verify (accept self-signed cert warning)
-    $ curl -k https://whoami.traefik.me
-    Hostname: homelab-whoami-1
-    ```
-
-    **Next:** fill the required variables reported by `setup-dev.sh`, then bring up the main stack.
-
-    For the GitOps deployment path, use [Deployment](dockhand.md) instead of starting the main stack manually.
-
----
-
-## The Pitch
-
-**Containerized services** with automatic HTTPS. Sleep-enabled apps use 0 RAM when idle (they wake up in ~2 seconds on request, or via scheduled/queue triggers when configured). Works on your laptop with a small amount of local secret setup, or in production with your own domain.
-
-```mermaid
-flowchart LR
-    L[Laptop] --> T[Traefik<br/>Auto HTTPS]
-    P[Production] --> T
-    T -.->|Wake ~2s| S[Sleep-Enabled Apps<br/>0 RAM Idle]
-
-    style T fill:#e1f5fe,stroke:#0288d1
-    style S fill:#e8f5e9,stroke:#388e3c
+```text title="Top-level stack entrypoints"
+.
+├── docker-compose.yml           # Main stack
+├── docker-compose.pods.yml      # Dockhand bootstrap stack
+├── services/                    # Stack definitions included by docker-compose.yml
+├── config/traefik/dyn/          # File-provider routes and Sablier middleware
+└── home-assistant/              # Home Assistant files, included from the main stack
 ```
 
----
-
-<p align="center" style="opacity: 0.7;">
-  Built with ❤️ using
-  <a href="https://traefik.io">Traefik</a>,
-  <a href="https://sablierapp.dev">Sablier</a>, and
-  <a href="https://docker.com">Docker</a>
-</p>
+There are also parked service definitions under `services/` that are not currently included from `docker-compose.yml`, including `hermes.yml` and `teable*.yml`.
