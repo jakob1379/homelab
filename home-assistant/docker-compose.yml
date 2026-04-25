@@ -18,6 +18,7 @@ services:
     environment:
       - TZ=${TZ:-Europe/Copenhagen}
       - HA_CORS_ORIGIN=https://ha.${DOMAIN:-traefik.me}
+    cap_add: [NET_ADMIN, NET_RAW]
     labels:
       - traefik.enable=true
       - traefik.http.routers.ha.rule=Host(`ha.${DOMAIN:-traefik.me}`)
@@ -29,4 +30,15 @@ services:
       - homepage.icon=home-assistant.png
       - homepage.href=https://ha.${DOMAIN:-traefik.me}
       - homepage.description=Home automation and device control
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - import sys, urllib.request; r = urllib.request.urlopen('http://127.0.0.1:8123/manifest.json',
+          timeout=5); sys.exit(0 if r.status == 200 else 1)
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
     restart: unless-stopped
