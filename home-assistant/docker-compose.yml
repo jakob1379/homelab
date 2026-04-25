@@ -5,6 +5,7 @@ services:
   ha:
     profiles: [apps, all, service]
     image: homeassistant/home-assistant:2026.4.1
+    network_mode: host
     volumes:
       - ha_config:/config
       - ./configuration.yaml:/config/configuration.yaml:ro
@@ -17,7 +18,6 @@ services:
     environment:
       - TZ=${TZ:-Europe/Copenhagen}
       - HA_CORS_ORIGIN=https://ha.${DOMAIN:-traefik.me}
-    networks: [traefik_public]
     labels:
       - traefik.enable=true
       - traefik.http.routers.ha.rule=Host(`ha.${DOMAIN:-traefik.me}`)
