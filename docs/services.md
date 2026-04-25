@@ -135,7 +135,7 @@ Required vars:
 
 | Service | Access | Profile(s) | Routing source | Sleep | Notes |
 |---|---|---|---|---|---|
-| **Jellyfin** | `https://jellyfin.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/jellyfin.yml` | Yes, `30m` | media server |
+| **Jellyfin** | `https://jellyfin.${DOMAIN}` | `apps`, `all` | Docker labels on `jellyfin` | No | media server |
 | **Seerr** | `https://requests.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/seerr.yml` | Yes, `30m` | request UI |
 | **Immich Power Tools** | `https://immich-tools.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/immich-power-tools.yml` | Yes, `30m` | separate helper app, not core Immich routing |
 | **torrent** | `https://torrent.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | qBittorrent service name is `torrent`; shares `gluetun` network namespace |

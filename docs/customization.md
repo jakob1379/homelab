@@ -125,7 +125,6 @@ This is the normal pattern for:
 - **Karakeep**
 - **Paperless-ngx**
 - **Seerr**
-- **Jellyfin**
 
 ### Use direct Docker labels when
 
@@ -139,6 +138,7 @@ This is the normal pattern for:
 - **AdGuard**
 - **Dockhand**
 - **Home Assistant**
+- **Jellyfin**
 - **Speedtest Tracker**
 
 ---

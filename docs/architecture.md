@@ -156,7 +156,6 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `home.yml`
 - `immich-power-tools.yml`
 - `ittools.yml`
-- `jellyfin.yml`
 - `keep.yml`
 - `listmonk.yml`
 - `netalertx.yml`
@@ -175,7 +174,7 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `immich` from `services/immich.yml`
 - `speedtest-tracker` from `services/speedtest-tracker.yml`
 - `ha` from `home-assistant/docker-compose.yml`
-- `torrent`, `sonarr`, `radarr`, `prowlarr` from `services/media.yml`
+- `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr` from `services/media.yml`
 
 ---
 
@@ -196,7 +195,6 @@ This repo does **not** put every routed app behind **Sablier**.
 | `home` | `home.yml` | `30m` |
 | `immich-power-tools` | `immich-power-tools.yml` | `30m` |
 | `ittools` | `ittools.yml` | `30m` |
-| `jellyfin` | `jellyfin.yml` | `30m` |
 | `omni-tools` | `omni-tools.yml` | `30m` |
 | `seerr` | `seerr.yml` | `30m` |
 | `vert` | `vert.yml` | `30m` |
@@ -212,6 +210,7 @@ This repo does **not** put every routed app behind **Sablier**.
 - **Immich**
 - **Speedtest Tracker**
 - **Home Assistant**
+- **Jellyfin**
 - **torrent**
 - **Sonarr**
 - **Radarr**

@@ -55,8 +55,13 @@ services:
       - PGID=${PGID:-1000}
       - TZ=${TZ:-Europe/Copenhagen}
     labels:
-      - sablier.enable=true
-      - sablier.group=jellyfin
+      - traefik.enable=true
+      - traefik.docker.network=traefik_public
+      - traefik.http.routers.jellyfin.rule=Host(`jellyfin.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.jellyfin.entrypoints=websecure
+      - traefik.http.routers.jellyfin.middlewares=startup-retry@file
+      - traefik.http.routers.jellyfin.service=jellyfin
+      - traefik.http.services.jellyfin.loadbalancer.server.port=8096
       - homepage.group=Media & Files
       - homepage.name=Jellyfin
       - homepage.icon=jellyfin.png
