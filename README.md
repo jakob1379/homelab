@@ -171,6 +171,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **Dockhand**
 - **Immich**
 - **Prowlarr**
+- **Bazarr**
 - **Radarr**
 - **Sonarr**
 - **Speedtest Tracker**
@@ -180,7 +181,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 ### Sleep behavior right now
 
 - **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `vert`, `whoami`
-- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `speedtest-tracker`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`
+- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `speedtest-tracker`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
 - **Important exception**: `listmonk` still has `sablier.*` labels, but `config/traefik/dyn/listmonk.yml` does **not** attach a Sablier middleware. Treat it as not sleeping on request in the current repo.
 
 ---
@@ -213,7 +214,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **Listmonk** + `listmonk-postgres` + optional `cftunnel`
 - **Immich** + `immich-postgres` + `redis` + workers
 - **Paperless-ngx** + PostgreSQL + Redis + Gotenberg + Tika
-- **Media**: `jellyfin`, `seerr`, `immich-power-tools`, `torrent`, `sonarr`, `radarr`, `prowlarr`
+- **Media**: `jellyfin`, `seerr`, `immich-power-tools`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
 - **Home Assistant**
 
 ---

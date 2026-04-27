@@ -174,7 +174,7 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `dockhand` from `services/pods.yml`
 - `immich` from `services/immich.yml`
 - `speedtest-tracker` from `services/speedtest-tracker.yml`
-- `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr` from `services/media.yml`
+- `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr` from `services/media.yml`
 
 ---
 
@@ -215,6 +215,7 @@ This repo does **not** put every routed app behind **Sablier**.
 - **Sonarr**
 - **Radarr**
 - **Prowlarr**
+- **Bazarr**
 - **Listmonk**
 
 ### Current exception: Listmonk
@@ -240,7 +241,7 @@ but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That
 | `immich` | **Immich** internals | `immich-*`, `redis`, `immich-power-tools` |
 | `paperless` | **Paperless** internals | `paperless-*` |
 | `listmonk` | **Listmonk** isolation | `listmonk`, `listmonk-postgres`, optional `cftunnel` |
-| `media` | media apps | `jellyfin`, `seerr`, `gluetun`, `prowlarr` |
+| `media` | media apps | `jellyfin`, `seerr`, `gluetun`, `prowlarr`, `bazarr` |
 
 ### Current media-stack reality
 
@@ -252,6 +253,7 @@ That means:
 - `torrent`, `sonarr`, and `radarr` share the `gluetun` network namespace
 - `gluetun` carries `torrent`, `sonarr`, and `radarr` aliases on `media` so existing service names still resolve internally
 - `prowlarr` remains directly attached to `media` and `traefik_public`
+- `bazarr` remains directly attached to `media` and `traefik_public`
 
 ---
 

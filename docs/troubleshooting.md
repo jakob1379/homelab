@@ -201,6 +201,7 @@ Current facts:
 - the active qBittorrent service name is `torrent`
 - `gluetun` is active for `torrent`, `sonarr`, and `radarr`
 - `gluetun` carries `torrent`, `sonarr`, and `radarr` aliases on `media`
+- `bazarr` is directly attached to `media` and `traefik_public`
 - `prowlarr` has no profile
 - **Seerr** is still routed through a file-provider **Sablier** route
 - `setup-dev.sh` requires `OPENVPN_USER` and `OPENVPN_PASSWORD`
@@ -208,13 +209,14 @@ Current facts:
 Use commands that match the current service names.
 
 ```bash title="Check the current media services"
-$ docker compose ps gluetun torrent sonarr radarr prowlarr seerr jellyfin
+$ docker compose ps gluetun torrent sonarr radarr prowlarr bazarr seerr jellyfin
 NAME                IMAGE                                 STATUS
 homelab-gluetun-1   qmcgaw/gluetun:...                    Up
 homelab-torrent-1   lscr.io/linuxserver/qbittorrent:...  Up
 homelab-sonarr-1    lscr.io/linuxserver/sonarr:...       Up
 homelab-radarr-1    lscr.io/linuxserver/radarr:...       Up
 homelab-prowlarr-1  lscr.io/linuxserver/prowlarr:...     Up
+homelab-bazarr-1    lscr.io/linuxserver/bazarr:...       Up
 homelab-seerr-1     ghcr.io/seerr-team/seerr:...         Up
 homelab-jellyfin-1  linuxserver/jellyfin:...             Up
 ```

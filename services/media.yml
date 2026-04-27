@@ -202,6 +202,27 @@ services:
       - homepage.description=Manage indexers and sync them with Sonarr and Radarr
     volumes: [prowlarr_config:/config]
     restart: unless-stopped
+  bazarr:
+    profiles: [apps, all]
+    image: lscr.io/linuxserver/bazarr:latest
+    networks: [traefik_public, media]
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-Europe/Copenhagen}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_public
+      - traefik.http.routers.bazarr.rule=Host(`bazarr.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.bazarr.entrypoints=websecure
+      - traefik.http.services.bazarr.loadbalancer.server.port=6767
+      - homepage.group=Admin Tools
+      - homepage.name=Bazarr
+      - homepage.icon=bazarr.png
+      - homepage.href=https://bazarr.${DOMAIN:-traefik.me}
+      - homepage.description=Manage and download subtitles for Sonarr and Radarr libraries
+    volumes: [bazarr_config:/config, media_data:/data]
+    restart: unless-stopped
 networks:
   media:
   traefik_public:
@@ -217,3 +238,4 @@ volumes:
   sonarr_config:
   radarr_config:
   prowlarr_config:
+  bazarr_config:
