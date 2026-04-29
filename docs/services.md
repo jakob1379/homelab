@@ -13,7 +13,7 @@ $ docker compose --profile infra up -d
  ✔ Container homelab-traefik-1   Started
  ✔ Container homelab-sablier-1   Started
 
-# 2. Start one sleeping app and one direct-label app
+# 2. Start two sleeping apps
 $ docker compose --profile apps up -d keep speedtest-tracker
 [+] Running ...
  ✔ Container homelab-keep-1               Started
@@ -29,7 +29,7 @@ $ curl -k https://speed.traefik.me
 ...
 ```
 
-`keep` goes through a file-provider **Sablier** route. `speedtest-tracker` uses direct Docker labels.
+`keep` and `speedtest-tracker` both go through file-provider **Sablier** routes.
 
 ---
 
@@ -65,7 +65,7 @@ $ curl -k https://speed.traefik.me
 | **BentoPDF** | `https://pdf.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/bentopdf.yml` | Yes, `30m` | PDF tools |
 | **Omni Tools** | `https://omni.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/omni-tools.yml` | Yes, `30m` | general utilities |
 | **VERT** | `https://vert.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/vert.yml` | Yes, `30m` | browser-side file conversion |
-| **Speedtest Tracker** | `https://speed.${DOMAIN}` | `apps`, `all` | Docker labels | No | stores SQLite data under `/config` |
+| **Speedtest Tracker** | `https://speed.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/speedtest-tracker.yml` | Yes, `15m` | stores SQLite data under `/config`; `speedtest-trigger` wakes it hourly through the API |
 
 ---
 
@@ -185,6 +185,7 @@ These are the variables that matter for the active stack.
 | `NEXTAUTH_SECRET` | **Karakeep** |
 | `MEILI_MASTER_KEY` | **Karakeep**, **Meilisearch** |
 | `SPEEDTEST_APP_KEY` | **Speedtest Tracker** |
+| `SPEEDTEST_API_TOKEN` | **Speedtest Trigger** sidecar; create it in Speedtest Tracker with `Read Results` and `Run Speedtest` abilities |
 | `OPENVPN_USER` | **Gluetun** ProtonVPN OpenVPN username |
 | `OPENVPN_PASSWORD` | **Gluetun** ProtonVPN OpenVPN password |
 

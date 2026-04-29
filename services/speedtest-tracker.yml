@@ -13,14 +13,12 @@ services:
       - APP_URL=https://speed.${DOMAIN:-traefik.me}
       - ASSET_URL=https://speed.${DOMAIN:-traefik.me}
       - DB_CONNECTION=sqlite
-      - SPEEDTEST_SCHEDULE="${SPEEDTEST_SCHEDULE:-17 */3 * * *}"
+      - SPEEDTEST_SCHEDULE=
     volumes: [speedtest_tracker_data:/config]
     networks: [traefik_public]
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.speedtest.rule=Host(`speed.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.speedtest.entrypoints=websecure
-      - traefik.http.services.speedtest.loadbalancer.server.port=80
+      - sablier.enable=true
+      - sablier.group=speedtest
       - homepage.group=Networking
       - homepage.name=Speedtest Tracker
       - homepage.icon=mdi-speedometer
@@ -46,6 +44,30 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
+  speedtest-trigger:
+    profiles: [apps, all]
+    image: alpine:3.22
+    depends_on:
+      speedtest-tracker:
+        condition: service_started
+    environment:
+      - DOMAIN=${DOMAIN:-traefik.me}
+      - SPEEDTEST_API_TOKEN=${SPEEDTEST_API_TOKEN:-}
+      - SPEEDTEST_TRIGGER_INTERVAL_SECONDS=${SPEEDTEST_TRIGGER_INTERVAL_SECONDS:-3600}
+      - TZ=${TZ:-Europe/Copenhagen}
+    command: [/bin/sh, /opt/speedtest-trigger/trigger.sh]
+    volumes:
+      - ../config/speedtest-tracker/trigger.sh:/opt/speedtest-trigger/trigger.sh:ro
+    networks: [traefik_public]
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
 networks:
   traefik_public:
     name: traefik_public

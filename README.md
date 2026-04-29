@@ -160,6 +160,7 @@ These are the routes that currently use explicit **Traefik** file-provider confi
 - **Paperless-ngx**
 - **RustFS**
 - **Seerr**
+- **Speedtest Tracker**
 - **VERT**
 - **whoami**
 
@@ -174,14 +175,13 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **Bazarr**
 - **Radarr**
 - **Sonarr**
-- **Speedtest Tracker**
 - **torrent** (`https://torrent.${DOMAIN}`)
 - **Traefik dashboard**
 
 ### Sleep behavior right now
 
-- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `vert`, `whoami`
-- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `speedtest-tracker`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
+- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
+- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
 - **Important exception**: `listmonk` still has `sablier.*` labels, but `config/traefik/dyn/listmonk.yml` does **not** attach a Sablier middleware. Treat it as not sleeping on request in the current repo.
 
 ---

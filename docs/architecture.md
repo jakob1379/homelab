@@ -164,6 +164,7 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `paperless.yml`
 - `rustfs.yml`
 - `seerr.yml`
+- `speedtest-tracker.yml`
 - `vert.yml`
 - `whoami.yml`
 
@@ -173,7 +174,6 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `adguard` from `services/networking.yml`
 - `dockhand` from `services/pods.yml`
 - `immich` from `services/immich.yml`
-- `speedtest-tracker` from `services/speedtest-tracker.yml`
 - `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr` from `services/media.yml`
 
 ---
@@ -189,6 +189,7 @@ This repo does **not** put every routed app behind **Sablier**.
 | `whoami` | `common.yml` (`sablier-default`) | `10m` |
 | `keep` | `keep.yml` | `15m` |
 | `paperless` | `paperless.yml` | `15m` |
+| `speedtest-tracker` | `speedtest-tracker.yml` | `15m` |
 | `anythingllm` | `anythingllm.yml` | `30m` |
 | `bentopdf` | `bentopdf.yml` | `30m` |
 | `cbeaver` | `cbeaver.yml` | `30m` |
@@ -208,7 +209,6 @@ This repo does **not** put every routed app behind **Sablier**.
 - **NetAlertX**
 - **Dockhand**
 - **Immich**
-- **Speedtest Tracker**
 - **Home Assistant**
 - **Jellyfin**
 - **torrent**

@@ -139,7 +139,6 @@ This is the normal pattern for:
 - **Dockhand**
 - **Home Assistant**
 - **Jellyfin**
-- **Speedtest Tracker**
 
 ---
 
