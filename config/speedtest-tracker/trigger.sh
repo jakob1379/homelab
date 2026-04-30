@@ -51,7 +51,7 @@ run_once() {
 
     started_runs=$(request '/api/v1/results?filter[status]=Started' --header="Authorization: Bearer ${SPEEDTEST_API_TOKEN}" 2>/dev/null || true)
 
-    if [ -z "$started_runs" ]; then
+    if [ -z "$started_runs" ] || ! printf '%s' "$started_runs" | grep -q '"data"'; then
         log 'failed to query in-progress speedtests'
         return 1
     fi
@@ -63,7 +63,7 @@ run_once() {
 
     queued_run=$(request /api/v1/speedtests/run --header="Authorization: Bearer ${SPEEDTEST_API_TOKEN}" --post-data='' 2>/dev/null || true)
 
-    if printf '%s' "$queued_run" | grep -q '"data"'; then
+    if printf '%s' "$queued_run" | grep -Eq '"data":[[:space:]]*[{[]'; then
         log 'queued speedtest run'
         return 0
     fi
