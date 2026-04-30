@@ -13,7 +13,6 @@ services:
       - APP_URL=https://speed.${DOMAIN:-traefik.me}
       - ASSET_URL=https://speed.${DOMAIN:-traefik.me}
       - DB_CONNECTION=sqlite
-      - SPEEDTEST_SCHEDULE=
     volumes: [speedtest_tracker_data:/config]
     networks: [traefik_public]
     labels:
@@ -46,7 +45,7 @@ services:
           memory: 256M
   speedtest-trigger:
     profiles: [apps, all]
-    image: alpine:3.22
+    image: bash:5.2-alpine3.22
     depends_on:
       speedtest-tracker:
         condition: service_started
@@ -55,7 +54,7 @@ services:
       - SPEEDTEST_API_TOKEN=${SPEEDTEST_API_TOKEN:-}
       - SPEEDTEST_TRIGGER_INTERVAL_SECONDS=${SPEEDTEST_TRIGGER_INTERVAL_SECONDS:-3600}
       - TZ=${TZ:-Europe/Copenhagen}
-    command: [/bin/sh, /opt/speedtest-trigger/trigger.sh]
+    command: [bash, /opt/speedtest-trigger/trigger.sh]
     volumes:
       - ../config/speedtest-tracker/trigger.sh:/opt/speedtest-trigger/trigger.sh:ro
     networks: [traefik_public]
