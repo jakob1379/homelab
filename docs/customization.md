@@ -90,15 +90,18 @@ include:
 ### Step 4: validate and start it
 
 ```bash title="Validate and run the demo service"
-# 1. Validate the combined main stack
-$ docker compose --profile all config > /dev/null
+# 1. Prepare local generated keys and validation placeholders
+$ ./setup-dev.sh
 
-# 2. Start the new app
+# 2. Validate the combined main stack
+$ DOMAIN=test.traefik.me docker compose --profile all config > /dev/null
+
+# 3. Start the new app
 $ docker compose --profile apps up -d demo
 [+] Running 1/1
  ✔ Container homelab-demo-1  Started
 
-# 3. Test the route
+# 4. Test the route
 $ curl -k https://demo.traefik.me
 <!DOCTYPE html>
 <html>
@@ -272,11 +275,18 @@ Use `homepage.siteMonitor` only for always-on services. If you add it to a **Sab
 Run the same checks the repo points at in `AGENTS.md` and CI.
 
 ```bash title="Validate the stack definitions"
-# Main stack render
-$ docker compose --profile all config > /dev/null
+# Prepare generated keys and local validation placeholders
+$ ./setup-dev.sh
+
+# Main stack render, matching CI's test domain
+$ DOMAIN=test.traefik.me docker compose --profile all config > /dev/null
 
 # Bootstrap stack render
-$ docker compose -f docker-compose.pods.yml config > /dev/null
+$ DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config > /dev/null
+
+# Image reference checks, matching CI
+$ DOMAIN=test.traefik.me docker compose --profile all pull --dry-run
+$ DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run
 
 # Repo hooks
 $ prek run -a

@@ -45,17 +45,20 @@ If you want the full routed stack, keep going.
 # 1. Prepare .env from .env.example when needed
 $ ./setup-dev.sh
 [INFO] Setting up the homelab development environment...
-[INFO] setup-dev.sh leaves password-style credentials alone, only generates app keys, and leaves optional service env overrides optional
+[INFO] setup-dev.sh generates app keys, sets local OpenVPN placeholders, and leaves optional service env overrides optional
+[INFO] Set development placeholder: OPENVPN_USER
+[INFO] Set development placeholder: OPENVPN_PASSWORD
 [INFO] Generated development key: NEXTAUTH_SECRET
 [INFO] Generated development key: MEILI_MASTER_KEY
 [WARN] Missing required variables for docker compose --profile all:
  - ACME_EMAIL
  - CF_DNS_API_TOKEN
- - OPENVPN_USER
- - OPENVPN_PASSWORD
+ - PAPERLESS_ADMIN_PASSWORD
  ...
 [INFO] Setup complete!
 ```
+
+`setup-dev.sh` writes dummy OpenVPN values so `docker compose --profile all config` can render locally and in CI. Replace them before running the VPN-backed media automation for real.
 
 Fill the values you actually need, then start the profiles you want.
 
@@ -64,6 +67,7 @@ Fill the values you actually need, then start the profiles you want.
 $ cat >> .env <<'EOF'
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cloudflare_token
+PAPERLESS_ADMIN_PASSWORD=change-me
 EOF
 
 # 3. Start the always-on foundation
@@ -230,18 +234,17 @@ Even in local development, `traefik` requires:
 
 That is not optional in the current compose setup.
 
-### 2. The media stack is mid-transition
+### 2. The media stack still depends on Gluetun
 
-`services/media.yml` still contains the old commented **Gluetun** section, but the active stack now routes:
+`services/media.yml` runs **Gluetun** as the shared network namespace for:
 
 - `torrent`
 - `sonarr`
 - `radarr`
-- `prowlarr`
 
-directly on `traefik_public`.
+`prowlarr` and `bazarr` route directly on `traefik_public`.
 
-`setup-dev.sh` still reports `OPENVPN_USER` and `OPENVPN_PASSWORD` as required for `--profile all`. That warning matches the repo's current bootstrap script, not the active Gluetun wiring.
+The active compose config requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for Gluetun. `setup-dev.sh` supplies local dummy values so config rendering works, but real media downloads need real VPN credentials.
 
 ### 3. There are parked service definitions
 

@@ -148,7 +148,8 @@ Current caveat:
 
 - `gluetun` now carries the routed network path for `torrent`, `sonarr`, and `radarr`
 - `gluetun` also carries `torrent`, `sonarr`, and `radarr` aliases on `media` to preserve internal service-name reachability
-- `setup-dev.sh` requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for `--profile apps` and `--profile all`
+- active compose requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for Gluetun; `setup-dev.sh` writes local dummy values so config rendering works
+- replace the dummy OpenVPN values before running VPN-backed downloads for real
 - `VPN_SERVER_COUNTRIES` is optional and defaults to `Netherlands`
 
 ### Home Assistant
@@ -188,6 +189,14 @@ These are the variables that matter for the active stack.
 | `SPEEDTEST_API_TOKEN` | **Speedtest Trigger** sidecar; create it in Speedtest Tracker with `Read Results` and `Run Speedtest` abilities |
 | `OPENVPN_USER` | **Gluetun** ProtonVPN OpenVPN username |
 | `OPENVPN_PASSWORD` | **Gluetun** ProtonVPN OpenVPN password |
+
+Bootstrap behavior:
+
+- `.env.example` already provides local RustFS defaults.
+- `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, and `SPEEDTEST_APP_KEY` when they are missing.
+- `setup-dev.sh` writes dummy `OPENVPN_USER` and `OPENVPN_PASSWORD` values for local config rendering. Real Gluetun use still needs real VPN credentials.
+- In CI only, `setup-dev.sh` also writes dummy `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and `PAPERLESS_ADMIN_PASSWORD` values so the workflow can render the stack without secrets.
+- For local full-stack runs, set `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and `PAPERLESS_ADMIN_PASSWORD` yourself unless you already provide them through the environment.
 
 ---
 

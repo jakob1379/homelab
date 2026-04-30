@@ -58,12 +58,21 @@ $ docker compose --profile all config
 required variable CF_DNS_API_TOKEN is missing a value: Set CF_DNS_API_TOKEN in .env, direnv, or Dockhand
 ```
 
-The current repo expects at least these for the main ingress path:
+Run the bootstrap script first:
+
+```bash title="Prepare local env"
+$ ./setup-dev.sh
+```
+
+It generates app keys and writes dummy `OPENVPN_USER` / `OPENVPN_PASSWORD` values so the full stack can render. Those OpenVPN values are only placeholders; replace them before running Gluetun-backed media automation.
+
+The current repo still expects these local values for the main ingress and Paperless paths:
 
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
+- `PAPERLESS_ADMIN_PASSWORD`
 
-and app secrets for the services you include.
+In CI, `setup-dev.sh` fills those three with dummy values. Locally, set them in `.env`, direnv, or Dockhand unless you already export them.
 
 If you only want the control plane, use `docker-compose.pods.yml` instead of fighting the full stack.
 

@@ -42,6 +42,8 @@ Then use one of these paths:
 - want the Git-managed deployment path? Read [Deployment](dockhand.md)
 - want to add your own app? Read [Configuration](customization.md)
 
+This starts only the Dockhand bootstrap stack. Before rendering or running the main stack, run `./setup-dev.sh` so local generated keys and validation placeholders exist.
+
 ---
 
 ## What You'll Find Here

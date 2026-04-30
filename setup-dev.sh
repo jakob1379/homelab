@@ -153,6 +153,23 @@ ensure_ci_placeholder() {
     log_info "Set CI placeholder: $var_name"
 }
 
+ensure_dev_placeholder() {
+    local var_name="$1"
+    local var_value="$2"
+
+    if has_config_value "$var_name"; then
+        return 0
+    fi
+
+    if [[ ! -f ".env" ]]; then
+        log_warn ".env is missing, so $var_name was not set for local validation"
+        return 1
+    fi
+
+    set_env_value "$var_name" "$var_value" ".env"
+    log_info "Set development placeholder: $var_name"
+}
+
 show_generation_hints() {
     log_info "Generator hints:"
     if command -v mkpasswd >/dev/null 2>&1; then
@@ -173,6 +190,7 @@ Options:
 This script:
 - Optionally copies .env.example to .env if missing
 - Generates random app keys in .env when safe for local development
+- Sets local dummy OpenVPN credentials when missing so compose config can render
 - Verifies required env_file references from included compose files
 - Reports required secrets that must be set manually
 - Leaves optional service env overrides optional
@@ -197,7 +215,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 log_info "Setting up the homelab development environment..."
-log_info "setup-dev.sh leaves password-style credentials alone, only generates app keys, and leaves optional service env overrides optional"
+log_info "setup-dev.sh generates app keys, sets local OpenVPN placeholders, and leaves optional service env overrides optional"
 
 ENV_FILES_DIR="services"
 
@@ -233,6 +251,15 @@ ensure_ci_placeholder PAPERLESS_ADMIN_PASSWORD ci-paperless-admin-password || ci
 
 if (( ci_placeholder_failures > 0 )); then
     log_error "Failed to set one or more CI placeholders"
+    exit 1
+fi
+
+dev_placeholder_failures=0
+ensure_dev_placeholder OPENVPN_USER local-openvpn-user || dev_placeholder_failures=1
+ensure_dev_placeholder OPENVPN_PASSWORD local-openvpn-password || dev_placeholder_failures=1
+
+if (( dev_placeholder_failures > 0 )); then
+    log_error "Failed to set one or more development placeholders"
     exit 1
 fi
 
