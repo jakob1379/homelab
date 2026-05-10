@@ -23,6 +23,9 @@ services:
       - homepage.icon=mdi-speedometer
       - homepage.href=https://speed.${DOMAIN:-traefik.me}
       - homepage.description=Track internet speed and uptime history
+      - homepage.widget.type=speedtest
+      - homepage.widget.url=https://speed.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${SPEEDTEST_API_TOKEN:-}
     healthcheck:
       test:
         - CMD

@@ -38,6 +38,12 @@ services:
       - homepage.icon=karakeep.png
       - homepage.href=https://keep.${DOMAIN:-traefik.me}
       - homepage.description=Save and organize interesting web links
+      - homepage.widget.type=customapi
+      - homepage.widget.url=https://keep.${DOMAIN:-traefik.me}/api/v1/bookmarks?limit=50
+      - homepage.widget.headers.Authorization=Bearer ${HOMEPAGE_KARAKEEP_API_KEY:-}
+      - homepage.widget.mappings[0].field=bookmarks.length
+      - homepage.widget.mappings[0].label=Recent saved
+      - homepage.widget.mappings[0].format=number
     deploy:
       resources:
         limits:

@@ -100,6 +100,9 @@ services:
       - homepage.icon=immich.png
       - homepage.href=https://photos.${DOMAIN:-traefik.me}
       - homepage.description=Family photo and video library
+      - homepage.widget.type=immich
+      - homepage.widget.url=https://photos.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_IMMICH_API_KEY:-}
     restart: unless-stopped
     deploy:
       resources:

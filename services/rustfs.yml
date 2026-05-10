@@ -23,6 +23,10 @@ services:
       - homepage.icon=rustfs.png
       - homepage.href=https://rustfs.${DOMAIN:-traefik.me}
       - homepage.description=Cloud file storage for backups
+      - homepage.widget.type=minio
+      - homepage.widget.url=https://rustfs-api.${DOMAIN:-traefik.me}
+      - homepage.widget.accessKey=${RUSTFS_ACCESS_KEY:-}
+      - homepage.widget.secretKey=${RUSTFS_SECRET_KEY:-}
     restart: unless-stopped
     healthcheck:
       test:

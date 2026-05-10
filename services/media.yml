@@ -62,6 +62,9 @@ services:
       - homepage.icon=jellyfin.png
       - homepage.href=https://jellyfin.${DOMAIN:-traefik.me}
       - homepage.description=Stream and manage your media library
+      - homepage.widget.type=jellyfin
+      - homepage.widget.url=https://jellyfin.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_JELLYFIN_API_KEY:-}
     restart: unless-stopped
   seerr:
     profiles: [apps, all]
@@ -78,6 +81,9 @@ services:
       - homepage.icon=seerr.png
       - homepage.href=https://requests.${DOMAIN:-traefik.me}
       - homepage.description=Find and request movies and shows on demand
+      - homepage.widget.type=overseerr
+      - homepage.widget.url=https://requests.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_SEERR_API_KEY:-}
     healthcheck:
       test:
         - CMD-SHELL
@@ -107,6 +113,10 @@ services:
       - homepage.icon=qbittorrent.png
       - homepage.href=https://torrent.${DOMAIN:-traefik.me}
       - homepage.description=Torrent client
+      - homepage.widget.type=qbittorrent
+      - homepage.widget.url=https://torrent.${DOMAIN:-traefik.me}
+      - homepage.widget.username=${HOMEPAGE_QBITTORRENT_USERNAME:-}
+      - homepage.widget.password=${HOMEPAGE_QBITTORRENT_PASSWORD:-}
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
@@ -148,6 +158,9 @@ services:
       - homepage.icon=sonarr-dark.png
       - homepage.href=https://sonarr.${DOMAIN:-traefik.me}
       - homepage.description=Track, download, and organize TV series automatically
+      - homepage.widget.type=sonarr
+      - homepage.widget.url=https://sonarr.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_SONARR_API_KEY:-}
   radarr:
     profiles: [apps, all]
     image: lscr.io/linuxserver/radarr:6.1.1.10360-ls298
@@ -173,6 +186,9 @@ services:
       - homepage.icon=radarr.png
       - homepage.href=https://radarr.${DOMAIN:-traefik.me}
       - homepage.description=Track, download, and organize movies automatically
+      - homepage.widget.type=radarr
+      - homepage.widget.url=https://radarr.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_RADARR_API_KEY:-}
   flaresolverr:
     profiles: [apps, all]
     # DockerHub mirror flaresolverr/flaresolverr:latest
@@ -209,6 +225,9 @@ services:
       - homepage.icon=prowlarr.png
       - homepage.href=https://prowlarr.${DOMAIN:-traefik.me}
       - homepage.description=Manage indexers and sync them with Sonarr and Radarr
+      - homepage.widget.type=prowlarr
+      - homepage.widget.url=https://prowlarr.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_PROWLARR_API_KEY:-}
     volumes: [prowlarr_config:/config]
     restart: unless-stopped
   bazarr:
@@ -230,6 +249,9 @@ services:
       - homepage.icon=bazarr.png
       - homepage.href=https://bazarr.${DOMAIN:-traefik.me}
       - homepage.description=Manage and download subtitles for Sonarr and Radarr libraries
+      - homepage.widget.type=bazarr
+      - homepage.widget.url=https://bazarr.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_BAZARR_API_KEY:-}
     volumes: [bazarr_config:/config, media_data:/data]
     restart: unless-stopped
 networks:

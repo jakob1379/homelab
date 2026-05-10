@@ -71,6 +71,9 @@ services:
       - homepage.icon=paperless-ngx.png
       - homepage.href=https://paper.${DOMAIN:-traefik.me}
       - homepage.description=Scan, store, and search all your documents
+      - homepage.widget.type=paperlessngx
+      - homepage.widget.url=https://paper.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_PAPERLESS_API_TOKEN:-}
     healthcheck:
       test: [CMD, curl, -fs, http://localhost:8000/api/health/]
       interval: 30s

@@ -34,6 +34,8 @@ services:
       - homepage.href=https://traefik.${DOMAIN:-traefik.me}
       - homepage.description=Reverse proxy and routing dashboard
       - homepage.siteMonitor=http://traefik:8081/ping
+      - homepage.widget.type=traefik
+      - homepage.widget.url=https://traefik.${DOMAIN:-traefik.me}
     restart: unless-stopped
     healthcheck:
       test:
@@ -122,6 +124,10 @@ services:
       - homepage.icon=adguard-home.png
       - homepage.href=https://dns.${DOMAIN:-traefik.me}
       - homepage.description=Block ads across the whole network
+      - homepage.widget.type=adguard
+      - homepage.widget.url=https://dns.${DOMAIN:-traefik.me}
+      - homepage.widget.username=${HOMEPAGE_ADGUARD_USERNAME:-}
+      - homepage.widget.password=${HOMEPAGE_ADGUARD_PASSWORD:-}
     restart: unless-stopped
     deploy:
       resources:
@@ -159,6 +165,8 @@ services:
       - homepage.icon=netalertx.png
       - homepage.href=https://netalertx.${DOMAIN:-traefik.me}
       - homepage.description=See what devices are connected to the network
+      - homepage.widget.type=pialert
+      - homepage.widget.url=https://netalertx.${DOMAIN:-traefik.me}
     restart: unless-stopped
     deploy:
       resources:

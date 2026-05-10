@@ -25,6 +25,9 @@ services:
       - homepage.icon=home-assistant.png
       - homepage.href=https://ha.${DOMAIN:-traefik.me}
       - homepage.description=Home automation and device control
+      - homepage.widget.type=homeassistant
+      - homepage.widget.url=https://ha.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_HOME_ASSISTANT_TOKEN:-}
     healthcheck:
       test:
         - CMD

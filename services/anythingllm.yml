@@ -17,6 +17,9 @@ services:
       - homepage.icon=anything-llm.png
       - homepage.href=https://llm.${DOMAIN:-traefik.me}
       - homepage.description=Private AI workspace for chat and document Q&A
+      - homepage.widget.type=anythingllm
+      - homepage.widget.url=https://llm.${DOMAIN:-traefik.me}
+      - homepage.widget.key=${HOMEPAGE_ANYTHINGLLM_API_KEY:-}
     deploy:
       resources:
         limits:
