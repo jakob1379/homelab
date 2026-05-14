@@ -117,6 +117,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-traefik.me}`)
       - traefik.http.routers.adguard.entrypoints=websecure
+      - traefik.http.routers.adguard.middlewares=admin-only@file,startup-retry@file
       - traefik.http.services.adguard.loadbalancer.server.port=80
       - homepage.group=Networking
       - homepage.name=AdGuard
