@@ -18,6 +18,9 @@ jobs:
       - name: Validate setup script syntax
         run: |
           bash -n setup-dev.sh
+      - name: Run setup-dev unit tests
+        run: |
+          bash scripts/test-setup-dev.sh
       - name: Run setup-dev script
         run: |
           bash setup-dev.sh

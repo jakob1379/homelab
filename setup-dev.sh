@@ -247,6 +247,7 @@ Run this script before starting the homelab and pods stacks with docker compose.
 EOF
 }
 
+main() {
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -375,3 +376,8 @@ log_info "View main stack status: docker compose ps"
 log_info "View pods stack status: docker compose -f docker-compose.pods.yml ps"
 log_info "Stop main stack: docker compose down"
 log_info "Stop pods stack: docker compose -f docker-compose.pods.yml down"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi
