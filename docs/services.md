@@ -101,7 +101,7 @@ Optional vars:
 | `listmonk-postgres` | internal only | `apps`, `all` | No | app-local PostgreSQL |
 | `cftunnel` | internal only | `tunnel` | No | optional sidecar |
 
-Required var: `LISTMONK_db__password`
+Required var: `LISTMONK_DB_PASSWORD`
 
 ### Immich stack
 
@@ -182,7 +182,7 @@ These are the variables that matter for the active stack.
 | `RUSTFS_ACCESS_KEY` | **RustFS** |
 | `RUSTFS_SECRET_KEY` | **RustFS** |
 | `IMMICH_DB_PASSWORD` | **Immich**, **Immich Power Tools** |
-| `LISTMONK_db__password` | **Listmonk** |
+| `LISTMONK_DB_PASSWORD` | **Listmonk** |
 | `PAPERLESS_DBPASS` | **Paperless-ngx** |
 | `PAPERLESS_ADMIN_PASSWORD` | **Paperless-ngx** |
 | `PAPERLESS_SECRET_KEY` | **Paperless-ngx** |
@@ -198,7 +198,7 @@ These are the variables that matter for the active stack.
 Bootstrap behavior:
 
 - `.env.example` already provides local RustFS defaults.
-- `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, and `DUMBASSETS_SESSION_SECRET` when they are missing.
+- `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_DB_PASSWORD`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, and `DUMBASSETS_SESSION_SECRET` when they are missing.
 - `setup-dev.sh` writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values for local config rendering. Real Gluetun use still needs real VPN credentials.
 - In CI only, `setup-dev.sh` also writes dummy `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and `PAPERLESS_ADMIN_PASSWORD` values so the workflow can render the stack without secrets.
 - For local full-stack runs, set `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and `PAPERLESS_ADMIN_PASSWORD` yourself unless you already provide them through the environment.

@@ -315,7 +315,7 @@ if (( dev_placeholder_failures > 0 )); then
 fi
 
 generated_key_failures=0
-for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_db__password PAPERLESS_SECRET_KEY NEXTAUTH_SECRET MEILI_MASTER_KEY SPEEDTEST_APP_KEY DUMBASSETS_SESSION_SECRET; do
+for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_DB_PASSWORD PAPERLESS_SECRET_KEY NEXTAUTH_SECRET MEILI_MASTER_KEY SPEEDTEST_APP_KEY DUMBASSETS_SESSION_SECRET; do
     if ! ensure_generated_dev_key "$generated_key"; then
         generated_key_failures=1
     fi
@@ -325,7 +325,7 @@ required_vars=(
     ACME_EMAIL
     CF_DNS_API_TOKEN
     IMMICH_DB_PASSWORD
-    LISTMONK_db__password
+    LISTMONK_DB_PASSWORD
     PAPERLESS_DBPASS
     PAPERLESS_ADMIN_PASSWORD
     PAPERLESS_SECRET_KEY
