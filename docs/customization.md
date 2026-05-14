@@ -6,7 +6,7 @@ title: Configuration
 
 Use this guide when you want to add a service that behaves like the current repo, not like the older docs. The recommended path is:
 
-1. create a stack file under `services/`
+1. create an app stack file under `services/apps/`
 2. decide whether the route belongs in **Traefik file-provider config** or direct **Docker labels**
 3. add **Homepage** labels if you want dashboard discovery
 4. validate with the same commands the repo uses in CI
@@ -326,3 +326,4 @@ This is exactly the kind of partial wiring that currently exists for **Listmonk*
 ### Documenting parked files as active services
 
 `services/parked/hermes.yml` is not active until it is added to `docker-compose.yml`. Teable fragments under `docs/examples/` are historical examples, not active service definitions.
+`docs/examples/template-stack.yml` is a generic Swarm template, not a Compose include.
