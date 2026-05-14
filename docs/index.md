@@ -109,8 +109,9 @@ This starts only the Dockhand bootstrap stack. Before rendering or running the m
 ├── docker-compose.yml           # Main stack
 ├── docker-compose.pods.yml      # Dockhand bootstrap stack
 ├── services/                    # Stack definitions included by docker-compose.yml
+├── docs/examples/               # Inactive example fragments
 ├── config/traefik/dyn/          # File-provider routes and Sablier middleware
 └── home-assistant/              # Home Assistant files, included from the main stack
 ```
 
-There are also parked service definitions under `services/` that are not currently included from `docker-compose.yml`, including `hermes.yml` and `teable*.yml`.
+There is also a parked service definition under `services/` that is not currently included from `docker-compose.yml`: `hermes.yml`. Historical Teable Swarm fragments live under `docs/examples/`.

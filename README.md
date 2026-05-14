@@ -185,8 +185,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 ### Sleep behavior right now
 
 - **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
-- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
-- **Important exception**: `listmonk` still has `sablier.*` labels, but `config/traefik/dyn/listmonk.yml` does **not** attach a Sablier middleware. Treat it as not sleeping on request in the current repo.
+- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`, `listmonk`
 
 ---
 
@@ -251,8 +250,11 @@ The active compose config requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for Glu
 These files exist but are **not** included from `docker-compose.yml`:
 
 - `services/hermes.yml`
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+
+Historical Teable Swarm fragments are kept as examples instead of active service definitions:
+
+- `docs/examples/teable.yml`
+- `docs/examples/teable-migrate.yml`
 
 ---
 

@@ -218,18 +218,6 @@ This repo does **not** put every routed app behind **Sablier**.
 - **Bazarr**
 - **Listmonk**
 
-### Current exception: Listmonk
-
-`services/listmonk.yml` still sets:
-
-```yaml
-labels:
-  - sablier.enable=true
-  - sablier.group=listmonk
-```
-
-but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That means the route is not currently using sleep-on-request behavior.
-
 ---
 
 ## Networks
@@ -273,10 +261,10 @@ The service runs in `network_mode: host` for LAN discovery, and **Traefik** reac
 
 ## Parked Definitions
 
-These files exist under `services/` but are not included from `docker-compose.yml`:
+These files exist outside the active include list:
 
 - `services/hermes.yml`
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+- `docs/examples/teable.yml`
+- `docs/examples/teable-migrate.yml`
 
 Do not document them as part of the active stack unless they are added to the root include list.

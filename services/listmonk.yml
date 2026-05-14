@@ -39,8 +39,6 @@ services:
       - LISTMONK_db__max_lifetime=300s
     networks: [traefik_public, listmonk]
     labels:
-      - sablier.enable=true
-      - sablier.group=listmonk
       - homepage.group=Admin Tools
       - homepage.name=Listmonk
       - homepage.icon=listmonk.png

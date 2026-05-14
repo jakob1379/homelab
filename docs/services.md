@@ -210,5 +210,8 @@ Bootstrap behavior:
 These service files exist but are not active because the root include list does not reference them:
 
 - `services/hermes.yml`
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+
+Historical Teable Swarm fragments are retained as examples:
+
+- `docs/examples/teable.yml`
+- `docs/examples/teable-migrate.yml`

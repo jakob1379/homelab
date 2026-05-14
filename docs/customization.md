@@ -325,4 +325,4 @@ This is exactly the kind of partial wiring that currently exists for **Listmonk*
 
 ### Documenting parked files as active services
 
-`services/hermes.yml` and `services/teable*.yml` are not active until they are added to `docker-compose.yml`.
+`services/hermes.yml` is not active until it is added to `docker-compose.yml`. Teable fragments under `docs/examples/` are historical examples, not active service definitions.

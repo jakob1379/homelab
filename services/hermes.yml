@@ -1,7 +1,7 @@
 ---
 services:
   hermes:
-    image: nousresearch/hermes-agent:latest
+    image: nousresearch/hermes-agent@sha256:860b1157658cdbcf73318336c24186ecca531734048baf0019af1c4ff8050738
     container_name: hermes
     restart: unless-stopped
     command: gateway run
@@ -21,7 +21,7 @@ services:
           memory: 4g
           cpus: '2.0'
   dashboard:
-    image: nousresearch/hermes-agent:latest
+    image: nousresearch/hermes-agent@sha256:860b1157658cdbcf73318336c24186ecca531734048baf0019af1c4ff8050738
     container_name: hermes-dashboard
     restart: unless-stopped
     command: dashboard --host 0.0.0.0 --insecure
