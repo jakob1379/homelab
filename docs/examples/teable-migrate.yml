@@ -12,6 +12,7 @@ services:
       /usr/bin/mc anonymous set public teable-storage/public;
       /usr/bin/mc mb --ignore-existing teable-storage/private;
       "
+    # One-shot Swarm task: create buckets once and do not restart.
     deploy:
       replicas: 1
       restart_policy:
@@ -19,6 +20,7 @@ services:
   teable-db-migrate:
     image: ghcr.io/teableio/teable-db-migrate@sha256:f046bef9c10888af0fc3e78c92dda8d47fe8ffdc09b3fb77cc2c298253dd3e2d
     env_file: [./.env-teable]
+    # One-shot Swarm task: run database migrations once and do not restart.
     deploy:
       replicas: 1
       restart_policy:
