@@ -222,7 +222,7 @@ Current facts:
 - `gluetun` is active for `torrent`, `sonarr`, and `radarr`
 - `gluetun` carries `torrent`, `sonarr`, and `radarr` aliases on `media`
 - `bazarr` is directly attached to `media` and `traefik_public`
-- `prowlarr` has no profile
+- `prowlarr` is directly attached to `media` and `traefik_public`
 - **Seerr** is still routed through a file-provider **Sablier** route
 - `setup-dev.sh` requires `OPENVPN_USER` and `OPENVPN_PASSWORD`
 

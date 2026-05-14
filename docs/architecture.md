@@ -96,14 +96,6 @@ $ docker compose --profile service up -d ha
 !!! note
     `ha` is also in `profiles: [apps, all, service]`, so `docker compose --profile apps up -d ha` still works. `service` is just the narrower switch.
 
-### Important profile footgun
-
-`prowlarr` in `services/media.yml` currently has **no profile**. In Compose, that means it is part of the default service set for the main stack.
-
-Treat that as current behavior, not a clean design choice.
-
----
-
 ## Routing Model
 
 This repo uses both **Traefik** providers.

@@ -196,6 +196,7 @@ services:
     environment: [HOST=0.0.0.0, PORT=8192, LOG_LEVEL=INFO]
     restart: unless-stopped
   prowlarr:
+    profiles: [apps, all]
     image: lscr.io/linuxserver/prowlarr@sha256:b4204e18666179472225935b443a99cf6c66dcb7bbc2d35034427a3851f13135
     networks: [traefik_public, media]
     environment: [PUID=1000, PGID=1000, TZ=Etc/UTC]

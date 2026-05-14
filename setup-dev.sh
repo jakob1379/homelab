@@ -22,6 +22,15 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $*"
 }
 
+flush_current_env_ref() {
+    local current_path="$1"
+    local current_required="$2"
+
+    if [[ -n "$current_path" && $current_required -eq 1 ]]; then
+        printf '%s\n' "$current_path"
+    fi
+}
+
 collect_required_env_refs() {
     local file="$1"
     local in_env_block=0
@@ -35,9 +44,7 @@ collect_required_env_refs() {
         indent=$(( ${#line} - ${#trimmed_line} ))
 
         if (( in_env_block )) && [[ -n "$trimmed_line" ]] && (( indent <= env_indent )); then
-            if [[ -n "$current_path" && $current_required -eq 1 ]]; then
-                printf '%s\n' "$current_path"
-            fi
+            flush_current_env_ref "$current_path" "$current_required"
             in_env_block=0
             current_path=""
             current_required=1
@@ -60,9 +67,7 @@ collect_required_env_refs() {
 
         if (( in_env_block )); then
             if [[ $trimmed_line =~ ^-[[:space:]]+path:[[:space:]]*(\.?/\.env-[A-Za-z0-9_-]+)[[:space:]]*$ ]]; then
-                if [[ -n "$current_path" && $current_required -eq 1 ]]; then
-                    printf '%s\n' "$current_path"
-                fi
+                flush_current_env_ref "$current_path" "$current_required"
                 current_path="${BASH_REMATCH[1]}"
                 current_required=1
                 continue
@@ -74,8 +79,8 @@ collect_required_env_refs() {
         fi
     done < "$file"
 
-    if (( in_env_block )) && [[ -n "$current_path" && $current_required -eq 1 ]]; then
-        printf '%s\n' "$current_path"
+    if (( in_env_block )); then
+        flush_current_env_ref "$current_path" "$current_required"
     fi
 }
 
