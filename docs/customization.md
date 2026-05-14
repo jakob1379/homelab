@@ -21,8 +21,8 @@ This example adds a small sleep-managed service using the same pattern as **IT T
 
 ### Step 1: create the stack file
 
-```bash title="Create services/custom-demo.yml"
-$ cat > services/custom-demo.yml <<'EOF'
+```bash title="Create services/apps/custom-demo.yml"
+$ cat > services/apps/custom-demo.yml <<'EOF'
 ---
 services:
   demo:
@@ -84,7 +84,7 @@ Add this line to the root include list:
 
 ```yaml title="docker-compose.yml"
 include:
-  - services/custom-demo.yml
+  - services/apps/custom-demo.yml
 ```
 
 ### Step 4: validate and start it
@@ -151,7 +151,7 @@ Copy this when you want the same behavior as `keep`, `home`, or `ittools`.
 
 ### Service definition
 
-```yaml title="services/myapp.yml"
+```yaml title="services/apps/myapp.yml"
 services:
   myapp:
     profiles: [apps, all]
@@ -210,7 +210,7 @@ If they do not match, the route will not wake correctly.
 
 Copy this when you want the same style as **Immich**.
 
-```yaml title="services/immich.yml"
+```yaml title="services/apps/immich.yml"
 services:
   immich-server:
     networks: [traefik_public, immich]
@@ -325,4 +325,4 @@ This is exactly the kind of partial wiring that currently exists for **Listmonk*
 
 ### Documenting parked files as active services
 
-`services/hermes.yml` is not active until it is added to `docker-compose.yml`. Teable fragments under `docs/examples/` are historical examples, not active service definitions.
+`services/parked/hermes.yml` is not active until it is added to `docker-compose.yml`. Teable fragments under `docs/examples/` are historical examples, not active service definitions.

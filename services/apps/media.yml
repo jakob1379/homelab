@@ -43,8 +43,8 @@ services:
       - jellyfin_config:/config
       - jellyfin_cache:/cache
       - media_data:/data
-      - ../config/jellyfin/custom-progress.css:/usr/share/jellyfin/web/custom-progress.css:ro
-      - ../config/jellyfin/99-custom-web-css.sh:/custom-cont-init.d/99-custom-web-css.sh:ro
+      - ../../config/jellyfin/custom-progress.css:/usr/share/jellyfin/web/custom-progress.css:ro
+      - ../../config/jellyfin/99-custom-web-css.sh:/custom-cont-init.d/99-custom-web-css.sh:ro
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}

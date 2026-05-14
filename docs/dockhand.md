@@ -36,7 +36,7 @@ During bootstrap, `https://docker.${DOMAIN}` does not exist yet because the main
 
 ## Step 1: Prepare The Stack Variables
 
-The main stack is not optional about TLS inputs. `services/networking.yml` requires:
+The main stack is not optional about TLS inputs. `services/infra/networking.yml` requires:
 
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`

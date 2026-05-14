@@ -36,7 +36,7 @@ def as_label_map(labels: list[str] | dict[str, str] | None) -> dict[str, str]:
 
 def sablier_groups_from_services() -> dict[str, str]:
     groups: dict[str, str] = {}
-    for path in sorted(SERVICES_DIR.glob("*.yml")):
+    for path in sorted(SERVICES_DIR.rglob("*.yml")):
         services = load_yaml(path).get("services", {})
         for name, service in services.items():
             labels = as_label_map(service.get("labels"))

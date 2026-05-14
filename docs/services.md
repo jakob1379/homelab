@@ -37,7 +37,7 @@ $ curl -k https://speed.traefik.me
 
 | Service | Access | Compose file | Sleep | Notes |
 |---|---|---|---|---|
-| **Dockhand** | `http://localhost:3000` during bootstrap, `https://docker.${DOMAIN}` after the main stack is up | `services/pods.yml` via `docker-compose.pods.yml` | No | separate stack on shared `traefik_public` |
+| **Dockhand** | `http://localhost:3000` during bootstrap, `https://docker.${DOMAIN}` after the main stack is up | `services/bootstrap/pods.yml` via `docker-compose.pods.yml` | No | separate stack on shared `traefik_public` |
 
 ---
 
@@ -107,7 +107,7 @@ Required var: `LISTMONK_db__password`
 
 | Service | Access | Profile(s) | Sleep | Notes |
 |---|---|---|---|---|
-| **immich-server** | `https://photos.${DOMAIN}` | `apps`, `all` | No | Docker-label route in `services/immich.yml` |
+| **immich-server** | `https://photos.${DOMAIN}` | `apps`, `all` | No | Docker-label route in `services/apps/immich.yml` |
 | `immich-microservices` | internal only | `apps`, `all` | No | background workers |
 | `immich-machine-learning` | internal only | `apps`, `all` | No | ML service |
 | `redis` | internal only | `apps`, `all` | No | queue/cache |
@@ -209,7 +209,7 @@ Bootstrap behavior:
 
 These service files exist but are not active because the root include list does not reference them:
 
-- `services/hermes.yml`
+- `services/parked/hermes.yml`
 
 Historical Teable Swarm fragments are retained as examples:
 

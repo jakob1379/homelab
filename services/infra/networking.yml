@@ -14,8 +14,8 @@ services:
     volumes:
       - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ../config/traefik/dyn:/etc/traefik/dyn:ro
-      - ../config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ../../config/traefik/dyn:/etc/traefik/dyn:ro
+      - ../../config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
     networks: [traefik_public]
     extra_hosts:
       - host.docker.internal:host-gateway

@@ -10,7 +10,7 @@ services:
       - HOMEPAGE_ALLOWED_HOSTS=home.${DOMAIN:-traefik.me}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ../config/homepage:/app/config
+      - ../../config/homepage:/app/config
       - homepage_logs:/app/config/logs
     labels: [sablier.enable=true, sablier.group=home]
     restart: unless-stopped

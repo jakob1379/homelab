@@ -47,20 +47,20 @@ This is the runtime stack. It includes the active definitions under `services/` 
 
 ```yaml title="docker-compose.yml"
 include:
-  - services/networking.yml
-  - services/rustfs.yml
-  - services/tools.yml
-  - services/omni-tools.yml
-  - services/speedtest-tracker.yml
-  - services/vert.yml
-  - services/anythingllm.yml
-  - services/listmonk.yml
-  - services/karakeep.yml
-  - services/immich.yml
-  - services/paperless-ngx.yml
-  - services/dumbassets.yml
-  - services/media.yml
-  - services/homepage.yml
+  - services/infra/networking.yml
+  - services/infra/rustfs.yml
+  - services/apps/tools.yml
+  - services/apps/omni-tools.yml
+  - services/apps/speedtest-tracker.yml
+  - services/apps/vert.yml
+  - services/apps/anythingllm.yml
+  - services/apps/listmonk.yml
+  - services/apps/karakeep.yml
+  - services/apps/immich.yml
+  - services/apps/paperless-ngx.yml
+  - services/apps/dumbassets.yml
+  - services/apps/media.yml
+  - services/apps/homepage.yml
   - home-assistant/docker-compose.yml
 ```
 
@@ -70,10 +70,10 @@ This is intentionally small.
 
 ```yaml title="docker-compose.pods.yml"
 include:
-  - services/pods.yml
+  - services/bootstrap/pods.yml
 ```
 
-`services/pods.yml` defines only **Dockhand**.
+`services/bootstrap/pods.yml` defines only **Dockhand**.
 
 ---
 
@@ -84,7 +84,7 @@ include:
 | `infra` | **Traefik**, **Sablier**, **RustFS**, **AdGuard**, **NetAlertX**, **whoami** |
 | `apps` | Most application services |
 | `all` | Convenience profile for the full main stack |
-| `tunnel` | `cftunnel` in `services/listmonk.yml` |
+| `tunnel` | `cftunnel` in `services/apps/listmonk.yml` |
 | `service` | Narrow profile currently used by **Home Assistant** |
 
 ```bash title="Start only Home Assistant with its narrow profile"
@@ -126,9 +126,9 @@ That route lives in the file provider because it needs both:
 
 ### Docker-label route example
 
-`services/immich.yml` is the direct-label pattern.
+`services/apps/immich.yml` is the direct-label pattern.
 
-```yaml title="services/immich.yml"
+```yaml title="services/apps/immich.yml"
 labels:
   - traefik.enable=true
   - traefik.docker.network=traefik_public
@@ -164,11 +164,11 @@ That is the simpler option when you do not need a file-provider middleware chain
 
 #### Direct Docker-label routes
 
-- `traefik` dashboard from `services/networking.yml`
-- `adguard` from `services/networking.yml`
-- `dockhand` from `services/pods.yml`
-- `immich` from `services/immich.yml`
-- `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr` from `services/media.yml`
+- `traefik` dashboard from `services/infra/networking.yml`
+- `adguard` from `services/infra/networking.yml`
+- `dockhand` from `services/bootstrap/pods.yml`
+- `immich` from `services/apps/immich.yml`
+- `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr` from `services/apps/media.yml`
 
 ---
 
@@ -228,7 +228,7 @@ This repo does **not** put every routed app behind **Sablier**.
 
 ### Current media-stack reality
 
-`services/media.yml` runs **Gluetun** for the download-automation path.
+`services/apps/media.yml` runs **Gluetun** for the download-automation path.
 
 That means:
 
@@ -258,7 +258,7 @@ The service runs in `network_mode: host` for LAN discovery, and **Traefik** reac
 
 These files exist outside the active include list:
 
-- `services/hermes.yml`
+- `services/parked/hermes.yml`
 - `docs/examples/teable.yml`
 - `docs/examples/teable-migrate.yml`
 
