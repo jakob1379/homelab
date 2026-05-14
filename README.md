@@ -7,7 +7,7 @@
 
 > **Docker Compose homelab with two entrypoints.** `docker-compose.yml` runs the main stack. `docker-compose.pods.yml` boots **Dockhand** as the separate control plane.
 
-This repo is not zero-config anymore. The **Dockhand** bootstrap path is easy. The full **Traefik** stack still expects `ACME_EMAIL` and `CF_DNS_API_TOKEN` because `config/traefik/traefik.yml` is wired for **Cloudflare DNS-01** from the start.
+This repo defaults to local HTTP routing through **Traefik** at `http://<service>.localhost`. Production HTTPS is still handled by the alternate Cloudflare DNS-01 Traefik config.
 
 ---
 
@@ -51,8 +51,6 @@ $ ./setup-dev.sh
 [INFO] Generated development key: NEXTAUTH_SECRET
 [INFO] Generated development key: MEILI_MASTER_KEY
 [WARN] Missing required variables for docker compose --profile all:
- - ACME_EMAIL
- - CF_DNS_API_TOKEN
  - PAPERLESS_ADMIN_PASSWORD
  ...
 [INFO] Setup complete!
@@ -65,8 +63,6 @@ Fill the values you actually need, then start the profiles you want.
 ```bash title="Start infra first, then add apps"
 # 2. Add the required values to .env
 $ cat >> .env <<'EOF'
-ACME_EMAIL=you@example.com
-CF_DNS_API_TOKEN=your_cloudflare_token
 PAPERLESS_ADMIN_PASSWORD=change-me
 EOF
 
@@ -84,13 +80,13 @@ $ docker compose --profile apps up -d home keep
  ✔ Container homelab-keep-1      Started
 
 # 5. Verify a routed endpoint
-$ curl -k https://whoami.traefik.me
+$ curl http://whoami.localhost
 Hostname: homelab-whoami-1
 IP: 172.20.0.2
 ```
 
 !!! note
-    `traefik.me` is still the local default domain. It resolves to `127.0.0.1`, so local routing works once the main stack is up.
+    Use service subdomains such as `http://whoami.localhost` or `http://traefik.localhost`. A request to plain `http://localhost` will not match a Traefik router.
 
 ---
 
@@ -179,7 +175,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **Bazarr**
 - **Radarr**
 - **Sonarr**
-- **torrent** (`https://torrent.${DOMAIN}`)
+- **torrent** (`${PUBLIC_SCHEME}://torrent.${DOMAIN}`)
 - **Traefik dashboard**
 
 ### Sleep behavior right now
@@ -225,14 +221,15 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 
 ## Current Caveats
 
-### 1. The main stack still expects Cloudflare values
+### 1. Production HTTPS is opt-in
 
-Even in local development, `traefik` requires:
+Local development uses `config/traefik/traefik.yml` with plain HTTP on `web`. For production HTTPS, set:
 
+- `PUBLIC_SCHEME=https`
+- `TRAEFIK_ENTRYPOINT=websecure`
+- `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
-
-That is not optional in the current compose setup.
 
 ### 2. The media stack still depends on Gluetun
 

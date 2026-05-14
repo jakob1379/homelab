@@ -39,7 +39,7 @@ $ curl -I http://localhost:3000
 HTTP/1.1 200 OK
 ```
 
-If that works but `https://docker.${DOMAIN}` does not, the main **Traefik** stack is not up yet.
+If that works but `${PUBLIC_SCHEME}://docker.${DOMAIN}` does not, the main **Traefik** stack is not up yet.
 
 Fix:
 
@@ -55,7 +55,7 @@ The usual reason is missing required variables.
 
 ```bash title="Render the main stack and read the first failure"
 $ docker compose --profile all config
-required variable CF_DNS_API_TOKEN is missing a value: Set CF_DNS_API_TOKEN in .env, direnv, or Dockhand
+required variable HOMELAB_HOST_IP is missing a value: Run setup-dev.sh or set HOMELAB_HOST_IP to the Docker host IP reachable from Traefik
 ```
 
 Run the bootstrap script first:
@@ -64,15 +64,15 @@ Run the bootstrap script first:
 $ ./setup-dev.sh
 ```
 
-It generates app keys and writes dummy `OPENVPN_USER` / `OPENVPN_PASSWORD` values so the full stack can render. Those OpenVPN values are only placeholders; replace them before running Gluetun-backed media automation.
+It detects `HOMELAB_HOST_IP`, generates app keys, and writes dummy `OPENVPN_USER` / `OPENVPN_PASSWORD` values so the full stack can render. Those OpenVPN values are only placeholders; replace them before running Gluetun-backed media automation.
 
-The current repo still expects these local values for the main ingress and Paperless paths:
+The current repo still expects this local value for Paperless:
 
-- `ACME_EMAIL`
-- `CF_DNS_API_TOKEN`
 - `PAPERLESS_ADMIN_PASSWORD`
 
-In CI, `setup-dev.sh` fills those three with dummy values. Locally, set them in `.env`, direnv, or Dockhand unless you already export them.
+In CI, `setup-dev.sh` fills `PAPERLESS_ADMIN_PASSWORD` plus dummy production ACME values. Locally, set `PAPERLESS_ADMIN_PASSWORD` in `.env`, direnv, or Dockhand unless you already export it.
+
+For production HTTPS renders, also set `PUBLIC_SCHEME=https`, `TRAEFIK_ENTRYPOINT=websecure`, `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 If you only want the control plane, use `docker-compose.pods.yml` instead of fighting the full stack.
 
@@ -157,12 +157,12 @@ $ printf '%s\n' 'ADGUARD_DNS_PORT=1053' >> .env
 
 ---
 
-## Local Browser Shows A Certificate Warning
+## Production Browser Shows A Certificate Warning
 
-That is expected when you run the local `traefik.me` path without a trusted local CA.
+Local development should use plain HTTP, for example:
 
-```bash title="Use curl with the insecure flag in local dev"
-$ curl -k https://whoami.traefik.me
+```bash title="Check the local route"
+$ curl http://whoami.localhost
 Hostname: homelab-whoami-1
 ```
 
@@ -187,8 +187,8 @@ $ docker compose --profile service up -d ha
 # 2. Verify the dynamic route file exists
 $ ls config/traefik/dyn/ha.yml
 
-# 3. Check that Traefik can serve the HA manifest through HTTPS
-$ curl -k https://ha.${DOMAIN}/manifest.json
+# 3. Check that Traefik can serve the HA manifest
+$ curl ${PUBLIC_SCHEME:-http}://ha.${DOMAIN:-localhost}/manifest.json
 ```
 
 If step 3 hangs instead of failing quickly, check whether the Home Assistant

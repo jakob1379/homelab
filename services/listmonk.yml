@@ -44,7 +44,7 @@ services:
       - homepage.group=Admin Tools
       - homepage.name=Listmonk
       - homepage.icon=listmonk.png
-      - homepage.href=https://listmonk.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://listmonk.${DOMAIN:-localhost}
       - homepage.description=Send email newsletters to groups
     command:
       - sh

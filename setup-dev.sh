@@ -316,8 +316,6 @@ for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_db__password P
 done
 
 required_vars=(
-    ACME_EMAIL
-    CF_DNS_API_TOKEN
     IMMICH_DB_PASSWORD
     LISTMONK_db__password
     PAPERLESS_DBPASS

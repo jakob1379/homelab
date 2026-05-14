@@ -24,7 +24,7 @@ $ docker compose --profile infra up -d
  ✔ Container homelab-rustfs-1    Started
 
 # 3. Inspect live routers
-$ curl -sk https://traefik.traefik.me/api/http/routers | jq -r '.[].name'
+$ curl -s http://traefik.localhost/api/http/routers | jq -r '.[].name'
 api@docker
 dockhand@docker
 whoami@file
@@ -121,7 +121,7 @@ http:
   routers:
     keep:
       rule: Host(`keep.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: keep
       middlewares: [sablier-keep@file, startup-retry@file]
 ```
@@ -139,8 +139,8 @@ That route lives in the file provider because it needs both:
 labels:
   - traefik.enable=true
   - traefik.docker.network=traefik_public
-  - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-traefik.me}`)
-  - traefik.http.routers.immich.entrypoints=websecure
+  - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost}`)
+  - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
   - traefik.http.services.immich.loadbalancer.server.port=2283
 ```
 

@@ -2,8 +2,9 @@
 set -uo pipefail
 
 interval_seconds=${SPEEDTEST_TRIGGER_INTERVAL_SECONDS:-3600}
-speedtest_host="speed.${DOMAIN:-traefik.me}"
-traefik_url=${SPEEDTEST_TRIGGER_TRAEFIK_URL:-https://traefik}
+speedtest_host="speed.${DOMAIN:-localhost}"
+public_scheme=${PUBLIC_SCHEME:-http}
+traefik_url=${SPEEDTEST_TRIGGER_TRAEFIK_URL:-${public_scheme}://traefik}
 
 log() {
     printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*"

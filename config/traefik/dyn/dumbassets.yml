@@ -3,7 +3,7 @@ http:
   routers:
     dumbassets:
       rule: Host(`assets.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: dumbassets
       middlewares: [sablier-dumbassets@file, startup-retry@file]
   services:

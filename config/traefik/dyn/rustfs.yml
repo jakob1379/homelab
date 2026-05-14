@@ -3,12 +3,12 @@ http:
   routers:
     rustfs-api:
       rule: Host(`rustfs-api.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: rustfs-api
       middlewares: [startup-retry@file]
     rustfs-console:
       rule: Host(`rustfs.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: rustfs-console
       middlewares: [startup-retry@file]
   services:

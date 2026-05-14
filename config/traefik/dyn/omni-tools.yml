@@ -3,7 +3,7 @@ http:
   routers:
     omni-tools:
       rule: Host(`omni.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: omni-tools
       middlewares: [sablier-omni-tools@file, startup-retry@file]
   services:

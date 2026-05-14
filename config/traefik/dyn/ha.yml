@@ -3,7 +3,7 @@ http:
   routers:
     ha:
       rule: Host(`ha.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: ha
   services:
     ha:

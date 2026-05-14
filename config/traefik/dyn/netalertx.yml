@@ -3,7 +3,7 @@ http:
   routers:
     netalertx:
       rule: Host(`netalertx.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: netalertx
       middlewares: [startup-retry@file]
   services:
