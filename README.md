@@ -113,6 +113,7 @@ include:
   - services/karakeep.yml
   - services/immich.yml
   - services/paperless-ngx.yml
+  - services/dumbassets.yml
   - services/media.yml
   - services/homepage.yml
   - home-assistant/docker-compose.yml
@@ -184,7 +185,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 
 ### Sleep behavior right now
 
-- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
+- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `dumbassets`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
 - **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`, `listmonk`
 
 ---
@@ -207,6 +208,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **IT Tools**
 - **CloudBeaver**
 - **BentoPDF**
+- **DumbAssets**
 - **Omni Tools**
 - **VERT**
 - **Speedtest Tracker**

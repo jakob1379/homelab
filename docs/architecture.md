@@ -58,6 +58,7 @@ include:
   - services/karakeep.yml
   - services/immich.yml
   - services/paperless-ngx.yml
+  - services/dumbassets.yml
   - services/media.yml
   - services/homepage.yml
   - home-assistant/docker-compose.yml
@@ -153,6 +154,7 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `anythingllm.yml`
 - `bentopdf.yml`
 - `cbeaver.yml`
+- `dumbassets.yml`
 - `ha.yml`
 - `home.yml`
 - `immich-power-tools.yml`
@@ -193,6 +195,7 @@ This repo does **not** put every routed app behind **Sablier**.
 | `anythingllm` | `anythingllm.yml` | `30m` |
 | `bentopdf` | `bentopdf.yml` | `30m` |
 | `cbeaver` | `cbeaver.yml` | `30m` |
+| `dumbassets` | `dumbassets.yml` | `30m` |
 | `home` | `home.yml` | `30m` |
 | `immich-power-tools` | `immich-power-tools.yml` | `30m` |
 | `ittools` | `ittools.yml` | `30m` |
