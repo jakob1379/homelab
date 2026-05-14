@@ -119,7 +119,7 @@ has_active_speedtest() {
             return 2
         fi
 
-        if [[ ! $response =~ "data"[[:space:]]*:[[:space:]]*\[\] ]]; then
+        if [[ ! $response =~ \"data\"[[:space:]]*:[[:space:]]*\[\] ]]; then
             return 0
         fi
     done
@@ -139,4 +139,6 @@ main() {
     done
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

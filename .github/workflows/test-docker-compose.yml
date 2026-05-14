@@ -21,6 +21,9 @@ jobs:
       - name: Run setup-dev unit tests
         run: |
           bash scripts/test-setup-dev.sh
+      - name: Run Speedtest trigger tests
+        run: |
+          bash scripts/test-speedtest-trigger.sh
       - name: Run setup-dev script
         run: |
           bash setup-dev.sh
