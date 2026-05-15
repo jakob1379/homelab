@@ -10,7 +10,7 @@ http:
       loadBalancer:
         serversTransport: ha-timeouts
         servers:
-          - url: http://ha:8123/
+          - url: http://host.docker.internal:8123/
   serversTransports:
     ha-timeouts:
       forwardingTimeouts:

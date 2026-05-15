@@ -177,7 +177,7 @@ If this is production and you still get a bad cert, check:
 
 ## Home Assistant Hangs Or Shows "Retrying"
 
-In the current repo, **Home Assistant** joins `traefik_public`. **Traefik** reaches it through the file provider at `http://ha:8123/`.
+In the current repo, **Home Assistant** runs in `network_mode: host` so LAN discovery can use the host network. **Traefik** reaches it through the file provider at `http://host.docker.internal:8123/`.
 
 ```bash title="Check the Home Assistant route path"
 # 1. Bring up Traefik and Home Assistant
@@ -195,14 +195,14 @@ If step 3 hangs instead of failing quickly, check whether the Home Assistant
 backend is reachable from the **Traefik** container:
 
 ```bash title="Check Traefik-to-Home Assistant reachability"
-$ docker compose exec traefik wget -O- http://ha:8123/manifest.json
+$ docker compose exec traefik wget -O- http://host.docker.internal:8123/manifest.json
 ```
 
 If that fails, compare these pieces:
 
-- `networks: [traefik_public]` in `home-assistant/docker-compose.yml`
+- `network_mode: host` in `home-assistant/docker-compose.yml`
 - `config/traefik/dyn/ha.yml`
-- the `traefik_public` network definition in `services/networking.yml`
+- `extra_hosts: [host.docker.internal:host-gateway]` on Traefik
 
 The HA router intentionally does **not** use the shared `startup-retry@file`
 middleware. Home Assistant is not Sablier-managed, and retrying a dead host

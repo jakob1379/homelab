@@ -226,9 +226,9 @@ Use this pattern when the container joins `traefik_public`, you do not need **Sa
 
 ---
 
-## Pattern C: Service-Network Route With File Provider
+## Pattern C: Explicit Backend Route With File Provider
 
-Copy this when the app joins `traefik_public` but needs a file-provider middleware chain or explicit backend URL, like **Home Assistant** or **NetAlertX**.
+Copy this when the app needs a file-provider middleware chain or explicit backend URL, like host-networked **Home Assistant** or **NetAlertX**.
 
 ```yaml title="config/traefik/dyn/ha.yml"
 http:
@@ -237,15 +237,14 @@ http:
       rule: Host(`ha.{{ env "DOMAIN" }}`)
       entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: ha
-      middlewares: [startup-retry@file]
   services:
     ha:
       loadBalancer:
         servers:
-          - url: http://ha:8123/
+          - url: http://host.docker.internal:8123/
 ```
 
-Use this pattern when Docker labels are not enough but **Traefik** can still reach the container by service name on `traefik_public`.
+Use this pattern when Docker labels are not enough and **Traefik** needs a specific backend target instead of Docker service discovery.
 
 ---
 

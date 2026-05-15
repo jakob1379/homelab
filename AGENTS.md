@@ -50,8 +50,8 @@ Treat these as likely to break routing or deployment:
 
 ## Traefik footgun
 - For the minimum Docker-label Traefik exposure without file-provider routing or Sablier, copy the pattern from `services/immich.yml`: join `traefik_public`, set `traefik.enable=true`, add a router rule, set `entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}`, and set the internal service port with `traefik.http.services.<name>.loadbalancer.server.port=<port>`
-- For file-provider routing, keep the service on `traefik_public` and target the service name, as in `config/traefik/dyn/ha.yml` or `config/traefik/dyn/netalertx.yml`
-- If Traefik cannot reach the container, check network attachment and the file-provider target first
+- For file-provider routing, keep normal services on `traefik_public` and target the service name, as in `config/traefik/dyn/netalertx.yml`; for host-networked services such as Home Assistant, target `host.docker.internal:<port>` as in `config/traefik/dyn/ha.yml`
+- If Traefik cannot reach the container, check network attachment for normal services and the file-provider target for host-networked services
 
 ## Homepage footgun
 - In this repo, Homepage service entries mostly come from Docker labels, not `config/homepage/services.yaml` (currently empty)

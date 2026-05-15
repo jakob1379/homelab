@@ -159,7 +159,7 @@ Current caveat:
 
 | Service | Access | Profile(s) | Routing source | Sleep | Notes |
 |---|---|---|---|---|---|
-| **ha** | `${PUBLIC_SCHEME}://ha.${DOMAIN}` | `apps`, `all`, `service` | `config/traefik/dyn/ha.yml` | No | files live under `home-assistant/` |
+| **ha** | `${PUBLIC_SCHEME}://ha.${DOMAIN}` | `apps`, `all`, `service` | `config/traefik/dyn/ha.yml` | No | host networking for LAN discovery; files live under `home-assistant/` |
 
 Narrow start command:
 

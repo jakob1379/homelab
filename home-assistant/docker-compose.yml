@@ -5,7 +5,7 @@ services:
   ha:
     profiles: [apps, all, service]
     image: homeassistant/home-assistant:2026.4.1
-    networks: [traefik_public]
+    network_mode: host
     volumes:
       - ha_config:/config
       - ./configuration.yaml:/config/configuration.yaml:ro
@@ -36,8 +36,3 @@ services:
       retries: 10
       start_period: 180s
     restart: unless-stopped
-networks:
-  traefik_public:
-    name: traefik_public
-    driver: bridge
-    attachable: true

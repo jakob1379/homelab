@@ -267,7 +267,7 @@ home-assistant/
 └── configuration.yaml
 ```
 
-The service joins `traefik_public` for local routed access, and **Traefik** reaches it through `config/traefik/dyn/ha.yml` at `http://ha:8123/`.
+The service runs in `network_mode: host` for LAN discovery, and **Traefik** reaches it through `config/traefik/dyn/ha.yml` at `http://host.docker.internal:8123/`.
 
 ---
 
