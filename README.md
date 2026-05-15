@@ -230,9 +230,9 @@ Run `setup-dev.sh` to create the mkcert-backed files for
 docker compose --profile all up --wait
 ```
 
-For production ACME certificates, set:
+For production ACME certificates, start the stack with both the base file and the production override:
 
-- start with `docker compose -f docker-compose.prod.yml --profile all up -d`
+- `docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all up -d`
 - `DOMAIN`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`

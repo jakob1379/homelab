@@ -26,12 +26,12 @@ jobs:
           DOMAIN=localhost.me docker compose --profile all config
       - name: Validate production HTTPS Traefik configuration
         run: |
-          DOMAIN=lab.example.test ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose -f docker-compose.prod.yml --profile all config
+          DOMAIN=lab.example.test ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all config
       - name: Verify production HTTPS requires ACME secrets
         run: |-
           : >/tmp/prod-empty.env
           set +e
-          env -u CF_DNS_API_TOKEN -u ACME_EMAIL DOMAIN=lab.example.test docker compose --env-file /tmp/prod-empty.env -f docker-compose.prod.yml --profile all config >/tmp/prod-missing.out 2>&1
+          env -u CF_DNS_API_TOKEN -u ACME_EMAIL DOMAIN=lab.example.test docker compose --env-file /tmp/prod-empty.env -f docker-compose.yml -f docker-compose.prod.yml --profile all config >/tmp/prod-missing.out 2>&1
           status=$?
           set -e
           test "$status" -ne 0

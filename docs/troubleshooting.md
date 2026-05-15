@@ -72,7 +72,7 @@ The current repo still expects this local value for Paperless:
 
 In CI, `setup-dev.sh` fills `PAPERLESS_ADMIN_PASSWORD`. Locally, set `PAPERLESS_ADMIN_PASSWORD` in `.env`, direnv, or Dockhand unless you already export it.
 
-For production ACME renders, use `docker compose -f docker-compose.prod.yml --profile all config` and set `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
+For production ACME renders, use `docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all config` and set `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 If you only want the control plane, use `docker-compose.pods.yml` instead of fighting the full stack.
 
