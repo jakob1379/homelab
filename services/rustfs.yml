@@ -21,7 +21,7 @@ services:
       - homepage.group=Admin Tools
       - homepage.name=RustFS
       - homepage.icon=rustfs.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://rustfs.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://rustfs.${DOMAIN:-localhost.direct}
       - homepage.description=Cloud file storage for backups
     restart: unless-stopped
     healthcheck:

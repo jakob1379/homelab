@@ -6,31 +6,29 @@ services:
     ports: [80:80, 443:443]
     environment:
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:-}
-      - DOMAIN=${DOMAIN:-localhost}
-      - TRAEFIK_ENTRYPOINT=${TRAEFIK_ENTRYPOINT:-web}
+      - DOMAIN=${DOMAIN:-localhost.direct}
+      - TRAEFIK_ENTRYPOINT=${TRAEFIK_ENTRYPOINT:-websecure}
       - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${ACME_EMAIL:-}
     command: [--configFile=/etc/traefik/traefik.yml]
     volumes:
       - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ../config/traefik/dyn:/etc/traefik/dyn:ro
+      - ../config/traefik/certs:/etc/traefik/certs:ro
       - ${TRAEFIK_STATIC_CONFIG:-../config/traefik/traefik.yml}:/etc/traefik/traefik.yml:ro
     networks: [traefik_public]
-    extra_hosts:
-      - host.docker.internal:host-gateway
-      - homelab:${HOMELAB_HOST_IP:?Run setup-dev.sh or set HOMELAB_HOST_IP to the
-        Docker host IP reachable from Traefik}
+    extra_hosts: [host.docker.internal:host-gateway]
     labels:
       - traefik.enable=true
       # Traefik dashboard
-      - traefik.http.routers.api.rule=Host(`traefik.${DOMAIN:-localhost}`)
+      - traefik.http.routers.api.rule=Host(`traefik.${DOMAIN:-localhost.direct}`)
       - traefik.http.routers.api.service=api@internal
-      - traefik.http.routers.api.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
+      - traefik.http.routers.api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.services.traefik.loadbalancer.server.port=8080
       - homepage.group=Networking
       - homepage.name=Traefik
       - homepage.icon=traefik.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://traefik.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://traefik.${DOMAIN:-localhost.direct}
       - homepage.description=Reverse proxy and routing dashboard
       - homepage.siteMonitor=http://traefik:8081/ping
     restart: unless-stopped
@@ -87,7 +85,7 @@ services:
       - homepage.group=Admin Tools
       - homepage.name=Whoami
       - homepage.icon=whoami.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://whoami.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://whoami.${DOMAIN:-localhost.direct}
       - homepage.description=Check your connection details
     restart: unless-stopped
     deploy:
@@ -113,13 +111,13 @@ services:
     networks: [traefik_public]
     labels:
       - traefik.enable=true
-      - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-localhost}`)
-      - traefik.http.routers.adguard.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
-      - traefik.http.services.adguard.loadbalancer.server.port=80
+      - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-localhost.direct}`)
+      - traefik.http.routers.adguard.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.services.adguard.loadbalancer.server.port=3000
       - homepage.group=Networking
       - homepage.name=AdGuard
       - homepage.icon=adguard-home.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://dns.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://dns.${DOMAIN:-localhost.direct}
       - homepage.description=Block ads across the whole network
     restart: unless-stopped
     deploy:
@@ -133,7 +131,6 @@ services:
   netalertx:
     profiles: [infra, all]
     image: ghcr.io/jokob-sk/netalertx:26.4.6
-    network_mode: host
     depends_on:
       traefik:
         condition: service_healthy
@@ -144,6 +141,7 @@ services:
       - PORT=20211
       - TZ=${TZ:-Europe/Copenhagen}
       - NETALERTX_SCAN_SUBNETS=${NETALERTX_SCAN_SUBNETS:-192.168.1.0/24}
+    networks: [traefik_public]
     cap_drop: [ALL]
     cap_add:
       - CHOWN
@@ -156,7 +154,7 @@ services:
       - homepage.group=Networking
       - homepage.name=NetAlertX
       - homepage.icon=netalertx.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://netalertx.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://netalertx.${DOMAIN:-localhost.direct}
       - homepage.description=See what devices are connected to the network
     restart: unless-stopped
     deploy:

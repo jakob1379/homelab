@@ -17,7 +17,7 @@ $ docker compose --profile apps up -d immich-server immich-microservices immich-
  ✔ Container homelab-immich-machine-learning-1  Started
 
 # 2. Verify the routed service
-$ curl http://photos.localhost
+$ curl https://photos.localhost.direct
 <!doctype html>
 ...
 ```

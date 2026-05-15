@@ -55,7 +55,7 @@ The usual reason is missing required variables.
 
 ```bash title="Render the main stack and read the first failure"
 $ docker compose --profile all config
-required variable HOMELAB_HOST_IP is missing a value: Run setup-dev.sh or set HOMELAB_HOST_IP to the Docker host IP reachable from Traefik
+required variable ... is missing a value
 ```
 
 Run the bootstrap script first:
@@ -64,7 +64,7 @@ Run the bootstrap script first:
 $ ./setup-dev.sh
 ```
 
-It detects `HOMELAB_HOST_IP`, generates app keys, and writes dummy `OPENVPN_USER` / `OPENVPN_PASSWORD` values so the full stack can render. Those OpenVPN values are only placeholders; replace them before running Gluetun-backed media automation.
+It generates app keys and writes dummy `OPENVPN_USER` / `OPENVPN_PASSWORD` values so the full stack can render. Those OpenVPN values are only placeholders; replace them before running Gluetun-backed media automation.
 
 The current repo still expects this local value for Paperless:
 
@@ -72,7 +72,7 @@ The current repo still expects this local value for Paperless:
 
 In CI, `setup-dev.sh` fills `PAPERLESS_ADMIN_PASSWORD` plus dummy production ACME values. Locally, set `PAPERLESS_ADMIN_PASSWORD` in `.env`, direnv, or Dockhand unless you already export it.
 
-For production HTTPS renders, also set `PUBLIC_SCHEME=https`, `TRAEFIK_ENTRYPOINT=websecure`, `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
+For production ACME renders, also set `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 If you only want the control plane, use `docker-compose.pods.yml` instead of fighting the full stack.
 
@@ -159,10 +159,10 @@ $ printf '%s\n' 'ADGUARD_DNS_PORT=1053' >> .env
 
 ## Production Browser Shows A Certificate Warning
 
-Local development should use plain HTTP, for example:
+Local development should use the mkcert-backed HTTPS default, for example:
 
 ```bash title="Check the local route"
-$ curl http://whoami.localhost
+$ curl https://whoami.localhost.direct
 Hostname: homelab-whoami-1
 ```
 
@@ -177,7 +177,7 @@ If this is production and you still get a bad cert, check:
 
 ## Home Assistant Hangs Or Shows "Retrying"
 
-In the current repo, **Home Assistant** runs in `network_mode: host`. That means **Traefik** must reach it through the file provider at `http://host.docker.internal:8123/`, not through `traefik_public` Docker networking.
+In the current repo, **Home Assistant** joins `traefik_public`. **Traefik** reaches it through the file provider at `http://ha:8123/`.
 
 ```bash title="Check the Home Assistant route path"
 # 1. Bring up Traefik and Home Assistant
@@ -188,21 +188,21 @@ $ docker compose --profile service up -d ha
 $ ls config/traefik/dyn/ha.yml
 
 # 3. Check that Traefik can serve the HA manifest
-$ curl ${PUBLIC_SCHEME:-http}://ha.${DOMAIN:-localhost}/manifest.json
+$ curl ${PUBLIC_SCHEME:-https}://ha.${DOMAIN:-localhost.direct}/manifest.json
 ```
 
 If step 3 hangs instead of failing quickly, check whether the Home Assistant
 backend is reachable from the **Traefik** container:
 
 ```bash title="Check Traefik-to-Home Assistant reachability"
-$ docker compose exec traefik wget -O- http://host.docker.internal:8123/manifest.json
+$ docker compose exec traefik wget -O- http://ha:8123/manifest.json
 ```
 
 If that fails, compare these pieces:
 
-- `network_mode: host` in `home-assistant/docker-compose.yml`
+- `networks: [traefik_public]` in `home-assistant/docker-compose.yml`
 - `config/traefik/dyn/ha.yml`
-- `extra_hosts: [host.docker.internal:host-gateway]` on `traefik`
+- the `traefik_public` network definition in `services/networking.yml`
 
 The HA router intentionally does **not** use the shared `startup-retry@file`
 middleware. Home Assistant is not Sablier-managed, and retrying a dead host

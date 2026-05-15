@@ -24,7 +24,7 @@ $ docker compose --profile infra up -d
  ✔ Container homelab-rustfs-1    Started
 
 # 3. Inspect live routers
-$ curl -s http://traefik.localhost/api/http/routers | jq -r '.[].name'
+$ curl -s https://traefik.localhost.direct/api/http/routers | jq -r '.[].name'
 api@docker
 dockhand@docker
 whoami@file
@@ -139,8 +139,8 @@ That route lives in the file provider because it needs both:
 labels:
   - traefik.enable=true
   - traefik.docker.network=traefik_public
-  - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost}`)
-  - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
+  - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost.direct}`)
+  - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
   - traefik.http.services.immich.loadbalancer.server.port=2283
 ```
 
@@ -267,7 +267,7 @@ home-assistant/
 └── configuration.yaml
 ```
 
-The service runs in `network_mode: host` for LAN discovery, and **Traefik** reaches it through `config/traefik/dyn/ha.yml` at `http://host.docker.internal:8123/`.
+The service joins `traefik_public` for local routed access, and **Traefik** reaches it through `config/traefik/dyn/ha.yml` at `http://ha:8123/`.
 
 ---
 

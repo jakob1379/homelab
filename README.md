@@ -7,7 +7,7 @@
 
 > **Docker Compose homelab with two entrypoints.** `docker-compose.yml` runs the main stack. `docker-compose.pods.yml` boots **Dockhand** as the separate control plane.
 
-This repo defaults to local HTTP routing through **Traefik** at `http://<service>.localhost`. Production HTTPS is still handled by the alternate Cloudflare DNS-01 Traefik config.
+This repo defaults to local HTTPS routing through **Traefik** at `https://<service>.localhost.direct` using mkcert-generated local certificates. Production ACME certificates are handled by the alternate Cloudflare DNS-01 Traefik config.
 
 ---
 
@@ -45,7 +45,7 @@ If you want the full routed stack, keep going.
 # 1. Prepare .env from .env.example when needed
 $ ./setup-dev.sh
 [INFO] Setting up the homelab development environment...
-[INFO] setup-dev.sh generates app keys, sets local OpenVPN placeholders, and leaves optional service env overrides optional
+[INFO] setup-dev.sh generates local TLS files and app keys, sets local OpenVPN placeholders, and leaves optional service env overrides optional
 [INFO] Set development placeholder: OPENVPN_USER
 [INFO] Set development placeholder: OPENVPN_PASSWORD
 [INFO] Generated development key: NEXTAUTH_SECRET
@@ -56,37 +56,31 @@ $ ./setup-dev.sh
 [INFO] Setup complete!
 ```
 
-`setup-dev.sh` writes dummy OpenVPN values so `docker compose --profile all config` can render locally and in CI. Replace them before running the VPN-backed media automation for real.
+`setup-dev.sh` writes dummy OpenVPN values so the local full stack can render and expose the media UIs. Replace them and set `GLUETUN_HEALTHCHECK_DISABLED=false` before running the VPN-backed media automation for real.
 
-Fill the values you actually need, then start the profiles you want.
+Fill the values you actually need, then start the full stack or the profiles you want.
 
-```bash title="Start infra first, then add apps"
+```bash title="Start the full stack"
 # 2. Add the required values to .env
 $ cat >> .env <<'EOF'
 PAPERLESS_ADMIN_PASSWORD=change-me
 EOF
 
-# 3. Start the always-on foundation
-$ docker compose --profile infra up -d
+# 3. Start the full local stack and wait for health checks
+$ docker compose --profile all up --wait
 [+] Running ...
  ✔ Container homelab-traefik-1   Started
  ✔ Container homelab-sablier-1   Started
  ✔ Container homelab-rustfs-1    Started
 
-# 4. Start a couple of apps
-$ docker compose --profile apps up -d home keep
-[+] Running ...
- ✔ Container homelab-home-1      Started
- ✔ Container homelab-keep-1      Started
-
-# 5. Verify a routed endpoint
-$ curl http://whoami.localhost
+# 4. Verify a routed endpoint
+$ curl https://whoami.localhost.direct
 Hostname: homelab-whoami-1
 IP: 172.20.0.2
 ```
 
 !!! note
-    Use service subdomains such as `http://whoami.localhost` or `http://traefik.localhost`. A request to plain `http://localhost` will not match a Traefik router.
+    Use service subdomains such as `https://whoami.localhost.direct` or `https://traefik.localhost.direct`. A request to plain `https://localhost.direct` will not match a Traefik router.
 
 ---
 
@@ -221,9 +215,17 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 
 ## Current Caveats
 
-### 1. Production HTTPS is opt-in
+### 1. Local HTTPS uses mkcert
 
-Local development uses `config/traefik/traefik.yml` with plain HTTP on `web`. For production HTTPS, set:
+Local development uses `config/traefik/traefik.yml` with HTTPS on `websecure`.
+Run `setup-dev.sh` to create the mkcert-backed files for
+`https://*.localhost.direct`, then start the stack with:
+
+```bash
+docker compose --profile all up --wait
+```
+
+For production ACME certificates, set:
 
 - `PUBLIC_SCHEME=https`
 - `TRAEFIK_ENTRYPOINT=websecure`

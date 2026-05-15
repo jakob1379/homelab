@@ -4,8 +4,27 @@
     utils.lib.eachDefaultSystem (system:
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
-        devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ prek gitleaks yamlfix zensical libressl expect ];
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            expect
+            gitleaks
+            mkcert
+            nssTools
+            openssl
+            prek
+            yamlfix
+            zensical
+          ];
+
+          shellHook = ''
+            export HOMELAB_MKCERT_ROOT="$(${pkgs.mkcert}/bin/mkcert -CAROOT)"
+
+            if [ ! -f "$HOMELAB_MKCERT_ROOT/rootCA.pem" ]; then
+              echo "mkcert CA is not installed yet. Run: mkcert -install"
+            fi
+          '';
         };
+
+        devShell = self.devShells.${system}.default;
       });
 }

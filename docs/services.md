@@ -20,11 +20,11 @@ $ docker compose --profile apps up -d keep speedtest-tracker
  ✔ Container homelab-speedtest-tracker-1  Started
 
 # 3. Verify both routes
-$ curl http://keep.localhost
+$ curl https://keep.localhost.direct
 <!doctype html>
 ...
 
-$ curl http://speed.localhost
+$ curl https://speed.localhost.direct
 <!DOCTYPE html>
 ...
 ```
@@ -50,7 +50,7 @@ $ curl http://speed.localhost
 | **whoami** | `${PUBLIC_SCHEME}://whoami.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/whoami.yml` | Yes, `10m` | uses `sablier-default@file` |
 | **RustFS** | `${PUBLIC_SCHEME}://rustfs.${DOMAIN}`, `${PUBLIC_SCHEME}://rustfs-api.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/rustfs.yml` | No | object storage and console |
 | **AdGuard Home** | `${PUBLIC_SCHEME}://dns.${DOMAIN}` and host DNS port `${ADGUARD_DNS_PORT}` | `infra`, `all` | Docker labels | No | publishes port `53` on the configured host port |
-| **NetAlertX** | `${PUBLIC_SCHEME}://netalertx.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/netalertx.yml` | No | service itself runs in `network_mode: host` |
+| **NetAlertX** | `${PUBLIC_SCHEME}://netalertx.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/netalertx.yml` | No | joins `traefik_public` for the local UI route |
 
 ---
 
@@ -159,7 +159,7 @@ Current caveat:
 
 | Service | Access | Profile(s) | Routing source | Sleep | Notes |
 |---|---|---|---|---|---|
-| **ha** | `${PUBLIC_SCHEME}://ha.${DOMAIN}` | `apps`, `all`, `service` | `config/traefik/dyn/ha.yml` | No | host-networked; files live under `home-assistant/` |
+| **ha** | `${PUBLIC_SCHEME}://ha.${DOMAIN}` | `apps`, `all`, `service` | `config/traefik/dyn/ha.yml` | No | files live under `home-assistant/` |
 
 Narrow start command:
 
@@ -198,9 +198,11 @@ Bootstrap behavior:
 - `.env.example` already provides local RustFS defaults.
 - `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, and `DUMBASSETS_SESSION_SECRET` when they are missing.
 - `setup-dev.sh` writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values for local config rendering. Real Gluetun use still needs real VPN credentials.
+- `GLUETUN_HEALTHCHECK_DISABLED=true` is the local default so `docker compose --profile all up --wait` can start the media UI routes with dummy VPN credentials. Set it to `false` when real VPN credentials should gate the stack.
+- `setup-dev.sh` creates mkcert-backed local TLS files for `https://*.localhost.direct` and writes Traefik's generated certificate dynamic config.
 - In CI only, `setup-dev.sh` also writes dummy `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and `PAPERLESS_ADMIN_PASSWORD` values so the production HTTPS render can be checked without real secrets.
 - For local full-stack runs, set `PAPERLESS_ADMIN_PASSWORD` yourself unless you already provide it through the environment.
-- For production HTTPS, also set `PUBLIC_SCHEME=https`, `TRAEFIK_ENTRYPOINT=websecure`, `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
+- For production ACME certificates, also set `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 ---
 

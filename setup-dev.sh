@@ -98,26 +98,6 @@ generate_base64_key() {
     head -c 32 /dev/urandom | base64 | tr -d '\n'
 }
 
-detect_primary_ipv4() {
-    local route_output token previous=""
-
-    if ! command -v ip >/dev/null 2>&1; then
-        return 1
-    fi
-
-    route_output=$(ip -4 route get 1.1.1.1 2>/dev/null || true)
-    for token in $route_output; do
-        if [[ "$previous" == "src" && "$token" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-            printf '%s\n' "$token"
-            return 0
-        fi
-
-        previous="$token"
-    done
-
-    return 1
-}
-
 set_env_value() {
     local var_name="$1"
     local var_value="$2"
@@ -148,6 +128,34 @@ ensure_generated_dev_key() {
 
     set_env_value "$var_name" "$(generate_base64_key)" ".env"
     log_info "Generated development key: $var_name"
+}
+
+ensure_speedtest_app_key() {
+    local existing_value
+
+    if [[ -f ".env" ]] && grep -Eq "^SPEEDTEST_APP_KEY=.+" ".env"; then
+        existing_value=$(grep -E "^SPEEDTEST_APP_KEY=" ".env" | tail -n 1)
+        existing_value=${existing_value#SPEEDTEST_APP_KEY=}
+
+        if [[ "$existing_value" == base64:* ]]; then
+            set_env_value SPEEDTEST_APP_KEY "${existing_value#base64:}" ".env"
+            log_info "Normalized development key format: SPEEDTEST_APP_KEY"
+        fi
+
+        return 0
+    fi
+
+    if [[ -n "${SPEEDTEST_APP_KEY-}" ]]; then
+        return 0
+    fi
+
+    if [[ ! -f ".env" ]]; then
+        log_warn ".env is missing, so SPEEDTEST_APP_KEY was not generated"
+        return 1
+    fi
+
+    set_env_value SPEEDTEST_APP_KEY "$(generate_base64_key)" ".env"
+    log_info "Generated development key: SPEEDTEST_APP_KEY"
 }
 
 ensure_ci_placeholder() {
@@ -190,26 +198,43 @@ ensure_dev_placeholder() {
     log_info "Set development placeholder: $var_name"
 }
 
-ensure_homelab_host_ip() {
-    local detected_ip
+ensure_local_tls_artifacts() {
+    local cert_dir="config/traefik/certs"
+    local dyn_file="config/traefik/dyn/local-certs.generated.yml"
+    local cert_file="$cert_dir/localhost.direct.pem"
+    local key_file="$cert_dir/localhost.direct-key.pem"
+    local ci_value="${CI-}"
 
-    if has_config_value HOMELAB_HOST_IP; then
-        return 0
+    mkdir -p "$cert_dir" "config/traefik/dyn"
+
+    if [[ ! -s "$cert_file" || ! -s "$key_file" ]]; then
+        if command -v mkcert >/dev/null 2>&1; then
+            log_info "Generating local TLS certificate with mkcert for localhost.direct"
+            mkcert -cert-file "$cert_file" -key-file "$key_file" localhost.direct "*.localhost.direct"
+        elif [[ "${ci_value,,}" =~ ^(1|true|yes|on)$ ]] && command -v openssl >/dev/null 2>&1; then
+            log_warn "mkcert is unavailable in CI; generating a temporary self-signed certificate for compose validation"
+            openssl req -x509 -newkey rsa:2048 -nodes -days 30 \
+                -keyout "$key_file" \
+                -out "$cert_file" \
+                -subj "/CN=localhost.direct" \
+                -addext "subjectAltName=DNS:localhost.direct,DNS:*.localhost.direct"
+        else
+            log_error "Local HTTPS requires mkcert. Install it, run 'mkcert -install', then rerun setup-dev.sh"
+            return 1
+        fi
     fi
 
-    if [[ ! -f ".env" ]]; then
-        log_warn ".env is missing, so HOMELAB_HOST_IP was not set for local validation"
-        return 1
-    fi
+    chmod 600 "$key_file"
 
-    detected_ip=$(detect_primary_ipv4 || true)
-    if [[ -z "$detected_ip" ]]; then
-        log_warn "Could not detect HOMELAB_HOST_IP; set it to the Docker host IP reachable from Traefik"
-        return 1
-    fi
+    cat > "$dyn_file" <<EOF
+---
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/localhost.direct.pem
+      keyFile: /etc/traefik/certs/localhost.direct-key.pem
+EOF
 
-    set_env_value HOMELAB_HOST_IP "$detected_ip" ".env"
-    log_info "Set HOMELAB_HOST_IP=$detected_ip"
+    log_info "Local Traefik TLS certificate configured: $cert_file"
 }
 
 show_generation_hints() {
@@ -231,9 +256,9 @@ Options:
 
 This script:
 - Optionally copies .env.example to .env if missing
+- Creates mkcert-backed local TLS files for https://*.localhost.direct
 - Generates random app keys in .env when safe for local development
 - Sets local dummy OpenVPN and DumbAssets values when missing so compose config can render
-- Sets HOMELAB_HOST_IP to the primary host IPv4 when missing
 - Verifies required env_file references from included compose files
 - Reports required secrets that must be set manually
 - Leaves optional service env overrides optional
@@ -258,7 +283,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 log_info "Setting up the homelab development environment..."
-log_info "setup-dev.sh generates app keys, sets local OpenVPN and DumbAssets placeholders, and leaves optional service env overrides optional"
+log_info "setup-dev.sh generates local TLS files and app keys, sets local OpenVPN and DumbAssets placeholders, and leaves optional service env overrides optional"
 
 ENV_FILES_DIR="services"
 
@@ -298,7 +323,7 @@ if (( ci_placeholder_failures > 0 )); then
 fi
 
 dev_placeholder_failures=0
-ensure_homelab_host_ip || dev_placeholder_failures=1
+ensure_local_tls_artifacts || dev_placeholder_failures=1
 ensure_dev_placeholder OPENVPN_USER local-openvpn-user || dev_placeholder_failures=1
 ensure_dev_placeholder OPENVPN_PASSWORD local-openvpn-password || dev_placeholder_failures=1
 ensure_dev_placeholder DUMBASSETS_PIN 1234 || dev_placeholder_failures=1
@@ -309,11 +334,14 @@ if (( dev_placeholder_failures > 0 )); then
 fi
 
 generated_key_failures=0
-for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_db__password PAPERLESS_SECRET_KEY NEXTAUTH_SECRET MEILI_MASTER_KEY SPEEDTEST_APP_KEY DUMBASSETS_SESSION_SECRET; do
+for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_db__password PAPERLESS_SECRET_KEY NEXTAUTH_SECRET MEILI_MASTER_KEY DUMBASSETS_SESSION_SECRET; do
     if ! ensure_generated_dev_key "$generated_key"; then
         generated_key_failures=1
     fi
 done
+if ! ensure_speedtest_app_key; then
+    generated_key_failures=1
+fi
 
 required_vars=(
     IMMICH_DB_PASSWORD
@@ -353,7 +381,7 @@ log_info "Setup complete!"
 log_info ""
 log_info "Next steps:"
 log_info "1. Start the main homelab stack (infra + apps):"
-log_info "   docker compose --profile all up -d"
+log_info "   docker compose --profile all up --wait"
 log_info "2. Start the separate Dockhand bootstrap stack:"
 log_info "   docker compose -f docker-compose.pods.yml up -d"
 log_info "3. Start only infrastructure:"

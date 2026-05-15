@@ -10,4 +10,4 @@ http:
     netalertx:
       loadBalancer:
         servers:
-          - url: http://host.docker.internal:20211/
+          - url: http://netalertx:20211/

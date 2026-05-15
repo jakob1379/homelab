@@ -10,7 +10,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=IT Tools
       - homepage.icon=it-tools.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://it.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://it.${DOMAIN:-localhost.direct}
       - homepage.description=Technical calculators and converters
     restart: unless-stopped
     deploy:
@@ -35,7 +35,7 @@ services:
       - homepage.group=Admin Tools
       - homepage.name=CloudBeaver
       - homepage.icon=cloudbeaver.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://cbeaver.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://cbeaver.${DOMAIN:-localhost.direct}
       - homepage.description=Database editor for managing data tables
     restart: unless-stopped
     deploy:
@@ -57,7 +57,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=BentoPDF
       - homepage.icon=bentopdf.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://pdf.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://pdf.${DOMAIN:-localhost.direct}
       - homepage.description=Merge, split, or convert PDF files
     deploy:
       resources:

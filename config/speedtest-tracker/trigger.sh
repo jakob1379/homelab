@@ -2,8 +2,8 @@
 set -uo pipefail
 
 interval_seconds=${SPEEDTEST_TRIGGER_INTERVAL_SECONDS:-3600}
-speedtest_host="speed.${DOMAIN:-localhost}"
-public_scheme=${PUBLIC_SCHEME:-http}
+speedtest_host="speed.${DOMAIN:-localhost.direct}"
+public_scheme=${PUBLIC_SCHEME:-https}
 traefik_url=${SPEEDTEST_TRIGGER_TRAEFIK_URL:-${public_scheme}://traefik}
 
 log() {

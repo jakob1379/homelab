@@ -5,7 +5,7 @@ services:
   ha:
     profiles: [apps, all, service]
     image: homeassistant/home-assistant:2026.4.1
-    network_mode: host
+    networks: [traefik_public]
     volumes:
       - ha_config:/config
       - ./configuration.yaml:/config/configuration.yaml:ro
@@ -17,13 +17,13 @@ services:
       - /run/dbus:/run/dbus:ro
     environment:
       - TZ=${TZ:-Europe/Copenhagen}
-      - HA_CORS_ORIGIN=${PUBLIC_SCHEME:-http}://ha.${DOMAIN:-localhost}
+      - HA_CORS_ORIGIN=${PUBLIC_SCHEME:-https}://ha.${DOMAIN:-localhost.direct}
     cap_add: [NET_ADMIN, NET_RAW]
     labels:
       - homepage.group=Smart Home
       - homepage.name=Home Assistant
       - homepage.icon=home-assistant.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://ha.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://ha.${DOMAIN:-localhost.direct}
       - homepage.description=Home automation and device control
     healthcheck:
       test:
@@ -36,3 +36,8 @@ services:
       retries: 10
       start_period: 180s
     restart: unless-stopped
+networks:
+  traefik_public:
+    name: traefik_public
+    driver: bridge
+    attachable: true

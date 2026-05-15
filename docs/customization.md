@@ -35,7 +35,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=Demo
       - homepage.icon=nginx.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://demo.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://demo.${DOMAIN:-localhost.direct}
       - homepage.description=Small demo service
     restart: unless-stopped
 networks:
@@ -93,8 +93,8 @@ include:
 # 1. Prepare local generated keys and validation placeholders
 $ ./setup-dev.sh
 
-# 2. Validate the combined main stack with local HTTP defaults
-$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose --profile all config > /dev/null
+# 2. Validate the combined main stack with local HTTPS defaults
+$ DOMAIN=localhost.direct PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose --profile all config > /dev/null
 
 # 3. Start the new app
 $ docker compose --profile apps up -d demo
@@ -102,7 +102,7 @@ $ docker compose --profile apps up -d demo
  ✔ Container homelab-demo-1  Started
 
 # 4. Test the route
-$ curl http://demo.localhost
+$ curl https://demo.localhost.direct
 <!DOCTYPE html>
 <html>
 ...
@@ -163,7 +163,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=MyApp
       - homepage.icon=myapp.png
-      - homepage.href=${PUBLIC_SCHEME:-http}://myapp.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://myapp.${DOMAIN:-localhost.direct}
       - homepage.description=What this app does
     restart: unless-stopped
 ```
@@ -217,8 +217,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_public
-      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost}`)
-      - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
+      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost.direct}`)
+      - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.services.immich.loadbalancer.server.port=2283
 ```
 
@@ -226,9 +226,9 @@ Use this pattern when the container joins `traefik_public`, you do not need **Sa
 
 ---
 
-## Pattern C: Host-Networked Service With File-Provider Route
+## Pattern C: Service-Network Route With File Provider
 
-Copy this when the app needs `network_mode: host`, like **Home Assistant** or **NetAlertX**.
+Copy this when the app joins `traefik_public` but needs a file-provider middleware chain or explicit backend URL, like **Home Assistant** or **NetAlertX**.
 
 ```yaml title="config/traefik/dyn/ha.yml"
 http:
@@ -242,10 +242,10 @@ http:
     ha:
       loadBalancer:
         servers:
-          - url: http://host.docker.internal:8123/
+          - url: http://ha:8123/
 ```
 
-Use this pattern when **Traefik** cannot reach the app over `traefik_public` because the container shares the host network namespace.
+Use this pattern when Docker labels are not enough but **Traefik** can still reach the container by service name on `traefik_public`.
 
 ---
 
@@ -262,7 +262,7 @@ labels:
   - homepage.group=Utilities
   - homepage.name=MyApp
   - homepage.icon=myapp.png
-  - homepage.href=${PUBLIC_SCHEME:-http}://myapp.${DOMAIN:-localhost}
+  - homepage.href=${PUBLIC_SCHEME:-https}://myapp.${DOMAIN:-localhost.direct}
   - homepage.description=What this app does
 ```
 
@@ -278,18 +278,18 @@ Run the same checks the repo points at in `AGENTS.md` and CI.
 # Prepare generated keys and local validation placeholders
 $ ./setup-dev.sh
 
-# Main stack render with local HTTP defaults
-$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose --profile all config > /dev/null
+# Main stack render with local HTTPS defaults
+$ DOMAIN=localhost.direct PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose --profile all config > /dev/null
 
 # Production HTTPS render with Cloudflare DNS-01 ACME
 $ DOMAIN=lab.example.test PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose --profile all config > /dev/null
 
 # Bootstrap stack render
-$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose -f docker-compose.pods.yml config > /dev/null
+$ DOMAIN=localhost.direct PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose -f docker-compose.pods.yml config > /dev/null
 
 # Image reference checks, matching CI
-$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose --profile all pull --dry-run
-$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose -f docker-compose.pods.yml pull --dry-run
+$ DOMAIN=localhost.direct PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose --profile all pull --dry-run
+$ DOMAIN=localhost.direct PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose -f docker-compose.pods.yml pull --dry-run
 
 # Repo hooks
 $ prek run -a

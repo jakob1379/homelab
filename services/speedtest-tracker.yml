@@ -5,13 +5,13 @@ services:
     image: lscr.io/linuxserver/speedtest-tracker:v1.13.12-ls144
     restart: unless-stopped
     environment:
-      - APP_KEY=${SPEEDTEST_APP_KEY:?Generate a key with `openssl rand -base64 32
-        2>/dev/null`}
+      - APP_KEY=base64:${SPEEDTEST_APP_KEY:?Generate a key with `openssl rand -base64
+        32 2>/dev/null`}
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
       - TZ=${TZ:-Europe/Copenhagen}
-      - APP_URL=${PUBLIC_SCHEME:-http}://speed.${DOMAIN:-localhost}
-      - ASSET_URL=${PUBLIC_SCHEME:-http}://speed.${DOMAIN:-localhost}
+      - APP_URL=${PUBLIC_SCHEME:-https}://speed.${DOMAIN:-localhost.direct}
+      - ASSET_URL=${PUBLIC_SCHEME:-https}://speed.${DOMAIN:-localhost.direct}
       - DB_CONNECTION=sqlite
     volumes: [speedtest_tracker_data:/config]
     networks: [traefik_public]
@@ -21,7 +21,7 @@ services:
       - homepage.group=Networking
       - homepage.name=Speedtest Tracker
       - homepage.icon=mdi-speedometer
-      - homepage.href=${PUBLIC_SCHEME:-http}://speed.${DOMAIN:-localhost}
+      - homepage.href=${PUBLIC_SCHEME:-https}://speed.${DOMAIN:-localhost.direct}
       - homepage.description=Track internet speed and uptime history
     healthcheck:
       test:
@@ -50,8 +50,8 @@ services:
       speedtest-tracker:
         condition: service_started
     environment:
-      - DOMAIN=${DOMAIN:-localhost}
-      - PUBLIC_SCHEME=${PUBLIC_SCHEME:-http}
+      - DOMAIN=${DOMAIN:-localhost.direct}
+      - PUBLIC_SCHEME=${PUBLIC_SCHEME:-https}
       - SPEEDTEST_API_TOKEN=${SPEEDTEST_API_TOKEN:-}
       - SPEEDTEST_TRIGGER_INTERVAL_SECONDS=${SPEEDTEST_TRIGGER_INTERVAL_SECONDS:-3600}
       - TZ=${TZ:-Europe/Copenhagen}
