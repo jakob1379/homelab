@@ -142,15 +142,16 @@ Required vars:
 | **torrent** | `https://torrent.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | qBittorrent service name is `torrent`; shares `gluetun` network namespace |
 | **Sonarr** | `https://sonarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
 | **Radarr** | `https://radarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
-| **Byparr** | internal only, `http://byparr:8191` from `media` | `apps`, `all` | None | No | FlareSolverr-compatible helper; shares `gluetun` network namespace |
+| **FlareSolverr** | internal only, `http://flaresolverr:8191` from `media` | `apps`, `all` | None | No | shares `gluetun` network namespace |
+| **Byparr** | internal only, `http://byparr:8192` from `media` | `apps`, `all` | None | No | FlareSolverr-compatible helper; shares `gluetun` network namespace |
 | **Prowlarr** | `https://prowlarr.${DOMAIN}` | no explicit profile | Docker labels | No | starts by default in the main stack because it has no profile |
 | **Bazarr** | `https://bazarr.${DOMAIN}` | `apps`, `all` | Docker labels on `bazarr` | No | subtitle management for the shared media library |
 
 Current caveat:
 
-- `gluetun` now carries the routed network path for `torrent`, `sonarr`, `radarr`, and `byparr`
-- `gluetun` also carries `torrent`, `sonarr`, `radarr`, and `byparr` aliases on `media` to preserve internal service-name reachability
-- configure Prowlarr's FlareSolverr indexer proxy host as `http://byparr:8191`, not `/v1`; Prowlarr appends `/v1`
+- `gluetun` carries external Docker-label routes only for `torrent`, `sonarr`, and `radarr`
+- `gluetun` also carries `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr` aliases on `media` to preserve internal service-name reachability
+- configure Prowlarr's FlareSolverr indexer proxy host as `http://byparr:8192`, not `/v1`; Prowlarr appends `/v1`
 - active compose requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for Gluetun; `setup-dev.sh` writes local dummy values so config rendering works
 - replace the dummy OpenVPN values before running VPN-backed downloads for real
 - `VPN_SERVER_COUNTRIES` is optional and defaults to `Netherlands`
@@ -173,7 +174,7 @@ $ docker compose --profile service up -d ha
 
 ## Required Variables
 
-These are the variables that matter for the active stack.
+These are the compose-required variables that matter for the active stack.
 
 | Variable | Used by |
 |---|---|
@@ -187,11 +188,14 @@ These are the variables that matter for the active stack.
 | `NEXTAUTH_SECRET` | **Karakeep** |
 | `MEILI_MASTER_KEY` | **Karakeep**, **Meilisearch** |
 | `SPEEDTEST_APP_KEY` | **Speedtest Tracker** |
-| `SPEEDTEST_API_TOKEN` | **Speedtest Trigger** sidecar; create it in Speedtest Tracker with `Read Results` and `Run Speedtest` abilities |
 | `OPENVPN_USER` | **Gluetun** ProtonVPN OpenVPN username |
 | `OPENVPN_PASSWORD` | **Gluetun** ProtonVPN OpenVPN password |
 | `DUMBASSETS_PIN` | **DumbAssets** |
 | `DUMBASSETS_SESSION_SECRET` | **DumbAssets** |
+
+Optional vars:
+
+- `SPEEDTEST_API_TOKEN` is used by the **Speedtest Trigger** sidecar; create it in Speedtest Tracker with `Read Results` and `Run Speedtest` abilities. When unset, the sidecar logs `skipped_no_token` and skips the trigger.
 
 Bootstrap behavior:
 

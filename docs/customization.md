@@ -90,18 +90,21 @@ include:
 ### Step 4: validate and start it
 
 ```bash title="Validate and run the demo service"
-# 1. Prepare local generated keys and validation placeholders
+# 1. Check setup script syntax, matching CI
+$ bash -n setup-dev.sh
+
+# 2. Prepare local generated keys and validation placeholders
 $ ./setup-dev.sh
 
-# 2. Validate the combined main stack with local HTTPS defaults
+# 3. Validate the combined main stack with local HTTPS defaults
 $ DOMAIN=localhost.me docker compose --profile all config > /dev/null
 
-# 3. Start the new app
+# 4. Start the new app
 $ docker compose --profile apps up -d demo
 [+] Running 1/1
  ✔ Container homelab-demo-1  Started
 
-# 4. Test the route
+# 5. Test the route
 $ curl https://demo.localhost.me
 <!DOCTYPE html>
 <html>
@@ -140,8 +143,10 @@ This is the normal pattern for:
 - **Immich**
 - **AdGuard**
 - **Dockhand**
-- **Home Assistant**
 - **Jellyfin**
+- `torrent`, **Sonarr**, and **Radarr** through labels on **Gluetun**
+- **Prowlarr**
+- **Bazarr**
 
 ---
 
@@ -274,6 +279,9 @@ Use `homepage.siteMonitor` only for always-on services. If you add it to a **Sab
 Run the same checks the repo points at in `AGENTS.md` and CI.
 
 ```bash title="Validate the stack definitions"
+# Check setup script syntax, matching CI
+$ bash -n setup-dev.sh
+
 # Prepare generated keys and local validation placeholders
 $ ./setup-dev.sh
 

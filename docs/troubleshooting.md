@@ -12,7 +12,7 @@ Read [Architecture](architecture.md) first if you do not know which stack you ar
 # 1. Pods stack
 $ docker compose -f docker-compose.pods.yml ps
 NAME                    IMAGE                  STATUS
-homelab-pods-dockhand-1 fnsys/dockhand:v1.0.26 Up
+homelab-pods-dockhand-1 fnsys/dockhand:v1.0.28 Up
 
 # 2. Main stack foundation
 $ docker compose ps traefik sablier whoami
@@ -64,7 +64,7 @@ Run the bootstrap script first:
 $ ./setup-dev.sh
 ```
 
-It generates app keys and writes dummy `OPENVPN_USER` / `OPENVPN_PASSWORD` values so the full stack can render. Those OpenVPN values are only placeholders; replace them before running Gluetun-backed media automation.
+It generates app keys and writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values so the full stack can render. Those OpenVPN values are only placeholders; replace them before running Gluetun-backed media automation. `DUMBASSETS_SESSION_SECRET` is generated like the other app keys.
 
 The current repo still expects this local value for Paperless:
 
@@ -219,26 +219,33 @@ Yes. The current repo changed here.
 Current facts:
 
 - the active qBittorrent service name is `torrent`
-- `gluetun` is active for `torrent`, `sonarr`, and `radarr`
-- `gluetun` carries `torrent`, `sonarr`, and `radarr` aliases on `media`
+- `gluetun` has `apps` and `all` profiles
+- `gluetun` is active for `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr`
+- `gluetun` joins `media` and `traefik_public`
+- `gluetun` carries `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr` aliases on `media`
+- `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr` share `network_mode: service:gluetun`
+- `torrent`, `sonarr`, and `radarr` route through Docker labels on `gluetun`
 - `bazarr` is directly attached to `media` and `traefik_public`
+- `prowlarr` is directly attached to `media` and `traefik_public`
 - `prowlarr` has no profile
 - **Seerr** is still routed through a file-provider **Sablier** route
-- `setup-dev.sh` requires `OPENVPN_USER` and `OPENVPN_PASSWORD`
+- `setup-dev.sh` writes local placeholders for `OPENVPN_USER` and `OPENVPN_PASSWORD`
 
 Use commands that match the current service names.
 
 ```bash title="Check the current media services"
-$ docker compose ps gluetun torrent sonarr radarr prowlarr bazarr seerr jellyfin
+$ docker compose ps gluetun torrent sonarr radarr flaresolverr byparr prowlarr bazarr seerr jellyfin
 NAME                IMAGE                                 STATUS
 homelab-gluetun-1   qmcgaw/gluetun:...                    Up
 homelab-torrent-1   lscr.io/linuxserver/qbittorrent:...  Up
 homelab-sonarr-1    lscr.io/linuxserver/sonarr:...       Up
 homelab-radarr-1    lscr.io/linuxserver/radarr:...       Up
+homelab-flaresolverr-1 ghcr.io/flaresolverr/flaresolverr:... Up
+homelab-byparr-1    ghcr.io/thephaseless/byparr:...       Up
 homelab-prowlarr-1  lscr.io/linuxserver/prowlarr:...     Up
 homelab-bazarr-1    lscr.io/linuxserver/bazarr:...       Up
 homelab-seerr-1     ghcr.io/seerr-team/seerr:...         Up
 homelab-jellyfin-1  linuxserver/jellyfin:...             Up
 ```
 
-If `torrent`, `sonarr`, or `radarr` cannot reach the network, debug `gluetun` first.
+If `torrent`, `sonarr`, `radarr`, `flaresolverr`, or `byparr` cannot reach the network, debug `gluetun` first.

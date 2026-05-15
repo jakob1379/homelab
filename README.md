@@ -45,18 +45,20 @@ If you want the full routed stack, keep going.
 # 1. Prepare .env from .env.example when needed
 $ ./setup-dev.sh
 [INFO] Setting up the homelab development environment...
-[INFO] setup-dev.sh generates local TLS files and app keys, sets local OpenVPN placeholders, and leaves optional service env overrides optional
+[INFO] setup-dev.sh generates local TLS files and app keys, sets local OpenVPN and DumbAssets placeholders, and leaves optional service env overrides optional
 [INFO] Set development placeholder: OPENVPN_USER
 [INFO] Set development placeholder: OPENVPN_PASSWORD
+[INFO] Set development placeholder: DUMBASSETS_PIN
 [INFO] Generated development key: NEXTAUTH_SECRET
 [INFO] Generated development key: MEILI_MASTER_KEY
+[INFO] Generated development key: DUMBASSETS_SESSION_SECRET
 [WARN] Missing required variables for docker compose --profile all:
  - PAPERLESS_ADMIN_PASSWORD
  ...
 [INFO] Setup complete!
 ```
 
-`setup-dev.sh` writes dummy OpenVPN values so the local full stack can render and expose the media UIs. Replace them and set `GLUETUN_HEALTHCHECK_DISABLED=false` before running the VPN-backed media automation for real.
+`setup-dev.sh` writes dummy OpenVPN and DumbAssets PIN values so the local full stack can render. Replace the OpenVPN values and set `GLUETUN_HEALTHCHECK_DISABLED=false` before running the VPN-backed media automation for real. `DUMBASSETS_SESSION_SECRET` is generated with the other app keys.
 
 Fill the values you actually need, then start the full stack or the profiles you want.
 
@@ -103,6 +105,7 @@ include:
   - services/karakeep.yml
   - services/immich.yml
   - services/paperless-ngx.yml
+  - services/dumbassets.yml
   - services/media.yml
   - services/homepage.yml
   - home-assistant/docker-compose.yml
@@ -142,6 +145,7 @@ These are the routes that currently use explicit **Traefik** file-provider confi
 - **AnythingLLM**
 - **BentoPDF**
 - **CloudBeaver**
+- **DumbAssets**
 - **Homepage**
 - **Home Assistant**
 - **Immich Power Tools**
@@ -174,7 +178,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 
 ### Sleep behavior right now
 
-- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
+- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `dumbassets`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
 - **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
 - **Important exception**: `listmonk` still has `sablier.*` labels, but `config/traefik/dyn/listmonk.yml` does **not** attach a Sablier middleware. Treat it as not sleeping on request in the current repo.
 
@@ -198,6 +202,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **IT Tools**
 - **CloudBeaver**
 - **BentoPDF**
+- **DumbAssets**
 - **Omni Tools**
 - **VERT**
 - **Speedtest Tracker**
@@ -208,7 +213,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **Listmonk** + `listmonk-postgres` + optional `cftunnel`
 - **Immich** + `immich-postgres` + `redis` + workers
 - **Paperless-ngx** + PostgreSQL + Redis + Gotenberg + Tika
-- **Media**: `jellyfin`, `seerr`, `immich-power-tools`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
+- **Media**: `jellyfin`, `seerr`, `immich-power-tools`, `torrent`, `sonarr`, `radarr`, `flaresolverr`, `byparr`, `prowlarr`, `bazarr`
 - **Home Assistant**
 
 ---
@@ -239,6 +244,8 @@ For production ACME certificates, set:
 - `torrent`
 - `sonarr`
 - `radarr`
+- `flaresolverr`
+- `byparr`
 
 `prowlarr` and `bazarr` route directly on `traefik_public`.
 
