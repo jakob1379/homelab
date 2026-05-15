@@ -5,7 +5,7 @@ http:
       rule: Host(`netalertx.{{ env "DOMAIN" }}`)
       entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: netalertx
-      middlewares: [startup-retry@file]
+      middlewares: [admin-only@file, startup-retry@file]
   services:
     netalertx:
       loadBalancer:

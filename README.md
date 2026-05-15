@@ -98,29 +98,30 @@ This file includes the active stack definitions under `services/` plus `home-ass
 
 ```yaml title="docker-compose.yml"
 include:
-  - services/networking.yml
-  - services/rustfs.yml
-  - services/tools.yml
-  - services/omni-tools.yml
-  - services/speedtest-tracker.yml
-  - services/vert.yml
-  - services/anythingllm.yml
-  - services/listmonk.yml
-  - services/karakeep.yml
-  - services/immich.yml
-  - services/paperless-ngx.yml
-  - services/media.yml
-  - services/homepage.yml
+  - services/infra/networking.yml
+  - services/infra/rustfs.yml
+  - services/apps/tools.yml
+  - services/apps/omni-tools.yml
+  - services/apps/speedtest-tracker.yml
+  - services/apps/vert.yml
+  - services/apps/anythingllm.yml
+  - services/apps/listmonk.yml
+  - services/apps/karakeep.yml
+  - services/apps/immich.yml
+  - services/apps/paperless-ngx.yml
+  - services/apps/dumbassets.yml
+  - services/apps/media.yml
+  - services/apps/homepage.yml
   - home-assistant/docker-compose.yml
 ```
 
 ### `docker-compose.pods.yml`: bootstrap stack
 
-This file includes only `services/pods.yml`.
+This file includes only `services/bootstrap/pods.yml`.
 
 ```yaml title="docker-compose.pods.yml"
 include:
-  - services/pods.yml
+  - services/bootstrap/pods.yml
 ```
 
 ### Active profiles
@@ -180,9 +181,8 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 
 ### Sleep behavior right now
 
-- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
-- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
-- **Important exception**: `listmonk` still has `sablier.*` labels, but `config/traefik/dyn/listmonk.yml` does **not** attach a Sablier middleware. Treat it as not sleeping on request in the current repo.
+- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `dumbassets`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
+- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`, `listmonk`
 
 ---
 
@@ -204,6 +204,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **IT Tools**
 - **CloudBeaver**
 - **BentoPDF**
+- **DumbAssets**
 - **Omni Tools**
 - **VERT**
 - **Speedtest Tracker**
@@ -227,13 +228,13 @@ Local development uses `config/traefik/traefik.yml` with plain HTTP on `web`. Fo
 
 - `PUBLIC_SCHEME=https`
 - `TRAEFIK_ENTRYPOINT=websecure`
-- `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`
+- `TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
 
 ### 2. The media stack still depends on Gluetun
 
-`services/media.yml` runs **Gluetun** as the shared network namespace for:
+`services/apps/media.yml` runs **Gluetun** as the shared network namespace for:
 
 - `torrent`
 - `sonarr`
@@ -247,9 +248,12 @@ The active compose config requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for Glu
 
 These files exist but are **not** included from `docker-compose.yml`:
 
-- `services/hermes.yml`
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+- `services/parked/hermes.yml`
+
+Historical Teable Swarm fragments are kept as examples instead of active service definitions:
+
+- `docs/examples/teable.yml`
+- `docs/examples/teable-migrate.yml`
 
 ---
 

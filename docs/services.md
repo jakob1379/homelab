@@ -37,7 +37,7 @@ $ curl http://speed.localhost
 
 | Service | Access | Compose file | Sleep | Notes |
 |---|---|---|---|---|
-| **Dockhand** | `http://localhost:3000` during bootstrap, `${PUBLIC_SCHEME}://docker.${DOMAIN}` after the main stack is up | `services/pods.yml` via `docker-compose.pods.yml` | No | separate stack on shared `traefik_public` |
+| **Dockhand** | `http://localhost:3000` during bootstrap, `${PUBLIC_SCHEME}://docker.${DOMAIN}` after the main stack is up | `services/bootstrap/pods.yml` via `docker-compose.pods.yml` | No | separate stack on shared `traefik_public` |
 
 ---
 
@@ -101,13 +101,13 @@ Optional vars:
 | `listmonk-postgres` | internal only | `apps`, `all` | No | app-local PostgreSQL |
 | `cftunnel` | internal only | `tunnel` | No | optional sidecar |
 
-Required var: `LISTMONK_db__password`
+Required var: `LISTMONK_DB_PASSWORD`
 
 ### Immich stack
 
 | Service | Access | Profile(s) | Sleep | Notes |
 |---|---|---|---|---|
-| **immich-server** | `${PUBLIC_SCHEME}://photos.${DOMAIN}` | `apps`, `all` | No | Docker-label route in `services/immich.yml` |
+| **immich-server** | `${PUBLIC_SCHEME}://photos.${DOMAIN}` | `apps`, `all` | No | Docker-label route in `services/apps/immich.yml` |
 | `immich-microservices` | internal only | `apps`, `all` | No | background workers |
 | `immich-machine-learning` | internal only | `apps`, `all` | No | ML service |
 | `redis` | internal only | `apps`, `all` | No | queue/cache |
@@ -143,7 +143,7 @@ Required vars:
 | **Sonarr** | `${PUBLIC_SCHEME}://sonarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
 | **Radarr** | `${PUBLIC_SCHEME}://radarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
 | **Byparr** | internal only, `http://byparr:8191` from `media` | `apps`, `all` | None | No | FlareSolverr-compatible helper; shares `gluetun` network namespace |
-| **Prowlarr** | `${PUBLIC_SCHEME}://prowlarr.${DOMAIN}` | no explicit profile | Docker labels | No | starts by default in the main stack because it has no profile |
+| **Prowlarr** | `${PUBLIC_SCHEME}://prowlarr.${DOMAIN}` | `apps`, `all` | Docker labels | No | indexer management for the media stack |
 | **Bazarr** | `${PUBLIC_SCHEME}://bazarr.${DOMAIN}` | `apps`, `all` | Docker labels on `bazarr` | No | subtitle management for the shared media library |
 
 Current caveat:
@@ -180,7 +180,7 @@ These are the variables that matter for the active stack.
 | `RUSTFS_ACCESS_KEY` | **RustFS** |
 | `RUSTFS_SECRET_KEY` | **RustFS** |
 | `IMMICH_DB_PASSWORD` | **Immich**, **Immich Power Tools** |
-| `LISTMONK_db__password` | **Listmonk** |
+| `LISTMONK_DB_PASSWORD` | **Listmonk** |
 | `PAPERLESS_DBPASS` | **Paperless-ngx** |
 | `PAPERLESS_ADMIN_PASSWORD` | **Paperless-ngx** |
 | `PAPERLESS_SECRET_KEY` | **Paperless-ngx** |
@@ -196,11 +196,11 @@ These are the variables that matter for the active stack.
 Bootstrap behavior:
 
 - `.env.example` already provides local RustFS defaults.
-- `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, and `DUMBASSETS_SESSION_SECRET` when they are missing.
+- `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_DB_PASSWORD`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, and `DUMBASSETS_SESSION_SECRET` when they are missing.
 - `setup-dev.sh` writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values for local config rendering. Real Gluetun use still needs real VPN credentials.
 - In CI only, `setup-dev.sh` also writes dummy `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and `PAPERLESS_ADMIN_PASSWORD` values so the production HTTPS render can be checked without real secrets.
 - For local full-stack runs, set `PAPERLESS_ADMIN_PASSWORD` yourself unless you already provide it through the environment.
-- For production HTTPS, also set `PUBLIC_SCHEME=https`, `TRAEFIK_ENTRYPOINT=websecure`, `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
+- For production HTTPS, also set `PUBLIC_SCHEME=https`, `TRAEFIK_ENTRYPOINT=websecure`, `TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 ---
 
@@ -208,6 +208,9 @@ Bootstrap behavior:
 
 These service files exist but are not active because the root include list does not reference them:
 
-- `services/hermes.yml`
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+- `services/parked/hermes.yml`
+
+Historical Teable Swarm fragments are retained as examples:
+
+- `docs/examples/teable.yml`
+- `docs/examples/teable-migrate.yml`

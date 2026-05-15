@@ -72,7 +72,7 @@ The current repo still expects this local value for Paperless:
 
 In CI, `setup-dev.sh` fills `PAPERLESS_ADMIN_PASSWORD` plus dummy production ACME values. Locally, set `PAPERLESS_ADMIN_PASSWORD` in `.env`, direnv, or Dockhand unless you already export it.
 
-For production HTTPS renders, also set `PUBLIC_SCHEME=https`, `TRAEFIK_ENTRYPOINT=websecure`, `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
+For production HTTPS renders, also set `PUBLIC_SCHEME=https`, `TRAEFIK_ENTRYPOINT=websecure`, `TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 If you only want the control plane, use `docker-compose.pods.yml` instead of fighting the full stack.
 
@@ -103,7 +103,7 @@ $ docker compose logs keep --tail 50
 
 Then compare:
 
-- `sablier.group=keep` in `services/karakeep.yml`
+- `sablier.group=keep` in `services/apps/karakeep.yml`
 - `group: keep` in `config/traefik/dyn/keep.yml`
 
 If those do not match, the wake flow is broken.
@@ -222,7 +222,7 @@ Current facts:
 - `gluetun` is active for `torrent`, `sonarr`, and `radarr`
 - `gluetun` carries `torrent`, `sonarr`, and `radarr` aliases on `media`
 - `bazarr` is directly attached to `media` and `traefik_public`
-- `prowlarr` has no profile
+- `prowlarr` is directly attached to `media` and `traefik_public`
 - **Seerr** is still routed through a file-provider **Sablier** route
 - `setup-dev.sh` requires `OPENVPN_USER` and `OPENVPN_PASSWORD`
 

@@ -5,12 +5,12 @@ http:
       rule: Host(`rustfs-api.{{ env "DOMAIN" }}`)
       entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: rustfs-api
-      middlewares: [startup-retry@file]
+      middlewares: [users-only@file, startup-retry@file]
     rustfs-console:
       rule: Host(`rustfs.{{ env "DOMAIN" }}`)
       entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: rustfs-console
-      middlewares: [startup-retry@file]
+      middlewares: [admin-only@file, startup-retry@file]
   services:
     rustfs-api:
       loadBalancer:

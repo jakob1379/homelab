@@ -12,13 +12,11 @@ This PR updates the homelab Docker Compose setup with improvements to service co
    - Development environment files with placeholder values
 
 2. **Clean Separation of Concerns**
-   - Organized services into logical stack files in `services/` directory:
-     - `networking.yml`: Traefik, Sablier, Forward Auth, Whoami, AdGuard, NetAlertX
-     - `postgres.yml`: PostgreSQL
-     - `rustfs.yml`: RustFS (S3-compatible storage)
-      - `tools.yml`: IT Tools, CloudBeaver, BentoPDF
-      - Application-specific stacks: `listmonk.yml`, `hoarder.yml`
-      - Bootstrap stack: `docker-compose.pods.yml` includes `services/pods.yml`
+   - Organized Compose fragments into role-based directories:
+     - `services/infra/`: Traefik, Sablier, RustFS, Whoami, AdGuard, NetAlertX
+     - `services/apps/`: application and developer-tool stacks
+     - `services/bootstrap/`: Dockhand control-plane stack
+     - `services/parked/`: inactive service definitions
    - Root `docker-compose.yml` includes the main homelab stacks with shared networks and volumes
    - Simplified service management: start the main stack with `docker compose --profile all up` and the bootstrap stack with `docker compose -f docker-compose.pods.yml up`
 

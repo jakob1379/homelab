@@ -57,7 +57,7 @@ services:
       - TZ=${TZ:-Europe/Copenhagen}
     command: [bash, /opt/speedtest-trigger/trigger.sh]
     volumes:
-      - ../config/speedtest-tracker/trigger.sh:/opt/speedtest-trigger/trigger.sh:ro
+      - ../../config/speedtest-tracker/trigger.sh:/opt/speedtest-trigger/trigger.sh:ro
     networks: [traefik_public]
     restart: unless-stopped
     deploy:

@@ -4,24 +4,24 @@
 name: homelab
 include:
   # Core infrastructure
-  - services/networking.yml  # Traefik, Sablier, Whoami, AdGuard
-  - services/rustfs.yml  # RustFS S3-compatible storage
+  - services/infra/networking.yml  # Traefik, Sablier, Whoami, AdGuard
+  - services/infra/rustfs.yml  # RustFS S3-compatible storage
 
   # Developer tools
-  - services/tools.yml  # IT Tools, CloudBeaver, BentoPDF
-  - services/omni-tools.yml  # Omni Tools - self-hosted utilities
-  - services/speedtest-tracker.yml  # Speedtest Tracker internet monitoring
-  - services/vert.yml  # VERT local file converter
+  - services/apps/tools.yml  # IT Tools, CloudBeaver, BentoPDF
+  - services/apps/omni-tools.yml  # Omni Tools - self-hosted utilities
+  - services/apps/speedtest-tracker.yml  # Speedtest Tracker internet monitoring
+  - services/apps/vert.yml  # VERT local file converter
 
   # Applications with their dependencies
-  - services/anythingllm.yml  # AnythingLLM private AI workspace
-  - services/listmonk.yml  # Listmonk with Cloudflare tunnel
-  - services/karakeep.yml  # Karakeep (formerly Hoarder) with Chrome and Meilisearch
-  - services/immich.yml  # Immich photo management
-  - services/paperless-ngx.yml  # Paperless-ngx document management
-  - services/dumbassets.yml  # DumbAssets asset and warranty tracking
-  - services/media.yml  # Jellyfin + media automation stack
-  - services/homepage.yml  # Homepage dashboard
+  - services/apps/anythingllm.yml  # AnythingLLM private AI workspace
+  - services/apps/listmonk.yml  # Listmonk with Cloudflare tunnel
+  - services/apps/karakeep.yml  # Karakeep (formerly Hoarder) with Chrome and Meilisearch
+  - services/apps/immich.yml  # Immich photo management
+  - services/apps/paperless-ngx.yml  # Paperless-ngx document management
+  - services/apps/dumbassets.yml  # DumbAssets asset and warranty tracking
+  - services/apps/media.yml  # Jellyfin + media automation stack
+  - services/apps/homepage.yml  # Homepage dashboard
   - home-assistant/docker-compose.yml  # Home Assistant smart home stack
 # Log rotation configuration to prevent disk fill
 # Reference in services with: <<: *x-logging

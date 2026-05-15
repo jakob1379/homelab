@@ -6,7 +6,7 @@ title: Configuration
 
 Use this guide when you want to add a service that behaves like the current repo, not like the older docs. The recommended path is:
 
-1. create a stack file under `services/`
+1. create an app stack file under `services/apps/`
 2. decide whether the route belongs in **Traefik file-provider config** or direct **Docker labels**
 3. add **Homepage** labels if you want dashboard discovery
 4. validate with the same commands the repo uses in CI
@@ -21,8 +21,8 @@ This example adds a small sleep-managed service using the same pattern as **IT T
 
 ### Step 1: create the stack file
 
-```bash title="Create services/custom-demo.yml"
-$ cat > services/custom-demo.yml <<'EOF'
+```bash title="Create services/apps/custom-demo.yml"
+$ cat > services/apps/custom-demo.yml <<'EOF'
 ---
 services:
   demo:
@@ -84,7 +84,7 @@ Add this line to the root include list:
 
 ```yaml title="docker-compose.yml"
 include:
-  - services/custom-demo.yml
+  - services/apps/custom-demo.yml
 ```
 
 ### Step 4: validate and start it
@@ -151,7 +151,7 @@ Copy this when you want the same behavior as `keep`, `home`, or `ittools`.
 
 ### Service definition
 
-```yaml title="services/myapp.yml"
+```yaml title="services/apps/myapp.yml"
 services:
   myapp:
     profiles: [apps, all]
@@ -210,7 +210,7 @@ If they do not match, the route will not wake correctly.
 
 Copy this when you want the same style as **Immich**.
 
-```yaml title="services/immich.yml"
+```yaml title="services/apps/immich.yml"
 services:
   immich-server:
     networks: [traefik_public, immich]
@@ -282,7 +282,7 @@ $ ./setup-dev.sh
 $ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose --profile all config > /dev/null
 
 # Production HTTPS render with Cloudflare DNS-01 ACME
-$ DOMAIN=lab.example.test PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose --profile all config > /dev/null
+$ DOMAIN=lab.example.test PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose --profile all config > /dev/null
 
 # Bootstrap stack render
 $ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose -f docker-compose.pods.yml config > /dev/null
@@ -328,4 +328,5 @@ This is exactly the kind of partial wiring that currently exists for **Listmonk*
 
 ### Documenting parked files as active services
 
-`services/hermes.yml` and `services/teable*.yml` are not active until they are added to `docker-compose.yml`.
+`services/parked/hermes.yml` is not active until it is added to `docker-compose.yml`. Teable fragments under `docs/examples/` are historical examples, not active service definitions.
+`docs/examples/template-stack.yml` is a generic Swarm template, not a Compose include.

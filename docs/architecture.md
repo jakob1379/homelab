@@ -47,19 +47,20 @@ This is the runtime stack. It includes the active definitions under `services/` 
 
 ```yaml title="docker-compose.yml"
 include:
-  - services/networking.yml
-  - services/rustfs.yml
-  - services/tools.yml
-  - services/omni-tools.yml
-  - services/speedtest-tracker.yml
-  - services/vert.yml
-  - services/anythingllm.yml
-  - services/listmonk.yml
-  - services/karakeep.yml
-  - services/immich.yml
-  - services/paperless-ngx.yml
-  - services/media.yml
-  - services/homepage.yml
+  - services/infra/networking.yml
+  - services/infra/rustfs.yml
+  - services/apps/tools.yml
+  - services/apps/omni-tools.yml
+  - services/apps/speedtest-tracker.yml
+  - services/apps/vert.yml
+  - services/apps/anythingllm.yml
+  - services/apps/listmonk.yml
+  - services/apps/karakeep.yml
+  - services/apps/immich.yml
+  - services/apps/paperless-ngx.yml
+  - services/apps/dumbassets.yml
+  - services/apps/media.yml
+  - services/apps/homepage.yml
   - home-assistant/docker-compose.yml
 ```
 
@@ -69,10 +70,10 @@ This is intentionally small.
 
 ```yaml title="docker-compose.pods.yml"
 include:
-  - services/pods.yml
+  - services/bootstrap/pods.yml
 ```
 
-`services/pods.yml` defines only **Dockhand**.
+`services/bootstrap/pods.yml` defines only **Dockhand**.
 
 ---
 
@@ -83,7 +84,7 @@ include:
 | `infra` | **Traefik**, **Sablier**, **RustFS**, **AdGuard**, **NetAlertX**, **whoami** |
 | `apps` | Most application services |
 | `all` | Convenience profile for the full main stack |
-| `tunnel` | `cftunnel` in `services/listmonk.yml` |
+| `tunnel` | `cftunnel` in `services/apps/listmonk.yml` |
 | `service` | Narrow profile currently used by **Home Assistant** |
 
 ```bash title="Start only Home Assistant with its narrow profile"
@@ -94,14 +95,6 @@ $ docker compose --profile service up -d ha
 
 !!! note
     `ha` is also in `profiles: [apps, all, service]`, so `docker compose --profile apps up -d ha` still works. `service` is just the narrower switch.
-
-### Important profile footgun
-
-`prowlarr` in `services/media.yml` currently has **no profile**. In Compose, that means it is part of the default service set for the main stack.
-
-Treat that as current behavior, not a clean design choice.
-
----
 
 ## Routing Model
 
@@ -133,9 +126,9 @@ That route lives in the file provider because it needs both:
 
 ### Docker-label route example
 
-`services/immich.yml` is the direct-label pattern.
+`services/apps/immich.yml` is the direct-label pattern.
 
-```yaml title="services/immich.yml"
+```yaml title="services/apps/immich.yml"
 labels:
   - traefik.enable=true
   - traefik.docker.network=traefik_public
@@ -153,6 +146,7 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `anythingllm.yml`
 - `bentopdf.yml`
 - `cbeaver.yml`
+- `dumbassets.yml`
 - `ha.yml`
 - `home.yml`
 - `immich-power-tools.yml`
@@ -170,11 +164,11 @@ That is the simpler option when you do not need a file-provider middleware chain
 
 #### Direct Docker-label routes
 
-- `traefik` dashboard from `services/networking.yml`
-- `adguard` from `services/networking.yml`
-- `dockhand` from `services/pods.yml`
-- `immich` from `services/immich.yml`
-- `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr` from `services/media.yml`
+- `traefik` dashboard from `services/infra/networking.yml`
+- `adguard` from `services/infra/networking.yml`
+- `dockhand` from `services/bootstrap/pods.yml`
+- `immich` from `services/apps/immich.yml`
+- `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr` from `services/apps/media.yml`
 
 ---
 
@@ -193,6 +187,7 @@ This repo does **not** put every routed app behind **Sablier**.
 | `anythingllm` | `anythingllm.yml` | `30m` |
 | `bentopdf` | `bentopdf.yml` | `30m` |
 | `cbeaver` | `cbeaver.yml` | `30m` |
+| `dumbassets` | `dumbassets.yml` | `30m` |
 | `home` | `home.yml` | `30m` |
 | `immich-power-tools` | `immich-power-tools.yml` | `30m` |
 | `ittools` | `ittools.yml` | `30m` |
@@ -218,18 +213,6 @@ This repo does **not** put every routed app behind **Sablier**.
 - **Bazarr**
 - **Listmonk**
 
-### Current exception: Listmonk
-
-`services/listmonk.yml` still sets:
-
-```yaml
-labels:
-  - sablier.enable=true
-  - sablier.group=listmonk
-```
-
-but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That means the route is not currently using sleep-on-request behavior.
-
 ---
 
 ## Networks
@@ -245,7 +228,7 @@ but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That
 
 ### Current media-stack reality
 
-`services/media.yml` runs **Gluetun** for the download-automation path.
+`services/apps/media.yml` runs **Gluetun** for the download-automation path.
 
 That means:
 
@@ -273,10 +256,10 @@ The service runs in `network_mode: host` for LAN discovery, and **Traefik** reac
 
 ## Parked Definitions
 
-These files exist under `services/` but are not included from `docker-compose.yml`:
+These files exist outside the active include list:
 
-- `services/hermes.yml`
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+- `services/parked/hermes.yml`
+- `docs/examples/teable.yml`
+- `docs/examples/teable-migrate.yml`
 
 Do not document them as part of the active stack unless they are added to the root include list.

@@ -40,7 +40,7 @@ Local development can use the HTTP defaults from `.env.example`. For production 
 
 - `PUBLIC_SCHEME=https`
 - `TRAEFIK_ENTRYPOINT=websecure`
-- `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`
+- `TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
 
@@ -52,7 +52,7 @@ TZ=Europe/Copenhagen
 DOMAIN=lab.example.com
 PUBLIC_SCHEME=https
 TRAEFIK_ENTRYPOINT=websecure
-TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml
+TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cloudflare_token
 DOCKHAND_DATA_DIR=/opt/dockhand
@@ -65,7 +65,7 @@ Then add the app secrets required by the services you plan to run.
 
 ```text title="Common app variables"
 IMMICH_DB_PASSWORD=...
-LISTMONK_db__password=...
+LISTMONK_DB_PASSWORD=...
 PAPERLESS_DBPASS=...
 PAPERLESS_ADMIN_PASSWORD=...
 PAPERLESS_SECRET_KEY=...

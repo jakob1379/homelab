@@ -41,6 +41,7 @@ Then use one of these paths:
 - want the live services and URLs? Read [Service Reference](services.md)
 - want the Git-managed deployment path? Read [Deployment](dockhand.md)
 - want to add your own app? Read [Configuration](customization.md)
+- want the backup service design notes? Read [Backup Design](backup.md)
 
 This starts only the Dockhand bootstrap stack. Before rendering or running the main stack, run `./setup-dev.sh` so local generated keys and validation placeholders exist.
 
@@ -108,9 +109,11 @@ This starts only the Dockhand bootstrap stack. Before rendering or running the m
 .
 ├── docker-compose.yml           # Main stack
 ├── docker-compose.pods.yml      # Dockhand bootstrap stack
-├── services/                    # Stack definitions included by docker-compose.yml
+├── services/                    # Compose fragments grouped by stack role
+├── docs/backup.md               # Backup orchestrator design notes
+├── docs/examples/               # Inactive example fragments
 ├── config/traefik/dyn/          # File-provider routes and Sablier middleware
 └── home-assistant/              # Home Assistant files, included from the main stack
 ```
 
-There are also parked service definitions under `services/` that are not currently included from `docker-compose.yml`, including `hermes.yml` and `teable*.yml`.
+There is also a parked service definition that is not currently included from `docker-compose.yml`: `services/parked/hermes.yml`. Historical Teable Swarm fragments and the generic Swarm stack template live under `docs/examples/`.
