@@ -17,13 +17,13 @@ services:
       - /run/dbus:/run/dbus:ro
     environment:
       - TZ=${TZ:-Europe/Copenhagen}
-      - HA_CORS_ORIGIN=${PUBLIC_SCHEME:-https}://ha.${DOMAIN:-localhost.me}
+      - HA_CORS_ORIGIN=https://ha.${DOMAIN:-localhost.me}
     cap_add: [NET_ADMIN, NET_RAW]
     labels:
       - homepage.group=Smart Home
       - homepage.name=Home Assistant
       - homepage.icon=home-assistant.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://ha.${DOMAIN:-localhost.me}
+      - homepage.href=https://ha.${DOMAIN:-localhost.me}
       - homepage.description=Home automation and device control
     healthcheck:
       test:

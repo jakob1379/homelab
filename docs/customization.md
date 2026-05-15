@@ -35,7 +35,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=Demo
       - homepage.icon=nginx.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://demo.${DOMAIN:-localhost.me}
+      - homepage.href=https://demo.${DOMAIN:-localhost.me}
       - homepage.description=Small demo service
     restart: unless-stopped
 networks:
@@ -55,7 +55,7 @@ http:
   routers:
     demo:
       rule: Host(`demo.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: demo
       middlewares: [sablier-demo@file, startup-retry@file]
   services:
@@ -94,7 +94,7 @@ include:
 $ ./setup-dev.sh
 
 # 2. Validate the combined main stack with local HTTPS defaults
-$ DOMAIN=localhost.me PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose --profile all config > /dev/null
+$ DOMAIN=localhost.me docker compose --profile all config > /dev/null
 
 # 3. Start the new app
 $ docker compose --profile apps up -d demo
@@ -163,7 +163,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=MyApp
       - homepage.icon=myapp.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://myapp.${DOMAIN:-localhost.me}
+      - homepage.href=https://myapp.${DOMAIN:-localhost.me}
       - homepage.description=What this app does
     restart: unless-stopped
 ```
@@ -175,7 +175,7 @@ http:
   routers:
     myapp:
       rule: Host(`myapp.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: myapp
       middlewares: [sablier-myapp@file, startup-retry@file]
   services:
@@ -218,7 +218,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=traefik_public
       - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost.me}`)
-      - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.immich.entrypoints=websecure
       - traefik.http.services.immich.loadbalancer.server.port=2283
 ```
 
@@ -235,7 +235,7 @@ http:
   routers:
     ha:
       rule: Host(`ha.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: ha
   services:
     ha:
@@ -261,7 +261,7 @@ labels:
   - homepage.group=Utilities
   - homepage.name=MyApp
   - homepage.icon=myapp.png
-  - homepage.href=${PUBLIC_SCHEME:-https}://myapp.${DOMAIN:-localhost.me}
+  - homepage.href=https://myapp.${DOMAIN:-localhost.me}
   - homepage.description=What this app does
 ```
 
@@ -278,17 +278,17 @@ Run the same checks the repo points at in `AGENTS.md` and CI.
 $ ./setup-dev.sh
 
 # Main stack render with local HTTPS defaults
-$ DOMAIN=localhost.me PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose --profile all config > /dev/null
+$ DOMAIN=localhost.me docker compose --profile all config > /dev/null
 
 # Production HTTPS render with Cloudflare DNS-01 ACME
-$ DOMAIN=lab.example.test PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose --profile all config > /dev/null
+$ DOMAIN=lab.example.test ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all config > /dev/null
 
 # Bootstrap stack render
-$ DOMAIN=localhost.me PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose -f docker-compose.pods.yml config > /dev/null
+$ DOMAIN=localhost.me docker compose -f docker-compose.pods.yml config > /dev/null
 
 # Image reference checks, matching CI
-$ DOMAIN=localhost.me PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose --profile all pull --dry-run
-$ DOMAIN=localhost.me PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose -f docker-compose.pods.yml pull --dry-run
+$ DOMAIN=localhost.me docker compose --profile all pull --dry-run
+$ DOMAIN=localhost.me docker compose -f docker-compose.pods.yml pull --dry-run
 
 # Repo hooks
 $ prek run -a

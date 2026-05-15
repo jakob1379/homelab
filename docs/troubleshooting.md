@@ -39,7 +39,7 @@ $ curl -I http://localhost:3000
 HTTP/1.1 200 OK
 ```
 
-If that works but `${PUBLIC_SCHEME}://docker.${DOMAIN}` does not, the main **Traefik** stack is not up yet.
+If that works but `https://docker.${DOMAIN}` does not, the main **Traefik** stack is not up yet.
 
 Fix:
 
@@ -72,7 +72,7 @@ The current repo still expects this local value for Paperless:
 
 In CI, `setup-dev.sh` fills `PAPERLESS_ADMIN_PASSWORD` plus dummy production ACME values. Locally, set `PAPERLESS_ADMIN_PASSWORD` in `.env`, direnv, or Dockhand unless you already export it.
 
-For production ACME renders, also set `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
+For production ACME renders, use `docker-compose.prod.yml` and set `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 If you only want the control plane, use `docker-compose.pods.yml` instead of fighting the full stack.
 
@@ -188,7 +188,7 @@ $ docker compose --profile service up -d ha
 $ ls config/traefik/dyn/ha.yml
 
 # 3. Check that Traefik can serve the HA manifest
-$ curl ${PUBLIC_SCHEME:-https}://ha.${DOMAIN:-localhost.me}/manifest.json
+$ curl https://ha.${DOMAIN:-localhost.me}/manifest.json
 ```
 
 If step 3 hangs instead of failing quickly, check whether the Home Assistant

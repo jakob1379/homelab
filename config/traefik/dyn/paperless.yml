@@ -3,7 +3,7 @@ http:
   routers:
     paperless:
       rule: Host(`paper.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: paperless
       middlewares: [sablier-paperless@file, startup-retry@file]
   services:

@@ -3,7 +3,7 @@ http:
   routers:
     immich-power-tools:
       rule: Host(`immich-tools.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: immich-power-tools
       middlewares: [sablier-immich-power-tools@file, startup-retry@file]
   services:

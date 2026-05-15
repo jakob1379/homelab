@@ -30,18 +30,16 @@ HTTP/1.1 200 OK
 
 Open `http://localhost:3000`.
 
-During bootstrap, `${PUBLIC_SCHEME}://docker.${DOMAIN}` does not exist yet because the main **Traefik** stack is not running.
+During bootstrap, `https://docker.${DOMAIN}` does not exist yet because the main **Traefik** stack is not running.
 
 ---
 
 ## Step 1: Prepare The Stack Variables
 
 Local development uses the HTTPS defaults from `.env.example` (mkcert-backed on `localhost.me`). For
-production ACME HTTPS, set the Traefik override values:
+production ACME HTTPS, use `docker-compose.prod.yml` and set the production values:
 
-- `PUBLIC_SCHEME=https`
-- `TRAEFIK_ENTRYPOINT=websecure`
-- `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`
+- `DOMAIN`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
 
@@ -51,9 +49,6 @@ Start with a real `.env`.
 $ cat > .env <<'EOF'
 TZ=Europe/Copenhagen
 DOMAIN=lab.example.com
-PUBLIC_SCHEME=https
-TRAEFIK_ENTRYPOINT=websecure
-TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cloudflare_token
 DOCKHAND_DATA_DIR=/opt/dockhand
@@ -152,7 +147,7 @@ HTTP/2 200
 At that point:
 
 - `http://localhost:3000` is still the direct bootstrap endpoint
-- `${PUBLIC_SCHEME}://docker.${DOMAIN}` is the routed endpoint through **Traefik**
+- `https://docker.${DOMAIN}` is the routed endpoint through **Traefik**
 
 ---
 

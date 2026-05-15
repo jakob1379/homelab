@@ -169,7 +169,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **Bazarr**
 - **Radarr**
 - **Sonarr**
-- **torrent** (`${PUBLIC_SCHEME}://torrent.${DOMAIN}`)
+- **torrent** (`https://torrent.${DOMAIN}`)
 - **Traefik dashboard**
 
 ### Sleep behavior right now
@@ -227,9 +227,8 @@ docker compose --profile all up --wait
 
 For production ACME certificates, set:
 
-- `PUBLIC_SCHEME=https`
-- `TRAEFIK_ENTRYPOINT=websecure`
-- `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`
+- use `docker-compose.prod.yml` with the main compose file
+- `DOMAIN`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
 

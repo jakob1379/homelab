@@ -3,7 +3,7 @@ http:
   routers:
     ittools:
       rule: Host(`it.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: ittools
       middlewares: [sablier-ittools@file, startup-retry@file]
   services:

@@ -14,7 +14,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=VERT
       - homepage.icon=https://vert.sh/favicon.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://vert.${DOMAIN:-localhost.me}
+      - homepage.href=https://vert.${DOMAIN:-localhost.me}
       - homepage.description=Convert files locally in your browser
     deploy:
       resources:

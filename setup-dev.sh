@@ -313,8 +313,6 @@ elif [[ ! -f ".env" ]]; then
 fi
 
 ci_placeholder_failures=0
-ensure_ci_placeholder ACME_EMAIL ci@example.invalid || ci_placeholder_failures=1
-ensure_ci_placeholder CF_DNS_API_TOKEN ci-dummy-cloudflare-token || ci_placeholder_failures=1
 ensure_ci_placeholder PAPERLESS_ADMIN_PASSWORD ci-paperless-admin-password || ci_placeholder_failures=1
 
 if (( ci_placeholder_failures > 0 )); then

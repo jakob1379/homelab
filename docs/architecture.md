@@ -121,7 +121,7 @@ http:
   routers:
     keep:
       rule: Host(`keep.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: keep
       middlewares: [sablier-keep@file, startup-retry@file]
 ```
@@ -140,7 +140,7 @@ labels:
   - traefik.enable=true
   - traefik.docker.network=traefik_public
   - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost.me}`)
-  - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+  - traefik.http.routers.immich.entrypoints=websecure
   - traefik.http.services.immich.loadbalancer.server.port=2283
 ```
 

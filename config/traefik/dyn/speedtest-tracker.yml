@@ -3,7 +3,7 @@ http:
   routers:
     speedtest:
       rule: Host(`speed.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: speedtest
       middlewares: [sablier-speedtest@file, startup-retry@file]
   services:

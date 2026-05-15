@@ -3,7 +3,7 @@ http:
   routers:
     listmonk:
       rule: Host(`listmonk.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: listmonk
   services:
     listmonk:

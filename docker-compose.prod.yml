@@ -1,0 +1,11 @@
+---
+# Production override for Cloudflare DNS-01 ACME certificates.
+# Use with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all up -d
+services:
+  traefik:
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN for production}
+      CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN:?Set CF_DNS_API_TOKEN for Cloudflare DNS-01}
+      TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
+    volumes: [./config/traefik/traefik.acme.yml:/etc/traefik/traefik.yml:ro]

@@ -3,7 +3,7 @@ http:
   routers:
     keep:
       rule: Host(`keep.{{ env "DOMAIN" }}`)
-      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
+      entrypoints: [websecure]
       service: keep
       middlewares: [sablier-keep@file, startup-retry@file]
   services:
