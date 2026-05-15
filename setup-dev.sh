@@ -22,6 +22,15 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $*"
 }
 
+flush_current_env_ref() {
+    local current_path="$1"
+    local current_required="$2"
+
+    if [[ -n "$current_path" && $current_required -eq 1 ]]; then
+        printf '%s\n' "$current_path"
+    fi
+}
+
 collect_required_env_refs() {
     local file="$1"
     local in_env_block=0
@@ -35,9 +44,7 @@ collect_required_env_refs() {
         indent=$(( ${#line} - ${#trimmed_line} ))
 
         if (( in_env_block )) && [[ -n "$trimmed_line" ]] && (( indent <= env_indent )); then
-            if [[ -n "$current_path" && $current_required -eq 1 ]]; then
-                printf '%s\n' "$current_path"
-            fi
+            flush_current_env_ref "$current_path" "$current_required"
             in_env_block=0
             current_path=""
             current_required=1
@@ -60,9 +67,7 @@ collect_required_env_refs() {
 
         if (( in_env_block )); then
             if [[ $trimmed_line =~ ^-[[:space:]]+path:[[:space:]]*(\.?/\.env-[A-Za-z0-9_-]+)[[:space:]]*$ ]]; then
-                if [[ -n "$current_path" && $current_required -eq 1 ]]; then
-                    printf '%s\n' "$current_path"
-                fi
+                flush_current_env_ref "$current_path" "$current_required"
                 current_path="${BASH_REMATCH[1]}"
                 current_required=1
                 continue
@@ -74,8 +79,8 @@ collect_required_env_refs() {
         fi
     done < "$file"
 
-    if (( in_env_block )) && [[ -n "$current_path" && $current_required -eq 1 ]]; then
-        printf '%s\n' "$current_path"
+    if (( in_env_block )); then
+        flush_current_env_ref "$current_path" "$current_required"
     fi
 }
 
@@ -242,6 +247,7 @@ Run this script before starting the homelab and pods stacks with docker compose.
 EOF
 }
 
+main() {
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -309,17 +315,15 @@ if (( dev_placeholder_failures > 0 )); then
 fi
 
 generated_key_failures=0
-for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_db__password PAPERLESS_SECRET_KEY NEXTAUTH_SECRET MEILI_MASTER_KEY SPEEDTEST_APP_KEY DUMBASSETS_SESSION_SECRET; do
+for generated_key in PAPERLESS_DBPASS IMMICH_DB_PASSWORD LISTMONK_DB_PASSWORD PAPERLESS_SECRET_KEY NEXTAUTH_SECRET MEILI_MASTER_KEY SPEEDTEST_APP_KEY DUMBASSETS_SESSION_SECRET; do
     if ! ensure_generated_dev_key "$generated_key"; then
         generated_key_failures=1
     fi
 done
 
 required_vars=(
-    ACME_EMAIL
-    CF_DNS_API_TOKEN
     IMMICH_DB_PASSWORD
-    LISTMONK_db__password
+    LISTMONK_DB_PASSWORD
     PAPERLESS_DBPASS
     PAPERLESS_ADMIN_PASSWORD
     PAPERLESS_SECRET_KEY
@@ -370,3 +374,8 @@ log_info "View main stack status: docker compose ps"
 log_info "View pods stack status: docker compose -f docker-compose.pods.yml ps"
 log_info "Stop main stack: docker compose down"
 log_info "Stop pods stack: docker compose -f docker-compose.pods.yml down"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

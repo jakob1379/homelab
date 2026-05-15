@@ -17,14 +17,14 @@ $ docker compose --profile apps up -d immich-server immich-microservices immich-
  ✔ Container homelab-immich-machine-learning-1  Started
 
 # 2. Verify the routed service
-$ curl -k https://photos.traefik.me
+$ curl http://photos.localhost
 <!doctype html>
 ...
 ```
 
 That matches the current source files:
 
-- `services/immich.yml` exposes `immich-server` directly with Docker labels
+- `services/apps/immich.yml` exposes `immich-server` directly with Docker labels
 - `immich-microservices` stays running
 - `immich-machine-learning` stays running
 - there is no `immich-queue-monitor` service
@@ -36,8 +36,8 @@ That matches the current source files:
 
 The active source of truth for **Immich** is:
 
-- `services/immich.yml`
-- `services/media.yml` for **Immich Power Tools**
+- `services/apps/immich.yml`
+- `services/apps/media.yml` for **Immich Power Tools**
 - [Service Reference](services.md)
 
 If you want queue-driven wake behavior again, that is a new design task. Do not assume it already exists.

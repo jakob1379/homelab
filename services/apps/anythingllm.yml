@@ -15,7 +15,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=AnythingLLM
       - homepage.icon=anything-llm.png
-      - homepage.href=https://llm.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://llm.${DOMAIN:-localhost}
       - homepage.description=Private AI workspace for chat and document Q&A
     deploy:
       resources:

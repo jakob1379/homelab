@@ -30,14 +30,17 @@ HTTP/1.1 200 OK
 
 Open `http://localhost:3000`.
 
-During bootstrap, `https://docker.${DOMAIN}` does not exist yet because the main **Traefik** stack is not running.
+During bootstrap, `${PUBLIC_SCHEME}://docker.${DOMAIN}` does not exist yet because the main **Traefik** stack is not running.
 
 ---
 
 ## Step 1: Prepare The Stack Variables
 
-The main stack is not optional about TLS inputs. `services/networking.yml` requires:
+Local development can use the HTTP defaults from `.env.example`. For production HTTPS, set the Traefik ACME override values:
 
+- `PUBLIC_SCHEME=https`
+- `TRAEFIK_ENTRYPOINT=websecure`
+- `TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
 
@@ -47,6 +50,9 @@ Start with a real `.env`.
 $ cat > .env <<'EOF'
 TZ=Europe/Copenhagen
 DOMAIN=lab.example.com
+PUBLIC_SCHEME=https
+TRAEFIK_ENTRYPOINT=websecure
+TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml
 ACME_EMAIL=you@example.com
 CF_DNS_API_TOKEN=your_cloudflare_token
 DOCKHAND_DATA_DIR=/opt/dockhand
@@ -59,7 +65,7 @@ Then add the app secrets required by the services you plan to run.
 
 ```text title="Common app variables"
 IMMICH_DB_PASSWORD=...
-LISTMONK_db__password=...
+LISTMONK_DB_PASSWORD=...
 PAPERLESS_DBPASS=...
 PAPERLESS_ADMIN_PASSWORD=...
 PAPERLESS_SECRET_KEY=...
@@ -145,7 +151,7 @@ HTTP/2 200
 At that point:
 
 - `http://localhost:3000` is still the direct bootstrap endpoint
-- `https://docker.${DOMAIN}` is the routed endpoint through **Traefik**
+- `${PUBLIC_SCHEME}://docker.${DOMAIN}` is the routed endpoint through **Traefik**
 
 ---
 

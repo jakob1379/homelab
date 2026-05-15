@@ -6,7 +6,7 @@ title: Configuration
 
 Use this guide when you want to add a service that behaves like the current repo, not like the older docs. The recommended path is:
 
-1. create a stack file under `services/`
+1. create an app stack file under `services/apps/`
 2. decide whether the route belongs in **Traefik file-provider config** or direct **Docker labels**
 3. add **Homepage** labels if you want dashboard discovery
 4. validate with the same commands the repo uses in CI
@@ -21,8 +21,8 @@ This example adds a small sleep-managed service using the same pattern as **IT T
 
 ### Step 1: create the stack file
 
-```bash title="Create services/custom-demo.yml"
-$ cat > services/custom-demo.yml <<'EOF'
+```bash title="Create services/apps/custom-demo.yml"
+$ cat > services/apps/custom-demo.yml <<'EOF'
 ---
 services:
   demo:
@@ -35,7 +35,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=Demo
       - homepage.icon=nginx.png
-      - homepage.href=https://demo.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://demo.${DOMAIN:-localhost}
       - homepage.description=Small demo service
     restart: unless-stopped
 networks:
@@ -55,7 +55,7 @@ http:
   routers:
     demo:
       rule: Host(`demo.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: demo
       middlewares: [sablier-demo@file, startup-retry@file]
   services:
@@ -84,7 +84,7 @@ Add this line to the root include list:
 
 ```yaml title="docker-compose.yml"
 include:
-  - services/custom-demo.yml
+  - services/apps/custom-demo.yml
 ```
 
 ### Step 4: validate and start it
@@ -93,8 +93,8 @@ include:
 # 1. Prepare local generated keys and validation placeholders
 $ ./setup-dev.sh
 
-# 2. Validate the combined main stack
-$ DOMAIN=test.traefik.me docker compose --profile all config > /dev/null
+# 2. Validate the combined main stack with local HTTP defaults
+$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose --profile all config > /dev/null
 
 # 3. Start the new app
 $ docker compose --profile apps up -d demo
@@ -102,7 +102,7 @@ $ docker compose --profile apps up -d demo
  ✔ Container homelab-demo-1  Started
 
 # 4. Test the route
-$ curl -k https://demo.traefik.me
+$ curl http://demo.localhost
 <!DOCTYPE html>
 <html>
 ...
@@ -151,7 +151,7 @@ Copy this when you want the same behavior as `keep`, `home`, or `ittools`.
 
 ### Service definition
 
-```yaml title="services/myapp.yml"
+```yaml title="services/apps/myapp.yml"
 services:
   myapp:
     profiles: [apps, all]
@@ -163,7 +163,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=MyApp
       - homepage.icon=myapp.png
-      - homepage.href=https://myapp.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://myapp.${DOMAIN:-localhost}
       - homepage.description=What this app does
     restart: unless-stopped
 ```
@@ -175,7 +175,7 @@ http:
   routers:
     myapp:
       rule: Host(`myapp.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: myapp
       middlewares: [sablier-myapp@file, startup-retry@file]
   services:
@@ -210,15 +210,15 @@ If they do not match, the route will not wake correctly.
 
 Copy this when you want the same style as **Immich**.
 
-```yaml title="services/immich.yml"
+```yaml title="services/apps/immich.yml"
 services:
   immich-server:
     networks: [traefik_public, immich]
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_public
-      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.immich.entrypoints=websecure
+      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost}`)
+      - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.services.immich.loadbalancer.server.port=2283
 ```
 
@@ -235,7 +235,7 @@ http:
   routers:
     ha:
       rule: Host(`ha.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: ha
       middlewares: [startup-retry@file]
   services:
@@ -262,7 +262,7 @@ labels:
   - homepage.group=Utilities
   - homepage.name=MyApp
   - homepage.icon=myapp.png
-  - homepage.href=https://myapp.${DOMAIN:-traefik.me}
+  - homepage.href=${PUBLIC_SCHEME:-http}://myapp.${DOMAIN:-localhost}
   - homepage.description=What this app does
 ```
 
@@ -278,15 +278,18 @@ Run the same checks the repo points at in `AGENTS.md` and CI.
 # Prepare generated keys and local validation placeholders
 $ ./setup-dev.sh
 
-# Main stack render, matching CI's test domain
-$ DOMAIN=test.traefik.me docker compose --profile all config > /dev/null
+# Main stack render with local HTTP defaults
+$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose --profile all config > /dev/null
+
+# Production HTTPS render with Cloudflare DNS-01 ACME
+$ DOMAIN=lab.example.test PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose --profile all config > /dev/null
 
 # Bootstrap stack render
-$ DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config > /dev/null
+$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose -f docker-compose.pods.yml config > /dev/null
 
 # Image reference checks, matching CI
-$ DOMAIN=test.traefik.me docker compose --profile all pull --dry-run
-$ DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run
+$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose --profile all pull --dry-run
+$ DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose -f docker-compose.pods.yml pull --dry-run
 
 # Repo hooks
 $ prek run -a
@@ -325,4 +328,5 @@ This is exactly the kind of partial wiring that currently exists for **Listmonk*
 
 ### Documenting parked files as active services
 
-`services/hermes.yml` and `services/teable*.yml` are not active until they are added to `docker-compose.yml`.
+`services/parked/hermes.yml` is not active until it is added to `docker-compose.yml`. Teable fragments under `docs/examples/` are historical examples, not active service definitions.
+`docs/examples/template-stack.yml` is a generic Swarm template, not a Compose include.

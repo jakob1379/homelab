@@ -2,8 +2,9 @@
 set -uo pipefail
 
 interval_seconds=${SPEEDTEST_TRIGGER_INTERVAL_SECONDS:-3600}
-speedtest_host="speed.${DOMAIN:-traefik.me}"
-traefik_url=${SPEEDTEST_TRIGGER_TRAEFIK_URL:-https://traefik}
+speedtest_host="speed.${DOMAIN:-localhost}"
+public_scheme=${PUBLIC_SCHEME:-http}
+traefik_url=${SPEEDTEST_TRIGGER_TRAEFIK_URL:-${public_scheme}://traefik}
 
 log() {
     printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*"
@@ -29,13 +30,23 @@ request() {
     local path=$1
     shift
     local -a extra_args=("$@")
+    local output=''
+    local status=0
 
-    wget -qO- \
+    output=$(wget -qO- \
         --no-check-certificate \
         --header="Host: ${speedtest_host}" \
         --header='Accept: application/json' \
         "${extra_args[@]}" \
-        "${traefik_url}${path}"
+        "${traefik_url}${path}" 2>&1)
+    status=$?
+
+    if (( status != 0 )); then
+        log "request_failed path=${path} exit_status=${status}" >&2
+        return "$status"
+    fi
+
+    printf '%s' "$output"
 }
 
 wait_for_health() {
@@ -43,7 +54,7 @@ wait_for_health() {
     local response=''
 
     while (( attempts < 24 )); do
-        if response=$(request /api/healthcheck 2>/dev/null) && [[ $response == *'Speedtest Tracker is running!'* ]]; then
+        if response=$(request /api/healthcheck) && [[ $response == *'Speedtest Tracker is running!'* ]]; then
             return 0
         fi
 
@@ -80,7 +91,7 @@ run_once() {
         return 1
     fi
 
-    if ! queued_run=$(request /api/v1/speedtests/run --header="Authorization: Bearer ${SPEEDTEST_API_TOKEN}" --post-data='' 2>/dev/null); then
+    if ! queued_run=$(request /api/v1/speedtests/run --header="Authorization: Bearer ${SPEEDTEST_API_TOKEN}" --post-data=''); then
         log 'failed to queue speedtest run'
         return 1
     fi
@@ -90,7 +101,7 @@ run_once() {
         return 0
     fi
 
-    log 'failed to queue speedtest run'
+    log 'malformed_response endpoint=/api/v1/speedtests/run'
     return 1
 }
 
@@ -99,17 +110,17 @@ has_active_speedtest() {
     local status=''
 
     for status in waiting started running checking benchmarking; do
-        if ! response=$(request "/api/v1/results?filter%5Bstatus%5D=${status}" --header="Authorization: Bearer ${SPEEDTEST_API_TOKEN}" 2>/dev/null); then
+        if ! response=$(request "/api/v1/results?filter%5Bstatus%5D=${status}" --header="Authorization: Bearer ${SPEEDTEST_API_TOKEN}"); then
             log 'failed to query in-progress speedtests'
             return 2
         fi
 
         if [[ $response != *'"data"'* ]]; then
-            log 'failed to query in-progress speedtests'
+            log "malformed_response endpoint=/api/v1/results status_filter=${status}"
             return 2
         fi
 
-        if [[ ! $response =~ "data"[[:space:]]*:[[:space:]]*\[\] ]]; then
+        if [[ ! $response =~ \"data\"[[:space:]]*:[[:space:]]*\[\] ]]; then
             return 0
         fi
     done
@@ -129,4 +140,6 @@ main() {
     done
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

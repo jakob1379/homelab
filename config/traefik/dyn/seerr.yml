@@ -3,7 +3,7 @@ http:
   routers:
     seerr:
       rule: Host(`requests.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: seerr
       middlewares: [sablier-seerr@file, startup-retry@file]
   services:

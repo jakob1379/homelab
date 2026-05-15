@@ -18,20 +18,32 @@ jobs:
       - name: Validate setup script syntax
         run: |
           bash -n setup-dev.sh
+      - name: Run setup-dev unit tests
+        run: |
+          bash scripts/test-setup-dev.sh
+      - name: Run Speedtest trigger tests
+        run: |
+          bash scripts/test-speedtest-trigger.sh
       - name: Run setup-dev script
         run: |
           bash setup-dev.sh
       - name: Validate main Docker Compose configuration (profile all)
         run: |
-          DOMAIN=test.traefik.me docker compose --profile all config
+          DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.yml docker compose --profile all config
+      - name: Validate production HTTPS Traefik configuration
+        run: |
+          DOMAIN=lab.example.test PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.acme.yml ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose --profile all config
       - name: Validate pods bootstrap Docker Compose configuration
         run: |
-          DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config
+          DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose -f docker-compose.pods.yml config
+      - name: Validate Traefik route contracts
+        run: |
+          python scripts/validate-traefik-routes.py
       - name: Validate referenced images exist for main stack (dry run)
         run: |-
           set -euo pipefail
-          DOMAIN=test.traefik.me docker compose --profile all pull --dry-run
+          DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web TRAEFIK_STATIC_CONFIG=../../config/traefik/traefik.yml docker compose --profile all pull --dry-run
       - name: Validate referenced images exist for pods stack (dry run)
         run: |-
           set -euo pipefail
-          DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run
+          DOMAIN=localhost PUBLIC_SCHEME=http TRAEFIK_ENTRYPOINT=web docker compose -f docker-compose.pods.yml pull --dry-run

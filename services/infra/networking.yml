@@ -5,17 +5,16 @@ services:
     image: traefik:3.6.9
     ports: [80:80, 443:443]
     environment:
-      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:?Set CF_DNS_API_TOKEN in .env, direnv,
-        or Dockhand}
-      - DOMAIN=${DOMAIN:-traefik.me}
-      - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${ACME_EMAIL:?Set ACME_EMAIL
-        in .env, direnv, or Dockhand}
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:-}
+      - DOMAIN=${DOMAIN:-localhost}
+      - TRAEFIK_ENTRYPOINT=${TRAEFIK_ENTRYPOINT:-web}
+      - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${ACME_EMAIL:-}
     command: [--configFile=/etc/traefik/traefik.yml]
     volumes:
       - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ../config/traefik/dyn:/etc/traefik/dyn:ro
-      - ../config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ../../config/traefik/dyn:/etc/traefik/dyn:ro
+      - ${TRAEFIK_STATIC_CONFIG:-../../config/traefik/traefik.yml}:/etc/traefik/traefik.yml:ro
     networks: [traefik_public]
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -24,14 +23,14 @@ services:
     labels:
       - traefik.enable=true
       # Traefik dashboard
-      - traefik.http.routers.api.rule=Host(`traefik.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.api.rule=Host(`traefik.${DOMAIN:-localhost}`)
       - traefik.http.routers.api.service=api@internal
-      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.services.traefik.loadbalancer.server.port=8080
       - homepage.group=Networking
       - homepage.name=Traefik
       - homepage.icon=traefik.png
-      - homepage.href=https://traefik.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://traefik.${DOMAIN:-localhost}
       - homepage.description=Reverse proxy and routing dashboard
       - homepage.siteMonitor=http://traefik:8081/ping
     restart: unless-stopped
@@ -88,7 +87,7 @@ services:
       - homepage.group=Admin Tools
       - homepage.name=Whoami
       - homepage.icon=whoami.png
-      - homepage.href=https://whoami.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://whoami.${DOMAIN:-localhost}
       - homepage.description=Check your connection details
     restart: unless-stopped
     deploy:
@@ -114,13 +113,13 @@ services:
     networks: [traefik_public]
     labels:
       - traefik.enable=true
-      - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.adguard.entrypoints=websecure
+      - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-localhost}`)
+      - traefik.http.routers.adguard.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.services.adguard.loadbalancer.server.port=80
       - homepage.group=Networking
       - homepage.name=AdGuard
       - homepage.icon=adguard-home.png
-      - homepage.href=https://dns.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://dns.${DOMAIN:-localhost}
       - homepage.description=Block ads across the whole network
     restart: unless-stopped
     deploy:
@@ -157,7 +156,7 @@ services:
       - homepage.group=Networking
       - homepage.name=NetAlertX
       - homepage.icon=netalertx.png
-      - homepage.href=https://netalertx.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://netalertx.${DOMAIN:-localhost}
       - homepage.description=See what devices are connected to the network
     restart: unless-stopped
     deploy:

@@ -3,7 +3,7 @@ http:
   routers:
     vert:
       rule: Host(`vert.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: vert
       middlewares: [sablier-vert@file, startup-retry@file]
   services:

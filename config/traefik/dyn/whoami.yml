@@ -3,7 +3,7 @@ http:
   routers:
     whoami:
       rule: Host(`whoami.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: whoami
       middlewares: [sablier-default@file, startup-retry@file]
   services:

@@ -17,13 +17,13 @@ services:
       - /run/dbus:/run/dbus:ro
     environment:
       - TZ=${TZ:-Europe/Copenhagen}
-      - HA_CORS_ORIGIN=https://ha.${DOMAIN:-traefik.me}
+      - HA_CORS_ORIGIN=${PUBLIC_SCHEME:-http}://ha.${DOMAIN:-localhost}
     cap_add: [NET_ADMIN, NET_RAW]
     labels:
       - homepage.group=Smart Home
       - homepage.name=Home Assistant
       - homepage.icon=home-assistant.png
-      - homepage.href=https://ha.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://ha.${DOMAIN:-localhost}
       - homepage.description=Home automation and device control
     healthcheck:
       test:

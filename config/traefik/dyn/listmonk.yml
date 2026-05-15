@@ -1,9 +1,10 @@
 ---
 http:
   routers:
+    # Intentionally always-on; there is no matching Sablier label on the service.
     listmonk:
       rule: Host(`listmonk.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: listmonk
   services:
     listmonk:

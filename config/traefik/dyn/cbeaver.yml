@@ -3,7 +3,7 @@ http:
   routers:
     cbeaver:
       rule: Host(`cbeaver.{{ env "DOMAIN" }}`)
-      entrypoints: [websecure]
+      entrypoints: ['{{ env "TRAEFIK_ENTRYPOINT" }}']
       service: cbeaver
       middlewares: [sablier-cbeaver@file, startup-retry@file]
   services:

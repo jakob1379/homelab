@@ -22,16 +22,16 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_public
-      - traefik.http.routers.torrent.rule=Host(`torrent.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.torrent.entrypoints=websecure
+      - traefik.http.routers.torrent.rule=Host(`torrent.${DOMAIN:-localhost}`)
+      - traefik.http.routers.torrent.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.routers.torrent.service=torrent
       - traefik.http.services.torrent.loadbalancer.server.port=8080
-      - traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.sonarr.entrypoints=websecure
+      - traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN:-localhost}`)
+      - traefik.http.routers.sonarr.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.routers.sonarr.service=sonarr
       - traefik.http.services.sonarr.loadbalancer.server.port=8989
-      - traefik.http.routers.radarr.rule=Host(`radarr.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.radarr.entrypoints=websecure
+      - traefik.http.routers.radarr.rule=Host(`radarr.${DOMAIN:-localhost}`)
+      - traefik.http.routers.radarr.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.routers.radarr.service=radarr
       - traefik.http.services.radarr.loadbalancer.server.port=7878
     restart: unless-stopped
@@ -43,8 +43,8 @@ services:
       - jellyfin_config:/config
       - jellyfin_cache:/cache
       - media_data:/data
-      - ../config/jellyfin/custom-progress.css:/usr/share/jellyfin/web/custom-progress.css:ro
-      - ../config/jellyfin/99-custom-web-css.sh:/custom-cont-init.d/99-custom-web-css.sh:ro
+      - ../../config/jellyfin/custom-progress.css:/usr/share/jellyfin/web/custom-progress.css:ro
+      - ../../config/jellyfin/99-custom-web-css.sh:/custom-cont-init.d/99-custom-web-css.sh:ro
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
@@ -52,15 +52,15 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_public
-      - traefik.http.routers.jellyfin.rule=Host(`jellyfin.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.jellyfin.entrypoints=websecure
+      - traefik.http.routers.jellyfin.rule=Host(`jellyfin.${DOMAIN:-localhost}`)
+      - traefik.http.routers.jellyfin.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.routers.jellyfin.middlewares=startup-retry@file
       - traefik.http.routers.jellyfin.service=jellyfin
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
       - homepage.group=Media & Files
       - homepage.name=Jellyfin
       - homepage.icon=jellyfin.png
-      - homepage.href=https://jellyfin.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://jellyfin.${DOMAIN:-localhost}
       - homepage.description=Stream and manage your media library
     restart: unless-stopped
   seerr:
@@ -76,7 +76,7 @@ services:
       - homepage.group=Media & Files
       - homepage.name=Seerr
       - homepage.icon=seerr.png
-      - homepage.href=https://requests.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://requests.${DOMAIN:-localhost}
       - homepage.description=Find and request movies and shows on demand
     healthcheck:
       test:
@@ -105,7 +105,7 @@ services:
       - homepage.group=Streaming Management
       - homepage.name=QBittorrent
       - homepage.icon=qbittorrent.png
-      - homepage.href=https://torrent.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://torrent.${DOMAIN:-localhost}
       - homepage.description=Torrent client
     environment:
       - PUID=${PUID:-1000}
@@ -146,7 +146,7 @@ services:
       - homepage.group=Streaming Management
       - homepage.name=Sonarr
       - homepage.icon=sonarr-dark.png
-      - homepage.href=https://sonarr.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://sonarr.${DOMAIN:-localhost}
       - homepage.description=Track, download, and organize TV series automatically
   radarr:
     profiles: [apps, all]
@@ -171,12 +171,12 @@ services:
       - homepage.group=Streaming Management
       - homepage.name=Radarr
       - homepage.icon=radarr.png
-      - homepage.href=https://radarr.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://radarr.${DOMAIN:-localhost}
       - homepage.description=Track, download, and organize movies automatically
   flaresolverr:
     profiles: [apps, all]
     # DockerHub mirror flaresolverr/flaresolverr:latest
-    image: ghcr.io/flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr@sha256:7962759d99d7e125e108e0f5e7f3cdbcd36161776d058d1d9b7153b92ef1af9e
     network_mode: service:gluetun
     depends_on: [gluetun]
     environment:
@@ -190,30 +190,31 @@ services:
     restart: unless-stopped
   byparr:
     profiles: [apps, all]
-    image: ghcr.io/thephaseless/byparr:latest
+    image: ghcr.io/thephaseless/byparr@sha256:01a46a2865d9a6db5eb8ead04ec0dd33b8fbe233e8565ae70b50d4cc0af4cfb0
     network_mode: service:gluetun
     depends_on: [gluetun]
     environment: [HOST=0.0.0.0, PORT=8192, LOG_LEVEL=INFO]
     restart: unless-stopped
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
+    profiles: [apps, all]
+    image: lscr.io/linuxserver/prowlarr@sha256:b4204e18666179472225935b443a99cf6c66dcb7bbc2d35034427a3851f13135
     networks: [traefik_public, media]
     environment: [PUID=1000, PGID=1000, TZ=Etc/UTC]
     labels:
       - traefik.enable=true
-      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.prowlarr.entrypoints=websecure
+      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.${DOMAIN:-localhost}`)
+      - traefik.http.routers.prowlarr.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
       - homepage.group=Streaming Management
       - homepage.name=Prowlarr
       - homepage.icon=prowlarr.png
-      - homepage.href=https://prowlarr.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://prowlarr.${DOMAIN:-localhost}
       - homepage.description=Manage indexers and sync them with Sonarr and Radarr
     volumes: [prowlarr_config:/config]
     restart: unless-stopped
   bazarr:
     profiles: [apps, all]
-    image: lscr.io/linuxserver/bazarr:latest
+    image: lscr.io/linuxserver/bazarr@sha256:cb57afc3bd35558e1e7062658f9d4d18a0b4c474f10afe55f0ccfd867025f24f
     networks: [traefik_public, media]
     environment:
       - PUID=${PUID:-1000}
@@ -222,13 +223,13 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_public
-      - traefik.http.routers.bazarr.rule=Host(`bazarr.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.bazarr.entrypoints=websecure
+      - traefik.http.routers.bazarr.rule=Host(`bazarr.${DOMAIN:-localhost}`)
+      - traefik.http.routers.bazarr.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.services.bazarr.loadbalancer.server.port=6767
       - homepage.group=Streaming Management
       - homepage.name=Bazarr
       - homepage.icon=bazarr.png
-      - homepage.href=https://bazarr.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://bazarr.${DOMAIN:-localhost}
       - homepage.description=Manage and download subtitles for Sonarr and Radarr libraries
     volumes: [bazarr_config:/config, media_data:/data]
     restart: unless-stopped

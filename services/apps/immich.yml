@@ -28,7 +28,7 @@ services:
           memory: 512M
   immich-power-tools:
     profiles: [apps, all]
-    image: ghcr.io/immich-power-tools/immich-power-tools:latest
+    image: ghcr.io/immich-power-tools/immich-power-tools@sha256:e7779c0ef7e00936f4ea08935f534fba262501a955db23c2ec5872b94e7211ce
     depends_on:
       immich-postgres:
         condition: service_healthy
@@ -49,7 +49,7 @@ services:
       - AI_API_KEY=${AI_API_KEY:-}
       - AI_BASE_URL=${AI_BASE_URL:-https://api.openai.com/v1}
       - AI_MODEL=${AI_MODEL:-gpt-4o-mini}
-      - POWER_TOOLS_ENDPOINT_URL=${POWER_TOOLS_ENDPOINT_URL:-https://immich-tools.${DOMAIN:-traefik.me}}
+      - POWER_TOOLS_ENDPOINT_URL=${POWER_TOOLS_ENDPOINT_URL:-${PUBLIC_SCHEME:-http}://immich-tools.${DOMAIN:-localhost}}
     volumes: [immich_power_tools_data:/app/data]
     labels:
       - sablier.enable=true
@@ -57,7 +57,7 @@ services:
       - homepage.group=Media & Files
       - homepage.name=Immich Power Tools
       - homepage.icon=immich.png
-      - homepage.href=https://immich-tools.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://immich-tools.${DOMAIN:-localhost}
       - homepage.description=Extra utilities for your Immich library
     restart: unless-stopped
     deploy:
@@ -92,13 +92,13 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_public
-      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-traefik.me}`)
-      - traefik.http.routers.immich.entrypoints=websecure
+      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost}`)
+      - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-web}
       - traefik.http.services.immich.loadbalancer.server.port=2283
       - homepage.group=Media & Files
       - homepage.name=Immich
       - homepage.icon=immich.png
-      - homepage.href=https://photos.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://photos.${DOMAIN:-localhost}
       - homepage.description=Family photo and video library
     restart: unless-stopped
     deploy:

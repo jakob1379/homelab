@@ -21,7 +21,7 @@ services:
       - homepage.group=Admin Tools
       - homepage.name=RustFS
       - homepage.icon=rustfs.png
-      - homepage.href=https://rustfs.${DOMAIN:-traefik.me}
+      - homepage.href=${PUBLIC_SCHEME:-http}://rustfs.${DOMAIN:-localhost}
       - homepage.description=Cloud file storage for backups
     restart: unless-stopped
     healthcheck:
