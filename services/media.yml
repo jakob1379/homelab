@@ -20,7 +20,7 @@ services:
       - SERVER_COUNTRIES=${VPN_SERVER_COUNTRIES:-Netherlands}
       - FIREWALL_INPUT_PORTS=8080,7878,8989,6881,8191,8192
     healthcheck:
-      disable: ${GLUETUN_HEALTHCHECK_DISABLED:-true}
+      disable: ${GLUETUN_HEALTHCHECK_DISABLED:-false}
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_public

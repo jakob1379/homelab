@@ -36,7 +36,8 @@ During bootstrap, `${PUBLIC_SCHEME}://docker.${DOMAIN}` does not exist yet becau
 
 ## Step 1: Prepare The Stack Variables
 
-Local development can use the HTTP defaults from `.env.example`. For production HTTPS, set the Traefik ACME override values:
+Local development uses the HTTPS defaults from `.env.example` (mkcert-backed on `localhost.me`). For
+production ACME HTTPS, set the Traefik override values:
 
 - `PUBLIC_SCHEME=https`
 - `TRAEFIK_ENTRYPOINT=websecure`
