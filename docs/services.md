@@ -20,11 +20,11 @@ $ docker compose --profile apps up -d keep speedtest-tracker
  ✔ Container homelab-speedtest-tracker-1  Started
 
 # 3. Verify both routes
-$ curl https://keep.localhost.direct
+$ curl https://keep.localhost.me
 <!doctype html>
 ...
 
-$ curl https://speed.localhost.direct
+$ curl https://speed.localhost.me
 <!DOCTYPE html>
 ...
 ```
@@ -199,7 +199,7 @@ Bootstrap behavior:
 - `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, and `DUMBASSETS_SESSION_SECRET` when they are missing.
 - `setup-dev.sh` writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values for local config rendering. Real Gluetun use still needs real VPN credentials.
 - `GLUETUN_HEALTHCHECK_DISABLED=true` is the local default so `docker compose --profile all up --wait` can start the media UI routes with dummy VPN credentials. Set it to `false` when real VPN credentials should gate the stack.
-- `setup-dev.sh` creates mkcert-backed local TLS files for `https://*.localhost.direct` and writes Traefik's generated certificate dynamic config.
+- `setup-dev.sh` creates mkcert-backed local TLS files for `https://*.localhost.me` and writes Traefik's generated certificate dynamic config.
 - In CI only, `setup-dev.sh` also writes dummy `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and `PAPERLESS_ADMIN_PASSWORD` values so the production HTTPS render can be checked without real secrets.
 - For local full-stack runs, set `PAPERLESS_ADMIN_PASSWORD` yourself unless you already provide it through the environment.
 - For production ACME certificates, also set `TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.

@@ -162,7 +162,7 @@ $ printf '%s\n' 'ADGUARD_DNS_PORT=1053' >> .env
 Local development should use the mkcert-backed HTTPS default, for example:
 
 ```bash title="Check the local route"
-$ curl https://whoami.localhost.direct
+$ curl https://whoami.localhost.me
 Hostname: homelab-whoami-1
 ```
 
@@ -188,7 +188,7 @@ $ docker compose --profile service up -d ha
 $ ls config/traefik/dyn/ha.yml
 
 # 3. Check that Traefik can serve the HA manifest
-$ curl ${PUBLIC_SCHEME:-https}://ha.${DOMAIN:-localhost.direct}/manifest.json
+$ curl ${PUBLIC_SCHEME:-https}://ha.${DOMAIN:-localhost.me}/manifest.json
 ```
 
 If step 3 hangs instead of failing quickly, check whether the Home Assistant

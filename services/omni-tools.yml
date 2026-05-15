@@ -11,7 +11,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=Omni Tools
       - homepage.icon=omni-tools.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://omni.${DOMAIN:-localhost.direct}
+      - homepage.href=${PUBLIC_SCHEME:-https}://omni.${DOMAIN:-localhost.me}
       - homepage.description=General utilities for everyday tasks
     deploy:
       resources:

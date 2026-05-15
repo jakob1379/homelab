@@ -12,14 +12,14 @@ services:
     ports: [3000:3000]
     labels:
       - traefik.enable=true
-      - traefik.http.routers.dockhand.rule=Host(`docker.${DOMAIN:-localhost.direct}`)
+      - traefik.http.routers.dockhand.rule=Host(`docker.${DOMAIN:-localhost.me}`)
       - traefik.http.routers.dockhand.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.dockhand.middlewares=startup-retry@file
       - traefik.http.services.dockhand.loadbalancer.server.port=3000
       - homepage.group=Admin Tools
       - homepage.name=Dockhand
       - homepage.icon=docker.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://docker.${DOMAIN:-localhost.direct}
+      - homepage.href=${PUBLIC_SCHEME:-https}://docker.${DOMAIN:-localhost.me}
       - homepage.description=Modern Docker management UI
     restart: always
     deploy:

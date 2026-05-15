@@ -23,18 +23,18 @@ jobs:
           bash setup-dev.sh
       - name: Validate main Docker Compose configuration (profile all)
         run: |
-          DOMAIN=localhost.direct PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.yml docker compose --profile all config
+          DOMAIN=localhost.me PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.yml docker compose --profile all config
       - name: Validate production HTTPS Traefik configuration
         run: |
           DOMAIN=lab.example.test PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.acme.yml ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose --profile all config
       - name: Validate pods bootstrap Docker Compose configuration
         run: |
-          DOMAIN=localhost.direct PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose -f docker-compose.pods.yml config
+          DOMAIN=localhost.me PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose -f docker-compose.pods.yml config
       - name: Validate referenced images exist for main stack (dry run)
         run: |-
           set -euo pipefail
-          DOMAIN=localhost.direct PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.yml docker compose --profile all pull --dry-run
+          DOMAIN=localhost.me PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure TRAEFIK_STATIC_CONFIG=../config/traefik/traefik.yml docker compose --profile all pull --dry-run
       - name: Validate referenced images exist for pods stack (dry run)
         run: |-
           set -euo pipefail
-          DOMAIN=localhost.direct PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose -f docker-compose.pods.yml pull --dry-run
+          DOMAIN=localhost.me PUBLIC_SCHEME=https TRAEFIK_ENTRYPOINT=websecure docker compose -f docker-compose.pods.yml pull --dry-run

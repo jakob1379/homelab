@@ -7,7 +7,7 @@
 
 > **Docker Compose homelab with two entrypoints.** `docker-compose.yml` runs the main stack. `docker-compose.pods.yml` boots **Dockhand** as the separate control plane.
 
-This repo defaults to local HTTPS routing through **Traefik** at `https://<service>.localhost.direct` using mkcert-generated local certificates. Production ACME certificates are handled by the alternate Cloudflare DNS-01 Traefik config.
+This repo defaults to local HTTPS routing through **Traefik** at `https://<service>.localhost.me` using mkcert-generated local certificates. Production ACME certificates are handled by the alternate Cloudflare DNS-01 Traefik config.
 
 ---
 
@@ -74,13 +74,13 @@ $ docker compose --profile all up --wait
  ✔ Container homelab-rustfs-1    Started
 
 # 4. Verify a routed endpoint
-$ curl https://whoami.localhost.direct
+$ curl https://whoami.localhost.me
 Hostname: homelab-whoami-1
 IP: 172.20.0.2
 ```
 
 !!! note
-    Use service subdomains such as `https://whoami.localhost.direct` or `https://traefik.localhost.direct`. A request to plain `https://localhost.direct` will not match a Traefik router.
+    Use service subdomains such as `https://whoami.localhost.me` or `https://traefik.localhost.me`. A request to plain `https://localhost.me` will not match a Traefik router.
 
 ---
 
@@ -219,7 +219,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 
 Local development uses `config/traefik/traefik.yml` with HTTPS on `websecure`.
 Run `setup-dev.sh` to create the mkcert-backed files for
-`https://*.localhost.direct`, then start the stack with:
+`https://*.localhost.me`, then start the stack with:
 
 ```bash
 docker compose --profile all up --wait

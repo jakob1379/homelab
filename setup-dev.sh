@@ -201,23 +201,23 @@ ensure_dev_placeholder() {
 ensure_local_tls_artifacts() {
     local cert_dir="config/traefik/certs"
     local dyn_file="config/traefik/dyn/local-certs.generated.yml"
-    local cert_file="$cert_dir/localhost.direct.pem"
-    local key_file="$cert_dir/localhost.direct-key.pem"
+    local cert_file="$cert_dir/localhost.me.pem"
+    local key_file="$cert_dir/localhost.me-key.pem"
     local ci_value="${CI-}"
 
     mkdir -p "$cert_dir" "config/traefik/dyn"
 
     if [[ ! -s "$cert_file" || ! -s "$key_file" ]]; then
         if command -v mkcert >/dev/null 2>&1; then
-            log_info "Generating local TLS certificate with mkcert for localhost.direct"
-            mkcert -cert-file "$cert_file" -key-file "$key_file" localhost.direct "*.localhost.direct"
+            log_info "Generating local TLS certificate with mkcert for localhost.me"
+            mkcert -cert-file "$cert_file" -key-file "$key_file" localhost.me "*.localhost.me"
         elif [[ "${ci_value,,}" =~ ^(1|true|yes|on)$ ]] && command -v openssl >/dev/null 2>&1; then
             log_warn "mkcert is unavailable in CI; generating a temporary self-signed certificate for compose validation"
             openssl req -x509 -newkey rsa:2048 -nodes -days 30 \
                 -keyout "$key_file" \
                 -out "$cert_file" \
-                -subj "/CN=localhost.direct" \
-                -addext "subjectAltName=DNS:localhost.direct,DNS:*.localhost.direct"
+                -subj "/CN=localhost.me" \
+                -addext "subjectAltName=DNS:localhost.me,DNS:*.localhost.me"
         else
             log_error "Local HTTPS requires mkcert. Install it, run 'mkcert -install', then rerun setup-dev.sh"
             return 1
@@ -230,8 +230,8 @@ ensure_local_tls_artifacts() {
 ---
 tls:
   certificates:
-    - certFile: /etc/traefik/certs/localhost.direct.pem
-      keyFile: /etc/traefik/certs/localhost.direct-key.pem
+    - certFile: /etc/traefik/certs/localhost.me.pem
+      keyFile: /etc/traefik/certs/localhost.me-key.pem
 EOF
 
     log_info "Local Traefik TLS certificate configured: $cert_file"
@@ -256,7 +256,7 @@ Options:
 
 This script:
 - Optionally copies .env.example to .env if missing
-- Creates mkcert-backed local TLS files for https://*.localhost.direct
+- Creates mkcert-backed local TLS files for https://*.localhost.me
 - Generates random app keys in .env when safe for local development
 - Sets local dummy OpenVPN and DumbAssets values when missing so compose config can render
 - Verifies required env_file references from included compose files

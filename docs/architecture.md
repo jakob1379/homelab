@@ -24,7 +24,7 @@ $ docker compose --profile infra up -d
  ✔ Container homelab-rustfs-1    Started
 
 # 3. Inspect live routers
-$ curl -s https://traefik.localhost.direct/api/http/routers | jq -r '.[].name'
+$ curl -s https://traefik.localhost.me/api/http/routers | jq -r '.[].name'
 api@docker
 dockhand@docker
 whoami@file
@@ -139,7 +139,7 @@ That route lives in the file provider because it needs both:
 labels:
   - traefik.enable=true
   - traefik.docker.network=traefik_public
-  - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost.direct}`)
+  - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost.me}`)
   - traefik.http.routers.immich.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
   - traefik.http.services.immich.loadbalancer.server.port=2283
 ```

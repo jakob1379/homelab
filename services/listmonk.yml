@@ -44,7 +44,7 @@ services:
       - homepage.group=Admin Tools
       - homepage.name=Listmonk
       - homepage.icon=listmonk.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://listmonk.${DOMAIN:-localhost.direct}
+      - homepage.href=${PUBLIC_SCHEME:-https}://listmonk.${DOMAIN:-localhost.me}
       - homepage.description=Send email newsletters to groups
     command:
       - sh

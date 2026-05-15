@@ -6,7 +6,7 @@ services:
     ports: [80:80, 443:443]
     environment:
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:-}
-      - DOMAIN=${DOMAIN:-localhost.direct}
+      - DOMAIN=${DOMAIN:-localhost.me}
       - TRAEFIK_ENTRYPOINT=${TRAEFIK_ENTRYPOINT:-websecure}
       - TRAEFIK_CERTIFICATESRESOLVERS_CFRESOLVER_ACME_EMAIL=${ACME_EMAIL:-}
     command: [--configFile=/etc/traefik/traefik.yml]
@@ -21,14 +21,14 @@ services:
     labels:
       - traefik.enable=true
       # Traefik dashboard
-      - traefik.http.routers.api.rule=Host(`traefik.${DOMAIN:-localhost.direct}`)
+      - traefik.http.routers.api.rule=Host(`traefik.${DOMAIN:-localhost.me}`)
       - traefik.http.routers.api.service=api@internal
       - traefik.http.routers.api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.services.traefik.loadbalancer.server.port=8080
       - homepage.group=Networking
       - homepage.name=Traefik
       - homepage.icon=traefik.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://traefik.${DOMAIN:-localhost.direct}
+      - homepage.href=${PUBLIC_SCHEME:-https}://traefik.${DOMAIN:-localhost.me}
       - homepage.description=Reverse proxy and routing dashboard
       - homepage.siteMonitor=http://traefik:8081/ping
     restart: unless-stopped
@@ -85,7 +85,7 @@ services:
       - homepage.group=Admin Tools
       - homepage.name=Whoami
       - homepage.icon=whoami.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://whoami.${DOMAIN:-localhost.direct}
+      - homepage.href=${PUBLIC_SCHEME:-https}://whoami.${DOMAIN:-localhost.me}
       - homepage.description=Check your connection details
     restart: unless-stopped
     deploy:
@@ -111,13 +111,13 @@ services:
     networks: [traefik_public]
     labels:
       - traefik.enable=true
-      - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-localhost.direct}`)
+      - traefik.http.routers.adguard.rule=Host(`dns.${DOMAIN:-localhost.me}`)
       - traefik.http.routers.adguard.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.services.adguard.loadbalancer.server.port=3000
       - homepage.group=Networking
       - homepage.name=AdGuard
       - homepage.icon=adguard-home.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://dns.${DOMAIN:-localhost.direct}
+      - homepage.href=${PUBLIC_SCHEME:-https}://dns.${DOMAIN:-localhost.me}
       - homepage.description=Block ads across the whole network
     restart: unless-stopped
     deploy:
@@ -154,7 +154,7 @@ services:
       - homepage.group=Networking
       - homepage.name=NetAlertX
       - homepage.icon=netalertx.png
-      - homepage.href=${PUBLIC_SCHEME:-https}://netalertx.${DOMAIN:-localhost.direct}
+      - homepage.href=${PUBLIC_SCHEME:-https}://netalertx.${DOMAIN:-localhost.me}
       - homepage.description=See what devices are connected to the network
     restart: unless-stopped
     deploy:
