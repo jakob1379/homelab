@@ -202,7 +202,7 @@ Bootstrap behavior:
 - `setup-dev.sh` creates mkcert-backed local TLS files for `https://*.localhost.me` and writes Traefik's generated certificate dynamic config.
 - In CI only, `setup-dev.sh` also writes a dummy `PAPERLESS_ADMIN_PASSWORD` value so local config rendering works without real secrets.
 - For local full-stack runs, set `PAPERLESS_ADMIN_PASSWORD` yourself unless you already provide it through the environment.
-- For production ACME certificates, use `docker-compose.prod.yml` and set `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
+- For production ACME certificates, use `docker compose -f docker-compose.prod.yml --profile all up -d` and set `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 ---
 

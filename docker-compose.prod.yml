@@ -1,7 +1,8 @@
 ---
 # Production override for Cloudflare DNS-01 ACME certificates.
 # Use with:
-#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all up -d
+#   docker compose -f docker-compose.prod.yml --profile all up -d
+include: [docker-compose.yml]
 services:
   traefik:
     environment:

@@ -37,7 +37,8 @@ During bootstrap, `https://docker.${DOMAIN}` does not exist yet because the main
 ## Step 1: Prepare The Stack Variables
 
 Local development uses the HTTPS defaults from `.env.example` (mkcert-backed on `localhost.me`). For
-production ACME HTTPS, use `docker-compose.prod.yml` and set the production values:
+production ACME HTTPS, start with `docker compose -f docker-compose.prod.yml --profile all up -d`
+and set the production values:
 
 - `DOMAIN`
 - `ACME_EMAIL`

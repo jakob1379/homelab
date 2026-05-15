@@ -227,7 +227,7 @@ docker compose --profile all up --wait
 
 For production ACME certificates, set:
 
-- use `docker-compose.prod.yml` with the main compose file
+- start with `docker compose -f docker-compose.prod.yml --profile all up -d`
 - `DOMAIN`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`

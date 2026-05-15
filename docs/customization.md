@@ -281,7 +281,7 @@ $ ./setup-dev.sh
 $ DOMAIN=localhost.me docker compose --profile all config > /dev/null
 
 # Production HTTPS render with Cloudflare DNS-01 ACME
-$ DOMAIN=lab.example.test ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all config > /dev/null
+$ DOMAIN=lab.example.test ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose -f docker-compose.prod.yml --profile all config > /dev/null
 
 # Bootstrap stack render
 $ DOMAIN=localhost.me docker compose -f docker-compose.pods.yml config > /dev/null
