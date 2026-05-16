@@ -20,11 +20,11 @@ $ docker compose --profile apps up -d keep speedtest-tracker
  ✔ Container homelab-speedtest-tracker-1  Started
 
 # 3. Verify both routes
-$ curl -k https://keep.traefik.me
+$ curl https://keep.localhost.me
 <!doctype html>
 ...
 
-$ curl -k https://speed.traefik.me
+$ curl https://speed.localhost.me
 <!DOCTYPE html>
 ...
 ```
@@ -50,7 +50,7 @@ $ curl -k https://speed.traefik.me
 | **whoami** | `https://whoami.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/whoami.yml` | Yes, `10m` | uses `sablier-default@file` |
 | **RustFS** | `https://rustfs.${DOMAIN}`, `https://rustfs-api.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/rustfs.yml` | No | object storage and console |
 | **AdGuard Home** | `https://dns.${DOMAIN}` and host DNS port `${ADGUARD_DNS_PORT}` | `infra`, `all` | Docker labels | No | publishes port `53` on the configured host port |
-| **NetAlertX** | `https://netalertx.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/netalertx.yml` | No | service itself runs in `network_mode: host` |
+| **NetAlertX** | `https://netalertx.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/netalertx.yml` | No | host networking for LAN scanning |
 
 ---
 
@@ -142,15 +142,16 @@ Required vars:
 | **torrent** | `https://torrent.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | qBittorrent service name is `torrent`; shares `gluetun` network namespace |
 | **Sonarr** | `https://sonarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
 | **Radarr** | `https://radarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
-| **Byparr** | internal only, `http://byparr:8191` from `media` | `apps`, `all` | None | No | FlareSolverr-compatible helper; shares `gluetun` network namespace |
+| **FlareSolverr** | internal only, `http://flaresolverr:8191` from `media` | `apps`, `all` | None | No | shares `gluetun` network namespace |
+| **Byparr** | internal only, `http://byparr:8192` from `media` | `apps`, `all` | None | No | FlareSolverr-compatible helper; shares `gluetun` network namespace |
 | **Prowlarr** | `https://prowlarr.${DOMAIN}` | no explicit profile | Docker labels | No | starts by default in the main stack because it has no profile |
 | **Bazarr** | `https://bazarr.${DOMAIN}` | `apps`, `all` | Docker labels on `bazarr` | No | subtitle management for the shared media library |
 
 Current caveat:
 
-- `gluetun` now carries the routed network path for `torrent`, `sonarr`, `radarr`, and `byparr`
-- `gluetun` also carries `torrent`, `sonarr`, `radarr`, and `byparr` aliases on `media` to preserve internal service-name reachability
-- configure Prowlarr's FlareSolverr indexer proxy host as `http://byparr:8191`, not `/v1`; Prowlarr appends `/v1`
+- `gluetun` carries external Docker-label routes only for `torrent`, `sonarr`, and `radarr`
+- `gluetun` also carries `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr` aliases on `media` to preserve internal service-name reachability
+- configure Prowlarr's FlareSolverr indexer proxy host as `http://byparr:8192`, not `/v1`; Prowlarr appends `/v1`
 - active compose requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for Gluetun; `setup-dev.sh` writes local dummy values so config rendering works
 - replace the dummy OpenVPN values before running VPN-backed downloads for real
 - `VPN_SERVER_COUNTRIES` is optional and defaults to `Netherlands`
@@ -159,7 +160,7 @@ Current caveat:
 
 | Service | Access | Profile(s) | Routing source | Sleep | Notes |
 |---|---|---|---|---|---|
-| **ha** | `https://ha.${DOMAIN}` | `apps`, `all`, `service` | `config/traefik/dyn/ha.yml` | No | host-networked; files live under `home-assistant/` |
+| **ha** | `https://ha.${DOMAIN}` | `apps`, `all`, `service` | `config/traefik/dyn/ha.yml` | No | host networking for LAN discovery; files live under `home-assistant/` |
 
 Narrow start command:
 
@@ -173,12 +174,10 @@ $ docker compose --profile service up -d ha
 
 ## Required Variables
 
-These are the variables that matter for the active stack.
+These are the compose-required variables that matter for the active stack.
 
 | Variable | Used by |
 |---|---|
-| `ACME_EMAIL` | **Traefik** |
-| `CF_DNS_API_TOKEN` | **Traefik** |
 | `RUSTFS_ACCESS_KEY` | **RustFS** |
 | `RUSTFS_SECRET_KEY` | **RustFS** |
 | `IMMICH_DB_PASSWORD` | **Immich**, **Immich Power Tools** |
@@ -189,19 +188,25 @@ These are the variables that matter for the active stack.
 | `NEXTAUTH_SECRET` | **Karakeep** |
 | `MEILI_MASTER_KEY` | **Karakeep**, **Meilisearch** |
 | `SPEEDTEST_APP_KEY` | **Speedtest Tracker** |
-| `SPEEDTEST_API_TOKEN` | **Speedtest Trigger** sidecar; create it in Speedtest Tracker with `Read Results` and `Run Speedtest` abilities |
 | `OPENVPN_USER` | **Gluetun** ProtonVPN OpenVPN username |
 | `OPENVPN_PASSWORD` | **Gluetun** ProtonVPN OpenVPN password |
 | `DUMBASSETS_PIN` | **DumbAssets** |
 | `DUMBASSETS_SESSION_SECRET` | **DumbAssets** |
+
+Optional vars:
+
+- `SPEEDTEST_API_TOKEN` is used by the **Speedtest Trigger** sidecar; create it in Speedtest Tracker with `Read Results` and `Run Speedtest` abilities. When unset, the sidecar logs `skipped_no_token` and skips the trigger.
 
 Bootstrap behavior:
 
 - `.env.example` already provides local RustFS defaults.
 - `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, and `DUMBASSETS_SESSION_SECRET` when they are missing.
 - `setup-dev.sh` writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values for local config rendering. Real Gluetun use still needs real VPN credentials.
-- In CI only, `setup-dev.sh` also writes dummy `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and `PAPERLESS_ADMIN_PASSWORD` values so the workflow can render the stack without secrets.
-- For local full-stack runs, set `ACME_EMAIL`, `CF_DNS_API_TOKEN`, and `PAPERLESS_ADMIN_PASSWORD` yourself unless you already provide them through the environment.
+- `GLUETUN_HEALTHCHECK_DISABLED=true` is the local default so `docker compose --profile all up --wait` can start the media UI routes with dummy VPN credentials. Set it to `false` when real VPN credentials should gate the stack.
+- `setup-dev.sh` creates mkcert-backed local TLS files for `https://*.localhost.me` and writes Traefik's generated certificate dynamic config.
+- In CI only, `setup-dev.sh` also writes a dummy `PAPERLESS_ADMIN_PASSWORD` value so local config rendering works without real secrets.
+- For local full-stack runs, set `PAPERLESS_ADMIN_PASSWORD` yourself unless you already provide it through the environment.
+- For production ACME certificates, use `docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all up -d` and set `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 ---
 

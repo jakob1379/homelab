@@ -35,7 +35,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=Demo
       - homepage.icon=nginx.png
-      - homepage.href=https://demo.${DOMAIN:-traefik.me}
+      - homepage.href=https://demo.${DOMAIN:-localhost.me}
       - homepage.description=Small demo service
     restart: unless-stopped
 networks:
@@ -90,19 +90,22 @@ include:
 ### Step 4: validate and start it
 
 ```bash title="Validate and run the demo service"
-# 1. Prepare local generated keys and validation placeholders
+# 1. Check setup script syntax, matching CI
+$ bash -n setup-dev.sh
+
+# 2. Prepare local generated keys and validation placeholders
 $ ./setup-dev.sh
 
-# 2. Validate the combined main stack
-$ DOMAIN=test.traefik.me docker compose --profile all config > /dev/null
+# 3. Validate the combined main stack with local HTTPS defaults
+$ DOMAIN=localhost.me docker compose --profile all config > /dev/null
 
-# 3. Start the new app
+# 4. Start the new app
 $ docker compose --profile apps up -d demo
 [+] Running 1/1
  ✔ Container homelab-demo-1  Started
 
-# 4. Test the route
-$ curl -k https://demo.traefik.me
+# 5. Test the route
+$ curl https://demo.localhost.me
 <!DOCTYPE html>
 <html>
 ...
@@ -140,8 +143,10 @@ This is the normal pattern for:
 - **Immich**
 - **AdGuard**
 - **Dockhand**
-- **Home Assistant**
 - **Jellyfin**
+- `torrent`, **Sonarr**, and **Radarr** through labels on **Gluetun**
+- **Prowlarr**
+- **Bazarr**
 
 ---
 
@@ -163,7 +168,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=MyApp
       - homepage.icon=myapp.png
-      - homepage.href=https://myapp.${DOMAIN:-traefik.me}
+      - homepage.href=https://myapp.${DOMAIN:-localhost.me}
       - homepage.description=What this app does
     restart: unless-stopped
 ```
@@ -217,7 +222,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_public
-      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost.me}`)
       - traefik.http.routers.immich.entrypoints=websecure
       - traefik.http.services.immich.loadbalancer.server.port=2283
 ```
@@ -226,9 +231,9 @@ Use this pattern when the container joins `traefik_public`, you do not need **Sa
 
 ---
 
-## Pattern C: Host-Networked Service With File-Provider Route
+## Pattern C: Explicit Backend Route With File Provider
 
-Copy this when the app needs `network_mode: host`, like **Home Assistant** or **NetAlertX**.
+Copy this when the app needs a file-provider middleware chain or explicit backend URL, like host-networked **Home Assistant** or **NetAlertX**.
 
 ```yaml title="config/traefik/dyn/ha.yml"
 http:
@@ -237,7 +242,6 @@ http:
       rule: Host(`ha.{{ env "DOMAIN" }}`)
       entrypoints: [websecure]
       service: ha
-      middlewares: [startup-retry@file]
   services:
     ha:
       loadBalancer:
@@ -245,7 +249,7 @@ http:
           - url: http://host.docker.internal:8123/
 ```
 
-Use this pattern when **Traefik** cannot reach the app over `traefik_public` because the container shares the host network namespace.
+Use this pattern when Docker labels are not enough and **Traefik** needs a specific backend target instead of Docker service discovery.
 
 ---
 
@@ -262,7 +266,7 @@ labels:
   - homepage.group=Utilities
   - homepage.name=MyApp
   - homepage.icon=myapp.png
-  - homepage.href=https://myapp.${DOMAIN:-traefik.me}
+  - homepage.href=https://myapp.${DOMAIN:-localhost.me}
   - homepage.description=What this app does
 ```
 
@@ -275,18 +279,24 @@ Use `homepage.siteMonitor` only for always-on services. If you add it to a **Sab
 Run the same checks the repo points at in `AGENTS.md` and CI.
 
 ```bash title="Validate the stack definitions"
+# Check setup script syntax, matching CI
+$ bash -n setup-dev.sh
+
 # Prepare generated keys and local validation placeholders
 $ ./setup-dev.sh
 
-# Main stack render, matching CI's test domain
-$ DOMAIN=test.traefik.me docker compose --profile all config > /dev/null
+# Main stack render with local HTTPS defaults
+$ DOMAIN=localhost.me docker compose --profile all config > /dev/null
+
+# Production HTTPS render with Cloudflare DNS-01 ACME
+$ DOMAIN=lab.example.test ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all config > /dev/null
 
 # Bootstrap stack render
-$ DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config > /dev/null
+$ DOMAIN=localhost.me docker compose -f docker-compose.pods.yml config > /dev/null
 
 # Image reference checks, matching CI
-$ DOMAIN=test.traefik.me docker compose --profile all pull --dry-run
-$ DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run
+$ DOMAIN=localhost.me docker compose --profile all pull --dry-run
+$ DOMAIN=localhost.me docker compose -f docker-compose.pods.yml pull --dry-run
 
 # Repo hooks
 $ prek run -a

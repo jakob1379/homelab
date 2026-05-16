@@ -49,7 +49,7 @@ services:
       - AI_API_KEY=${AI_API_KEY:-}
       - AI_BASE_URL=${AI_BASE_URL:-https://api.openai.com/v1}
       - AI_MODEL=${AI_MODEL:-gpt-4o-mini}
-      - POWER_TOOLS_ENDPOINT_URL=${POWER_TOOLS_ENDPOINT_URL:-https://immich-tools.${DOMAIN:-traefik.me}}
+      - POWER_TOOLS_ENDPOINT_URL=${POWER_TOOLS_ENDPOINT_URL:-https://immich-tools.${DOMAIN:-localhost.me}}
     volumes: [immich_power_tools_data:/app/data]
     labels:
       - sablier.enable=true
@@ -57,7 +57,7 @@ services:
       - homepage.group=Media & Files
       - homepage.name=Immich Power Tools
       - homepage.icon=immich.png
-      - homepage.href=https://immich-tools.${DOMAIN:-traefik.me}
+      - homepage.href=https://immich-tools.${DOMAIN:-localhost.me}
       - homepage.description=Extra utilities for your Immich library
     restart: unless-stopped
     deploy:
@@ -92,13 +92,13 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_public
-      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-traefik.me}`)
+      - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost.me}`)
       - traefik.http.routers.immich.entrypoints=websecure
       - traefik.http.services.immich.loadbalancer.server.port=2283
       - homepage.group=Media & Files
       - homepage.name=Immich
       - homepage.icon=immich.png
-      - homepage.href=https://photos.${DOMAIN:-traefik.me}
+      - homepage.href=https://photos.${DOMAIN:-localhost.me}
       - homepage.description=Family photo and video library
     restart: unless-stopped
     deploy:

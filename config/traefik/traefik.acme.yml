@@ -21,9 +21,17 @@ entryPoints:
   websecure:
     address: :443
     http:
-      tls: {}
+      tls:
+        certResolver: cfresolver
   internal:
     address: :8081
+certificatesResolvers:
+  cfresolver:
+    acme:
+      storage: /letsencrypt/acme.json
+      dnsChallenge:
+        provider: cloudflare
+        resolvers: [1.1.1.1:53, 1.0.0.1:53]
 providers:
   docker:
     # Use Docker Compose service label for clean service name extraction

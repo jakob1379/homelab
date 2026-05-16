@@ -7,7 +7,7 @@
 
 > **Docker Compose homelab with two entrypoints.** `docker-compose.yml` runs the main stack. `docker-compose.pods.yml` boots **Dockhand** as the separate control plane.
 
-This repo is not zero-config anymore. The **Dockhand** bootstrap path is easy. The full **Traefik** stack still expects `ACME_EMAIL` and `CF_DNS_API_TOKEN` because `config/traefik/traefik.yml` is wired for **Cloudflare DNS-01** from the start.
+This repo defaults to local HTTPS routing through **Traefik** at `https://<service>.localhost.me` using mkcert-generated local certificates. Production ACME certificates are handled by the alternate Cloudflare DNS-01 Traefik config.
 
 ---
 
@@ -45,52 +45,44 @@ If you want the full routed stack, keep going.
 # 1. Prepare .env from .env.example when needed
 $ ./setup-dev.sh
 [INFO] Setting up the homelab development environment...
-[INFO] setup-dev.sh generates app keys, sets local OpenVPN placeholders, and leaves optional service env overrides optional
+[INFO] setup-dev.sh generates local TLS files and app keys, sets local OpenVPN and DumbAssets placeholders, and leaves optional service env overrides optional
 [INFO] Set development placeholder: OPENVPN_USER
 [INFO] Set development placeholder: OPENVPN_PASSWORD
+[INFO] Set development placeholder: DUMBASSETS_PIN
 [INFO] Generated development key: NEXTAUTH_SECRET
 [INFO] Generated development key: MEILI_MASTER_KEY
+[INFO] Generated development key: DUMBASSETS_SESSION_SECRET
 [WARN] Missing required variables for docker compose --profile all:
- - ACME_EMAIL
- - CF_DNS_API_TOKEN
  - PAPERLESS_ADMIN_PASSWORD
  ...
 [INFO] Setup complete!
 ```
 
-`setup-dev.sh` writes dummy OpenVPN values so `docker compose --profile all config` can render locally and in CI. Replace them before running the VPN-backed media automation for real.
+`setup-dev.sh` writes dummy OpenVPN and DumbAssets PIN values so the local full stack can render. Replace the OpenVPN values and set `GLUETUN_HEALTHCHECK_DISABLED=false` before running the VPN-backed media automation for real. `DUMBASSETS_SESSION_SECRET` is generated with the other app keys.
 
-Fill the values you actually need, then start the profiles you want.
+Fill the values you actually need, then start the full stack or the profiles you want.
 
-```bash title="Start infra first, then add apps"
+```bash title="Start the full stack"
 # 2. Add the required values to .env
 $ cat >> .env <<'EOF'
-ACME_EMAIL=you@example.com
-CF_DNS_API_TOKEN=your_cloudflare_token
 PAPERLESS_ADMIN_PASSWORD=change-me
 EOF
 
-# 3. Start the always-on foundation
-$ docker compose --profile infra up -d
+# 3. Start the full local stack and wait for health checks
+$ docker compose --profile all up --wait
 [+] Running ...
  ✔ Container homelab-traefik-1   Started
  ✔ Container homelab-sablier-1   Started
  ✔ Container homelab-rustfs-1    Started
 
-# 4. Start a couple of apps
-$ docker compose --profile apps up -d home keep
-[+] Running ...
- ✔ Container homelab-home-1      Started
- ✔ Container homelab-keep-1      Started
-
-# 5. Verify a routed endpoint
-$ curl -k https://whoami.traefik.me
+# 4. Verify a routed endpoint
+$ curl https://whoami.localhost.me
 Hostname: homelab-whoami-1
 IP: 172.20.0.2
 ```
 
 !!! note
-    `traefik.me` is still the local default domain. It resolves to `127.0.0.1`, so local routing works once the main stack is up.
+    Use service subdomains such as `https://whoami.localhost.me` or `https://traefik.localhost.me`. A request to plain `https://localhost.me` will not match a Traefik router.
 
 ---
 
@@ -113,6 +105,7 @@ include:
   - services/karakeep.yml
   - services/immich.yml
   - services/paperless-ngx.yml
+  - services/dumbassets.yml
   - services/media.yml
   - services/homepage.yml
   - home-assistant/docker-compose.yml
@@ -152,6 +145,7 @@ These are the routes that currently use explicit **Traefik** file-provider confi
 - **AnythingLLM**
 - **BentoPDF**
 - **CloudBeaver**
+- **DumbAssets**
 - **Homepage**
 - **Home Assistant**
 - **Immich Power Tools**
@@ -184,7 +178,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 
 ### Sleep behavior right now
 
-- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
+- **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `dumbassets`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
 - **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
 - **Important exception**: `listmonk` still has `sablier.*` labels, but `config/traefik/dyn/listmonk.yml` does **not** attach a Sablier middleware. Treat it as not sleeping on request in the current repo.
 
@@ -208,6 +202,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **IT Tools**
 - **CloudBeaver**
 - **BentoPDF**
+- **DumbAssets**
 - **Omni Tools**
 - **VERT**
 - **Speedtest Tracker**
@@ -218,21 +213,29 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **Listmonk** + `listmonk-postgres` + optional `cftunnel`
 - **Immich** + `immich-postgres` + `redis` + workers
 - **Paperless-ngx** + PostgreSQL + Redis + Gotenberg + Tika
-- **Media**: `jellyfin`, `seerr`, `immich-power-tools`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
+- **Media**: `jellyfin`, `seerr`, `immich-power-tools`, `torrent`, `sonarr`, `radarr`, `flaresolverr`, `byparr`, `prowlarr`, `bazarr`
 - **Home Assistant**
 
 ---
 
 ## Current Caveats
 
-### 1. The main stack still expects Cloudflare values
+### 1. Local HTTPS uses mkcert
 
-Even in local development, `traefik` requires:
+Local development uses `config/traefik/traefik.yml` with HTTPS on `websecure`.
+Run `setup-dev.sh` to create the mkcert-backed files for
+`https://*.localhost.me`, then start the stack with:
 
+```bash
+docker compose --profile all up --wait
+```
+
+For production ACME certificates, start the stack with both the base file and the production override:
+
+- `docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all up -d`
+- `DOMAIN`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
-
-That is not optional in the current compose setup.
 
 ### 2. The media stack still depends on Gluetun
 
@@ -241,6 +244,8 @@ That is not optional in the current compose setup.
 - `torrent`
 - `sonarr`
 - `radarr`
+- `flaresolverr`
+- `byparr`
 
 `prowlarr` and `bazarr` route directly on `traefik_public`.
 

@@ -5,6 +5,8 @@ flake.lock
 services/.env-*
 services/secrets/*
 traefik-config/secrets/*
+config/traefik/certs/*.pem
+config/traefik/dyn/local-certs.generated.yml
 site/
 *~
 home-assistant/config/

@@ -12,7 +12,7 @@ Read [Architecture](architecture.md) first if you do not know which stack you ar
 # 1. Pods stack
 $ docker compose -f docker-compose.pods.yml ps
 NAME                    IMAGE                  STATUS
-homelab-pods-dockhand-1 fnsys/dockhand:v1.0.26 Up
+homelab-pods-dockhand-1 fnsys/dockhand:v1.0.28 Up
 
 # 2. Main stack foundation
 $ docker compose ps traefik sablier whoami
@@ -55,7 +55,7 @@ The usual reason is missing required variables.
 
 ```bash title="Render the main stack and read the first failure"
 $ docker compose --profile all config
-required variable CF_DNS_API_TOKEN is missing a value: Set CF_DNS_API_TOKEN in .env, direnv, or Dockhand
+required variable ... is missing a value
 ```
 
 Run the bootstrap script first:
@@ -64,15 +64,15 @@ Run the bootstrap script first:
 $ ./setup-dev.sh
 ```
 
-It generates app keys and writes dummy `OPENVPN_USER` / `OPENVPN_PASSWORD` values so the full stack can render. Those OpenVPN values are only placeholders; replace them before running Gluetun-backed media automation.
+It generates app keys and writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values so the full stack can render. Those OpenVPN values are only placeholders; replace them before running Gluetun-backed media automation. `DUMBASSETS_SESSION_SECRET` is generated like the other app keys.
 
-The current repo still expects these local values for the main ingress and Paperless paths:
+The current repo still expects this local value for Paperless:
 
-- `ACME_EMAIL`
-- `CF_DNS_API_TOKEN`
 - `PAPERLESS_ADMIN_PASSWORD`
 
-In CI, `setup-dev.sh` fills those three with dummy values. Locally, set them in `.env`, direnv, or Dockhand unless you already export them.
+In CI, `setup-dev.sh` fills `PAPERLESS_ADMIN_PASSWORD`. Locally, set `PAPERLESS_ADMIN_PASSWORD` in `.env`, direnv, or Dockhand unless you already export it.
+
+For production ACME renders, use `docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all config` and set `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 If you only want the control plane, use `docker-compose.pods.yml` instead of fighting the full stack.
 
@@ -157,12 +157,12 @@ $ printf '%s\n' 'ADGUARD_DNS_PORT=1053' >> .env
 
 ---
 
-## Local Browser Shows A Certificate Warning
+## Production Browser Shows A Certificate Warning
 
-That is expected when you run the local `traefik.me` path without a trusted local CA.
+Local development should use the mkcert-backed HTTPS default, for example:
 
-```bash title="Use curl with the insecure flag in local dev"
-$ curl -k https://whoami.traefik.me
+```bash title="Check the local route"
+$ curl https://whoami.localhost.me
 Hostname: homelab-whoami-1
 ```
 
@@ -177,7 +177,7 @@ If this is production and you still get a bad cert, check:
 
 ## Home Assistant Hangs Or Shows "Retrying"
 
-In the current repo, **Home Assistant** runs in `network_mode: host`. That means **Traefik** must reach it through the file provider at `http://host.docker.internal:8123/`, not through `traefik_public` Docker networking.
+In the current repo, **Home Assistant** runs in `network_mode: host` so LAN discovery can use the host network. **Traefik** reaches it through the file provider at `http://host.docker.internal:8123/`.
 
 ```bash title="Check the Home Assistant route path"
 # 1. Bring up Traefik and Home Assistant
@@ -187,8 +187,8 @@ $ docker compose --profile service up -d ha
 # 2. Verify the dynamic route file exists
 $ ls config/traefik/dyn/ha.yml
 
-# 3. Check that Traefik can serve the HA manifest through HTTPS
-$ curl -k https://ha.${DOMAIN}/manifest.json
+# 3. Check that Traefik can serve the HA manifest
+$ curl https://ha.${DOMAIN:-localhost.me}/manifest.json
 ```
 
 If step 3 hangs instead of failing quickly, check whether the Home Assistant
@@ -202,7 +202,7 @@ If that fails, compare these pieces:
 
 - `network_mode: host` in `home-assistant/docker-compose.yml`
 - `config/traefik/dyn/ha.yml`
-- `extra_hosts: [host.docker.internal:host-gateway]` on `traefik`
+- `extra_hosts: [host.docker.internal:host-gateway]` on Traefik
 
 The HA router intentionally does **not** use the shared `startup-retry@file`
 middleware. Home Assistant is not Sablier-managed, and retrying a dead host
@@ -219,26 +219,33 @@ Yes. The current repo changed here.
 Current facts:
 
 - the active qBittorrent service name is `torrent`
-- `gluetun` is active for `torrent`, `sonarr`, and `radarr`
-- `gluetun` carries `torrent`, `sonarr`, and `radarr` aliases on `media`
+- `gluetun` has `apps` and `all` profiles
+- `gluetun` is active for `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr`
+- `gluetun` joins `media` and `traefik_public`
+- `gluetun` carries `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr` aliases on `media`
+- `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr` share `network_mode: service:gluetun`
+- `torrent`, `sonarr`, and `radarr` route through Docker labels on `gluetun`
 - `bazarr` is directly attached to `media` and `traefik_public`
+- `prowlarr` is directly attached to `media` and `traefik_public`
 - `prowlarr` has no profile
 - **Seerr** is still routed through a file-provider **Sablier** route
-- `setup-dev.sh` requires `OPENVPN_USER` and `OPENVPN_PASSWORD`
+- `setup-dev.sh` writes local placeholders for `OPENVPN_USER` and `OPENVPN_PASSWORD`
 
 Use commands that match the current service names.
 
 ```bash title="Check the current media services"
-$ docker compose ps gluetun torrent sonarr radarr prowlarr bazarr seerr jellyfin
+$ docker compose ps gluetun torrent sonarr radarr flaresolverr byparr prowlarr bazarr seerr jellyfin
 NAME                IMAGE                                 STATUS
 homelab-gluetun-1   qmcgaw/gluetun:...                    Up
 homelab-torrent-1   lscr.io/linuxserver/qbittorrent:...  Up
 homelab-sonarr-1    lscr.io/linuxserver/sonarr:...       Up
 homelab-radarr-1    lscr.io/linuxserver/radarr:...       Up
+homelab-flaresolverr-1 ghcr.io/flaresolverr/flaresolverr:... Up
+homelab-byparr-1    ghcr.io/thephaseless/byparr:...       Up
 homelab-prowlarr-1  lscr.io/linuxserver/prowlarr:...     Up
 homelab-bazarr-1    lscr.io/linuxserver/bazarr:...       Up
 homelab-seerr-1     ghcr.io/seerr-team/seerr:...         Up
 homelab-jellyfin-1  linuxserver/jellyfin:...             Up
 ```
 
-If `torrent`, `sonarr`, or `radarr` cannot reach the network, debug `gluetun` first.
+If `torrent`, `sonarr`, `radarr`, `flaresolverr`, or `byparr` cannot reach the network, debug `gluetun` first.

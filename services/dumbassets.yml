@@ -10,7 +10,7 @@ services:
       - PORT=3000
       - TZ=${TZ:-Europe/Copenhagen}
       - SITE_TITLE=${DUMBASSETS_SITE_TITLE:-DumbAssets}
-      - BASE_URL=https://assets.${DOMAIN:-traefik.me}
+      - BASE_URL=https://assets.${DOMAIN:-localhost.me}
       - DUMBASSETS_PIN=${DUMBASSETS_PIN:?Set DUMBASSETS_PIN in .env, direnv, or Dockhand}
       - SESSION_SECRET=${DUMBASSETS_SESSION_SECRET:?Generate a key using `openssl
         rand -base64 32 2>/dev/null`}
@@ -25,7 +25,7 @@ services:
       - homepage.group=Utilities
       - homepage.name=DumbAssets
       - homepage.icon=mdi-package-variant-closed
-      - homepage.href=https://assets.${DOMAIN:-traefik.me}
+      - homepage.href=https://assets.${DOMAIN:-localhost.me}
       - homepage.description=Track physical assets, warranties, and maintenance
     healthcheck:
       test:

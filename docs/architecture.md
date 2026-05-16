@@ -24,7 +24,7 @@ $ docker compose --profile infra up -d
  ✔ Container homelab-rustfs-1    Started
 
 # 3. Inspect live routers
-$ curl -sk https://traefik.traefik.me/api/http/routers | jq -r '.[].name'
+$ curl -s https://traefik.localhost.me/api/http/routers | jq -r '.[].name'
 api@docker
 dockhand@docker
 whoami@file
@@ -58,6 +58,7 @@ include:
   - services/karakeep.yml
   - services/immich.yml
   - services/paperless-ngx.yml
+  - services/dumbassets.yml
   - services/media.yml
   - services/homepage.yml
   - home-assistant/docker-compose.yml
@@ -139,7 +140,7 @@ That route lives in the file provider because it needs both:
 labels:
   - traefik.enable=true
   - traefik.docker.network=traefik_public
-  - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-traefik.me}`)
+  - traefik.http.routers.immich.rule=Host(`photos.${DOMAIN:-localhost.me}`)
   - traefik.http.routers.immich.entrypoints=websecure
   - traefik.http.services.immich.loadbalancer.server.port=2283
 ```
@@ -153,6 +154,7 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `anythingllm.yml`
 - `bentopdf.yml`
 - `cbeaver.yml`
+- `dumbassets.yml`
 - `ha.yml`
 - `home.yml`
 - `immich-power-tools.yml`
@@ -193,6 +195,7 @@ This repo does **not** put every routed app behind **Sablier**.
 | `anythingllm` | `anythingllm.yml` | `30m` |
 | `bentopdf` | `bentopdf.yml` | `30m` |
 | `cbeaver` | `cbeaver.yml` | `30m` |
+| `dumbassets` | `dumbassets.yml` | `30m` |
 | `home` | `home.yml` | `30m` |
 | `immich-power-tools` | `immich-power-tools.yml` | `30m` |
 | `ittools` | `ittools.yml` | `30m` |
@@ -236,12 +239,12 @@ but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That
 
 | Network | Purpose | Current users |
 |---|---|---|
-| `traefik_public` | shared ingress network | all routed services |
+| `traefik_public` | shared ingress network | normal Docker-network routed services; host-networked routes use `host.docker.internal` |
 | `keep` | **Karakeep** internals | `keep`, `chrome`, `meilisearch` |
 | `immich` | **Immich** internals | `immich-*`, `redis`, `immich-power-tools` |
 | `paperless` | **Paperless** internals | `paperless-*` |
 | `listmonk` | **Listmonk** isolation | `listmonk`, `listmonk-postgres`, optional `cftunnel` |
-| `media` | media apps | `jellyfin`, `seerr`, `gluetun`, `prowlarr`, `bazarr` |
+| `media` | media apps | `jellyfin`, `seerr`, `gluetun` with `torrent`/`sonarr`/`radarr`/`flaresolverr`/`byparr` sharing its namespace, `prowlarr`, `bazarr` |
 
 ### Current media-stack reality
 
@@ -250,8 +253,9 @@ but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That
 That means:
 
 - `gluetun` is attached to `media` and `traefik_public`
-- `torrent`, `sonarr`, `radarr`, and `byparr` share the `gluetun` network namespace
-- `gluetun` carries `torrent`, `sonarr`, `radarr`, and `byparr` aliases on `media` so existing service names still resolve internally
+- `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr` share the `gluetun` network namespace
+- `gluetun` carries `torrent`, `sonarr`, `radarr`, `flaresolverr`, and `byparr` aliases on `media` so existing service names still resolve internally
+- external Docker-label routes on `gluetun` are only `torrent`, `sonarr`, and `radarr`; `flaresolverr` and `byparr` are internal only
 - `prowlarr` remains directly attached to `media` and `traefik_public`
 - `bazarr` remains directly attached to `media` and `traefik_public`
 

@@ -7,7 +7,7 @@ services:
     networks: [traefik_public]
     environment:
       - TZ=${TZ:-Europe/Copenhagen}
-      - HOMEPAGE_ALLOWED_HOSTS=home.${DOMAIN:-traefik.me}
+      - HOMEPAGE_ALLOWED_HOSTS=home.${DOMAIN:-localhost.me}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ../config/homepage:/app/config

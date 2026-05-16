@@ -23,15 +23,33 @@ jobs:
           bash setup-dev.sh
       - name: Validate main Docker Compose configuration (profile all)
         run: |
-          DOMAIN=test.traefik.me docker compose --profile all config
+          DOMAIN=localhost.me docker compose --profile all config
+      - name: Validate production HTTPS Traefik configuration
+        run: |
+          DOMAIN=lab.example.test ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all config
+      - name: Verify production HTTPS requires ACME secrets
+        run: |-
+          grep -Ev '^(ACME_EMAIL|CF_DNS_API_TOKEN)=' .env > /tmp/prod-missing.env
+          set +e
+          env -u CF_DNS_API_TOKEN -u ACME_EMAIL DOMAIN=lab.example.test COMPOSE_DISABLE_ENV_FILE=1 docker compose --env-file /tmp/prod-missing.env -f docker-compose.yml -f docker-compose.prod.yml --profile all config >/tmp/prod-missing.out 2>&1
+          status=$?
+          set -e
+          if test "$status" -eq 0; then
+            echo "Expected production config to fail without ACME secrets"
+            exit 1
+          fi
+          grep -Eq 'CF_DNS_API_TOKEN|ACME_EMAIL' /tmp/prod-missing.out || {
+            cat /tmp/prod-missing.out
+            exit 1
+          }
       - name: Validate pods bootstrap Docker Compose configuration
         run: |
-          DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml config
+          DOMAIN=localhost.me docker compose -f docker-compose.pods.yml config
       - name: Validate referenced images exist for main stack (dry run)
         run: |-
           set -euo pipefail
-          DOMAIN=test.traefik.me docker compose --profile all pull --dry-run
+          DOMAIN=localhost.me docker compose --profile all pull --dry-run
       - name: Validate referenced images exist for pods stack (dry run)
         run: |-
           set -euo pipefail
-          DOMAIN=test.traefik.me docker compose -f docker-compose.pods.yml pull --dry-run
+          DOMAIN=localhost.me docker compose -f docker-compose.pods.yml pull --dry-run

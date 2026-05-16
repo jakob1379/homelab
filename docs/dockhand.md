@@ -36,8 +36,9 @@ During bootstrap, `https://docker.${DOMAIN}` does not exist yet because the main
 
 ## Step 1: Prepare The Stack Variables
 
-The main stack is not optional about TLS inputs. `services/networking.yml` requires:
+Local development and the main Dockhand stack use the HTTPS defaults from `.env.example` (mkcert-backed on `localhost.me`) through `docker-compose.yml`. For production ACME HTTPS, deploy with `docker-compose.yml` plus `docker-compose.prod.yml` so the production file overrides **Traefik** for Cloudflare DNS-01. Set the production values:
 
+- `DOMAIN`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
 
@@ -66,7 +67,11 @@ PAPERLESS_SECRET_KEY=...
 NEXTAUTH_SECRET=...
 MEILI_MASTER_KEY=...
 SPEEDTEST_APP_KEY=...
+DUMBASSETS_PIN=...
+DUMBASSETS_SESSION_SECRET=...
 ```
+
+`setup-dev.sh` writes a dummy local `DUMBASSETS_PIN` and auto-generates `DUMBASSETS_SESSION_SECRET`. Production should set both explicitly.
 
 Optional values for current features:
 
@@ -83,6 +88,10 @@ EXTERNAL_IMMICH_URL=https://photos.lab.example.com
 AI_API_KEY=...
 AI_BASE_URL=https://api.openai.com/v1
 AI_MODEL=gpt-4o-mini
+DUMBASSETS_SITE_TITLE=...
+DUMBASSETS_CURRENCY_CODE=...
+DUMBASSETS_CURRENCY_LOCALE=...
+DUMBASSETS_APPRISE_URL=...
 ```
 
 ### Current media caveat
@@ -112,7 +121,7 @@ Use a real host path for `DOCKHAND_DATA_DIR`, such as `/opt/dockhand`. That matt
 
 ## Step 3: Create The Git-Managed Stack In Dockhand
 
-Use `docker-compose.yml` as the compose entrypoint.
+Use `docker-compose.yml` as the compose entrypoint for local/main-stack HTTPS defaults. If this Dockhand stack should deploy production ACME HTTPS, configure both `docker-compose.yml` and `docker-compose.prod.yml` so the production override is merged with the base stack.
 
 Recommended settings:
 
@@ -121,7 +130,7 @@ Recommended settings:
 | **Name** | `homelab` |
 | **Repository URL** | your fork or this repo URL |
 | **Reference** | `refs/heads/main` |
-| **Compose path** | `docker-compose.yml` |
+| **Compose path** | `docker-compose.yml` for local/main-stack defaults; `docker-compose.yml` plus `docker-compose.prod.yml` for production ACME |
 
 Pass the same variables from the previous step into the Dockhand-managed stack.
 
