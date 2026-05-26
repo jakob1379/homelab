@@ -203,6 +203,7 @@ services:
     environment: [PUID=1000, PGID=1000, TZ=Etc/UTC]
     labels:
       - traefik.enable=true
+      - traefik.docker.network=traefik_public
       - traefik.http.routers.prowlarr.rule=Host(`prowlarr.${DOMAIN:-localhost.me}`)
       - traefik.http.routers.prowlarr.entrypoints=websecure
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696

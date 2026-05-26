@@ -31,13 +31,6 @@ http:
             theme: ghost
           sablierUrl: http://sablier:10000
           sessionDuration: 10m
-    default-cache:
-      plugin:
-        httpCache:
-          maxTtl: 300
-          memory:
-            limit: 100M
-          excludedResponseCodes: 500-599
     startup-retry:
       retry:
         attempts: 30

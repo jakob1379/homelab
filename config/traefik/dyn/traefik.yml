@@ -1,0 +1,7 @@
+---
+http:
+  routers:
+    api:
+      rule: Host(`traefik.{{ env "DOMAIN" }}`)
+      entrypoints: [websecure]
+      service: api@internal
