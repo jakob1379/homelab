@@ -95,11 +95,11 @@ services:
         test -n "$$DOMAIN" || { echo "Set DOMAIN for production" >&2; exit 1; }
         test -n "$$ACME_EMAIL" || { echo "Set ACME_EMAIL for production" >&2; exit 1; }
         test -n "$$CF_DNS_API_TOKEN" || { echo "Set CF_DNS_API_TOKEN for Cloudflare DNS-01" >&2; exit 1; }
-  traefik:
+  traefik-dev:
     <<:
       - *traefik-common
       - *traefik-dev-overrides
-  traefik-prod:
+  traefik:
     <<:
       - *traefik-common
       - *traefik-prod-overrides
@@ -108,10 +108,10 @@ services:
     image: sablierapp/sablier:1.8.1
     command: [start, --provider.name=docker]
     depends_on:
-      traefik:
+      traefik-dev:
         condition: service_healthy
         required: false
-      traefik-prod:
+      traefik:
         condition: service_healthy
         required: false
     volumes: [/var/run/docker.sock:/var/run/docker.sock]
@@ -129,10 +129,10 @@ services:
     profiles: [infra, dev, prod]
     image: traefik/whoami:v1.10.4
     depends_on:
-      traefik:
+      traefik-dev:
         condition: service_healthy
         required: false
-      traefik-prod:
+      traefik:
         condition: service_healthy
         required: false
       sablier:
@@ -159,10 +159,10 @@ services:
     profiles: [infra, dev, prod]
     image: adguard/adguardhome:v0.107.55
     depends_on:
-      traefik:
+      traefik-dev:
         condition: service_healthy
         required: false
-      traefik-prod:
+      traefik:
         condition: service_healthy
         required: false
     ports:
@@ -196,10 +196,10 @@ services:
     image: ghcr.io/jokob-sk/netalertx:26.4.6
     network_mode: host
     depends_on:
-      traefik:
+      traefik-dev:
         condition: service_healthy
         required: false
-      traefik-prod:
+      traefik:
         condition: service_healthy
         required: false
     volumes: [netalertx_data:/data, /etc/localtime:/etc/localtime:ro]
