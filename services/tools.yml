@@ -1,7 +1,7 @@
 ---
 services:
   ittools:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: corentinth/it-tools:2024.10.22-7ca5933
     networks: [traefik_public]
     labels:
@@ -22,7 +22,7 @@ services:
           cpus: '0.25'
           memory: 128M
   cloudbeaver:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: dbeaver/cloudbeaver:24.3.0
     volumes:
       - cbeaver_logs:/opt/cloudbeaver/logs
@@ -47,7 +47,7 @@ services:
           cpus: '0.25'
           memory: 256M
   bentopdf:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: bentopdf/bentopdf:1.2.0
     restart: unless-stopped
     networks: [traefik_public]

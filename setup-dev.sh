@@ -366,7 +366,7 @@ for required_var in "${required_vars[@]}"; do
 done
 
 if (( ${#missing_required_vars[@]} > 0 )); then
-    log_warn "Missing required variables for docker compose --profile all:"
+    log_warn "Missing required variables for docker compose --profile dev:"
     printf ' - %s\n' "${missing_required_vars[@]}"
     log_warn "Set them in .env, direnv, or Dockhand before starting the stack"
     show_generation_hints
@@ -379,7 +379,7 @@ log_info "Setup complete!"
 log_info ""
 log_info "Next steps:"
 log_info "1. Start the main homelab stack (infra + apps):"
-log_info "   docker compose --profile all up --wait"
+log_info "   docker compose --profile dev up --wait"
 log_info "2. Start the separate Dockhand bootstrap stack:"
 log_info "   docker compose -f docker-compose.pods.yml up -d"
 log_info "3. Start only infrastructure:"
@@ -388,7 +388,9 @@ log_info "4. Start only applications (requires infra running):"
 log_info "   docker compose --profile apps up -d"
 log_info "5. Start Home Assistant:"
 log_info "   docker compose --profile service up -d ha"
-log_info "6. Set required secrets in .env, direnv, or Dockhand before docker compose up"
+log_info "6. Start the production ACME stack after setting DOMAIN, ACME_EMAIL, and CF_DNS_API_TOKEN:"
+log_info "   docker compose --profile prod up -d"
+log_info "7. Set required secrets in .env, direnv, or Dockhand before docker compose up"
 log_info ""
 log_info "View main stack status: docker compose ps"
 log_info "View pods stack status: docker compose -f docker-compose.pods.yml ps"

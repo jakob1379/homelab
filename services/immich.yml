@@ -1,7 +1,7 @@
 ---
 services:
   immich-postgres:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: pgvector/pgvector:0.8.2-pg17
     environment:
       - POSTGRES_USER=${IMMICH_DB_USERNAME:-immich}
@@ -27,7 +27,7 @@ services:
           cpus: '0.5'
           memory: 512M
   immich-power-tools:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: ghcr.io/immich-power-tools/immich-power-tools:latest
     depends_on:
       immich-postgres:
@@ -71,7 +71,7 @@ services:
 
   # Web UI/API
   immich-server:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     depends_on:
       immich-postgres:
         condition: service_healthy
@@ -112,7 +112,7 @@ services:
 
   # Background workers
   immich-microservices:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     depends_on:
       immich-postgres:
         condition: service_healthy
@@ -147,7 +147,7 @@ services:
 
   # ML processing - always on
   immich-machine-learning:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     depends_on:
       redis:
         condition: service_healthy
@@ -167,7 +167,7 @@ services:
 
   # Queue storage - Always on
   redis:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: redis:7.4.8-alpine3.21
     volumes: [immich_redis:/data]
     networks: [immich]

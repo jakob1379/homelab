@@ -1,7 +1,7 @@
 ---
 services:
   home:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: ghcr.io/gethomepage/homepage:v1.12.3
     container_name: home
     networks: [traefik_public]

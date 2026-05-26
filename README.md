@@ -52,7 +52,7 @@ $ ./setup-dev.sh
 [INFO] Generated development key: NEXTAUTH_SECRET
 [INFO] Generated development key: MEILI_MASTER_KEY
 [INFO] Generated development key: DUMBASSETS_SESSION_SECRET
-[WARN] Missing required variables for docker compose --profile all:
+[WARN] Missing required variables for docker compose --profile dev:
  - PAPERLESS_ADMIN_PASSWORD
  ...
 [INFO] Setup complete!
@@ -69,7 +69,7 @@ PAPERLESS_ADMIN_PASSWORD=change-me
 EOF
 
 # 3. Start the full local stack and wait for health checks
-$ docker compose --profile all up --wait
+$ docker compose --profile dev up --wait
 [+] Running ...
  ✔ Container homelab-traefik-1   Started
  ✔ Container homelab-sablier-1   Started
@@ -124,13 +124,16 @@ include:
 
 | Profile | Purpose |
 |---|---|
+| `dev` | Full main stack with local mkcert-backed Traefik HTTPS |
+| `prod` | Full main stack with Cloudflare DNS-01 ACME Traefik HTTPS |
 | `infra` | Always-on foundation services |
 | `apps` | Most application services |
-| `all` | Convenience profile for the full main stack |
 | `tunnel` | Optional `cftunnel` sidecar for Listmonk |
 | `service` | Narrow profile currently used by Home Assistant |
 
-`home-assistant/docker-compose.yml` puts `ha` in `profiles: [apps, all, service]`.
+Use exactly one full-stack profile at a time: `dev` or `prod`.
+
+`home-assistant/docker-compose.yml` puts `ha` in `profiles: [apps, service, dev, prod]`.
 
 ---
 
@@ -227,12 +230,12 @@ Run `setup-dev.sh` to create the mkcert-backed files for
 `https://*.localhost.me`, then start the stack with:
 
 ```bash
-docker compose --profile all up --wait
+docker compose --profile dev up --wait
 ```
 
-For production ACME certificates, start the stack with both the base file and the production override:
+For production ACME certificates, start the stack with the production profile:
 
-- `docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all up -d`
+- `docker compose --profile prod up -d`
 - `DOMAIN`
 - `ACME_EMAIL`
 - `CF_DNS_API_TOKEN`
