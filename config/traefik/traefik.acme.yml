@@ -40,6 +40,7 @@ providers:
       env "DOMAIN" }}`)
     exposedByDefault: false
     endpoint: unix:///var/run/docker.sock
+    network: traefik_public
   file:
     directory: /etc/traefik/dyn/
     watch: true
