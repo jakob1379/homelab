@@ -45,12 +45,12 @@ $ curl https://speed.localhost.me
 
 | Service | Access | Profile(s) | Routing source | Sleep | Notes |
 |---|---|---|---|---|---|
-| **Traefik** | `https://traefik.${DOMAIN}` | `infra`, `all` | Docker labels | No | reverse proxy and dashboard |
-| **Sablier** | internal only | `infra`, `all` | none | No | Docker provider for sleep-on-request |
-| **whoami** | `https://whoami.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/whoami.yml` | Yes, `10m` | uses `sablier-default@file` |
-| **RustFS** | `https://rustfs.${DOMAIN}`, `https://rustfs-api.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/rustfs.yml` | No | object storage and console |
-| **AdGuard Home** | `https://dns.${DOMAIN}` and host DNS port `${ADGUARD_DNS_PORT}` | `infra`, `all` | Docker labels | No | publishes port `53` on the configured host port |
-| **NetAlertX** | `https://netalertx.${DOMAIN}` | `infra`, `all` | `config/traefik/dyn/netalertx.yml` | No | host networking for LAN scanning |
+| **Traefik** | `https://traefik.${DOMAIN}` | `infra`, `dev`, `prod` | Docker labels | No | reverse proxy and dashboard |
+| **Sablier** | internal only | `infra`, `dev`, `prod` | none | No | Docker provider for sleep-on-request |
+| **whoami** | `https://whoami.${DOMAIN}` | `infra`, `dev`, `prod` | `config/traefik/dyn/whoami.yml` | Yes, `10m` | uses `sablier-default@file` |
+| **RustFS** | `https://rustfs.${DOMAIN}`, `https://rustfs-api.${DOMAIN}` | `infra`, `dev`, `prod` | `config/traefik/dyn/rustfs.yml` | No | object storage and console |
+| **AdGuard Home** | `https://dns.${DOMAIN}` and host DNS port `${ADGUARD_DNS_PORT}` | `infra`, `dev`, `prod` | Docker labels | No | publishes port `53` on the configured host port |
+| **NetAlertX** | `https://netalertx.${DOMAIN}` | `infra`, `dev`, `prod` | `config/traefik/dyn/netalertx.yml` | No | host networking for LAN scanning |
 
 ---
 
@@ -58,15 +58,15 @@ $ curl https://speed.localhost.me
 
 | Service | Access | Profile(s) | Routing source | Sleep | Notes |
 |---|---|---|---|---|---|
-| **Homepage** | `https://home.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/home.yml` | Yes, `30m` | auto-discovers most entries from Docker labels |
-| **AnythingLLM** | `https://llm.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/anythingllm.yml` | Yes, `30m` | keeps `SYS_ADMIN` and `host.docker.internal` mapping |
-| **IT Tools** | `https://it.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/ittools.yml` | Yes, `30m` | developer utilities |
-| **CloudBeaver** | `https://cbeaver.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/cbeaver.yml` | Yes, `30m` | DB UI |
-| **BentoPDF** | `https://pdf.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/bentopdf.yml` | Yes, `30m` | PDF tools |
-| **Omni Tools** | `https://omni.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/omni-tools.yml` | Yes, `30m` | general utilities |
-| **VERT** | `https://vert.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/vert.yml` | Yes, `30m` | browser-side file conversion |
-| **Speedtest Tracker** | `https://speed.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/speedtest-tracker.yml` | Yes, `15m` | stores SQLite data under `/config`; `speedtest-trigger` wakes it hourly through the API |
-| **DumbAssets** | `https://assets.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/dumbassets.yml` | Yes, `30m` | tracks assets, warranties, receipts, manuals, and maintenance |
+| **Homepage** | `https://home.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/home.yml` | Yes, `30m` | auto-discovers most entries from Docker labels |
+| **AnythingLLM** | `https://llm.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/anythingllm.yml` | Yes, `30m` | keeps `SYS_ADMIN` and `host.docker.internal` mapping |
+| **IT Tools** | `https://it.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/ittools.yml` | Yes, `30m` | developer utilities |
+| **CloudBeaver** | `https://cbeaver.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/cbeaver.yml` | Yes, `30m` | DB UI |
+| **BentoPDF** | `https://pdf.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/bentopdf.yml` | Yes, `30m` | PDF tools |
+| **Omni Tools** | `https://omni.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/omni-tools.yml` | Yes, `30m` | general utilities |
+| **VERT** | `https://vert.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/vert.yml` | Yes, `30m` | browser-side file conversion |
+| **Speedtest Tracker** | `https://speed.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/speedtest-tracker.yml` | Yes, `15m` | stores SQLite data under `/config`; `speedtest-trigger` wakes it hourly through the API |
+| **DumbAssets** | `https://assets.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/dumbassets.yml` | Yes, `30m` | tracks assets, warranties, receipts, manuals, and maintenance |
 
 ---
 
@@ -76,9 +76,9 @@ $ curl https://speed.localhost.me
 
 | Service | Access | Profile(s) | Sleep | Notes |
 |---|---|---|---|---|
-| **keep** | `https://keep.${DOMAIN}` | `apps`, `all` | Yes, `15m` | file-provider route in `config/traefik/dyn/keep.yml` |
-| `chrome` | internal only | `apps`, `all` | No | browser worker |
-| `meilisearch` | internal only | `apps`, `all` | No | search backend |
+| **keep** | `https://keep.${DOMAIN}` | `apps`, `dev`, `prod` | Yes, `15m` | file-provider route in `config/traefik/dyn/keep.yml` |
+| `chrome` | internal only | `apps`, `dev`, `prod` | No | browser worker |
+| `meilisearch` | internal only | `apps`, `dev`, `prod` | No | search backend |
 
 Required vars:
 
@@ -97,8 +97,8 @@ Optional vars:
 
 | Service | Access | Profile(s) | Sleep | Notes |
 |---|---|---|---|---|
-| **listmonk** | `https://listmonk.${DOMAIN}` | `apps`, `all` | No in current routing | route file is `config/traefik/dyn/listmonk.yml` |
-| `listmonk-postgres` | internal only | `apps`, `all` | No | app-local PostgreSQL |
+| **listmonk** | `https://listmonk.${DOMAIN}` | `apps`, `dev`, `prod` | No in current routing | route file is `config/traefik/dyn/listmonk.yml` |
+| `listmonk-postgres` | internal only | `apps`, `dev`, `prod` | No | app-local PostgreSQL |
 | `cftunnel` | internal only | `tunnel` | No | optional sidecar |
 
 Required var: `LISTMONK_db__password`
@@ -107,11 +107,11 @@ Required var: `LISTMONK_db__password`
 
 | Service | Access | Profile(s) | Sleep | Notes |
 |---|---|---|---|---|
-| **immich-server** | `https://photos.${DOMAIN}` | `apps`, `all` | No | Docker-label route in `services/immich.yml` |
-| `immich-microservices` | internal only | `apps`, `all` | No | background workers |
-| `immich-machine-learning` | internal only | `apps`, `all` | No | ML service |
-| `redis` | internal only | `apps`, `all` | No | queue/cache |
-| `immich-postgres` | internal only | `apps`, `all` | No | app-local PostgreSQL |
+| **immich-server** | `https://photos.${DOMAIN}` | `apps`, `dev`, `prod` | No | Docker-label route in `services/immich.yml` |
+| `immich-microservices` | internal only | `apps`, `dev`, `prod` | No | background workers |
+| `immich-machine-learning` | internal only | `apps`, `dev`, `prod` | No | ML service |
+| `redis` | internal only | `apps`, `dev`, `prod` | No | queue/cache |
+| `immich-postgres` | internal only | `apps`, `dev`, `prod` | No | app-local PostgreSQL |
 
 Required var: `IMMICH_DB_PASSWORD`
 
@@ -119,12 +119,12 @@ Required var: `IMMICH_DB_PASSWORD`
 
 | Service | Access | Profile(s) | Sleep | Notes |
 |---|---|---|---|---|
-| **paperless-web** | `https://paper.${DOMAIN}` | `apps`, `all` | Yes, `15m` | route file is `config/traefik/dyn/paperless.yml` |
-| `paperless-consumer` | internal only | `apps`, `all` | No | background consumer |
-| `paperless-postgres` | internal only | `apps`, `all` | No | app-local PostgreSQL |
-| `paperless-redis` | internal only | `apps`, `all` | No | Redis |
-| `paperless-gotenberg` | internal only | `apps`, `all` | No | document conversion |
-| `paperless-tika` | internal only | `apps`, `all` | No | document parsing |
+| **paperless-web** | `https://paper.${DOMAIN}` | `apps`, `dev`, `prod` | Yes, `15m` | route file is `config/traefik/dyn/paperless.yml` |
+| `paperless-consumer` | internal only | `apps`, `dev`, `prod` | No | background consumer |
+| `paperless-postgres` | internal only | `apps`, `dev`, `prod` | No | app-local PostgreSQL |
+| `paperless-redis` | internal only | `apps`, `dev`, `prod` | No | Redis |
+| `paperless-gotenberg` | internal only | `apps`, `dev`, `prod` | No | document conversion |
+| `paperless-tika` | internal only | `apps`, `dev`, `prod` | No | document parsing |
 
 Required vars:
 
@@ -136,16 +136,16 @@ Required vars:
 
 | Service | Access | Profile(s) | Routing source | Sleep | Notes |
 |---|---|---|---|---|---|
-| **Jellyfin** | `https://jellyfin.${DOMAIN}` | `apps`, `all` | Docker labels on `jellyfin` | No | media server |
-| **Seerr** | `https://requests.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/seerr.yml` | Yes, `30m` | request UI |
-| **Immich Power Tools** | `https://immich-tools.${DOMAIN}` | `apps`, `all` | `config/traefik/dyn/immich-power-tools.yml` | Yes, `30m` | separate helper app, not core Immich routing |
-| **torrent** | `https://torrent.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | qBittorrent service name is `torrent`; shares `gluetun` network namespace |
-| **Sonarr** | `https://sonarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
-| **Radarr** | `https://radarr.${DOMAIN}` | `apps`, `all` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
-| **FlareSolverr** | internal only, `http://flaresolverr:8191` from `media` | `apps`, `all` | None | No | shares `gluetun` network namespace |
-| **Byparr** | internal only, `http://byparr:8192` from `media` | `apps`, `all` | None | No | FlareSolverr-compatible helper; shares `gluetun` network namespace |
+| **Jellyfin** | `https://jellyfin.${DOMAIN}` | `apps`, `dev`, `prod` | Docker labels on `jellyfin` | No | media server |
+| **Seerr** | `https://requests.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/seerr.yml` | Yes, `30m` | request UI |
+| **Immich Power Tools** | `https://immich-tools.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/immich-power-tools.yml` | Yes, `30m` | separate helper app, not core Immich routing |
+| **torrent** | `https://torrent.${DOMAIN}` | `apps`, `dev`, `prod` | Docker labels on `gluetun` | No | qBittorrent service name is `torrent`; shares `gluetun` network namespace |
+| **Sonarr** | `https://sonarr.${DOMAIN}` | `apps`, `dev`, `prod` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
+| **Radarr** | `https://radarr.${DOMAIN}` | `apps`, `dev`, `prod` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
+| **FlareSolverr** | internal only, `http://flaresolverr:8191` from `media` | `apps`, `dev`, `prod` | None | No | shares `gluetun` network namespace |
+| **Byparr** | internal only, `http://byparr:8192` from `media` | `apps`, `dev`, `prod` | None | No | FlareSolverr-compatible helper; shares `gluetun` network namespace |
 | **Prowlarr** | `https://prowlarr.${DOMAIN}` | no explicit profile | Docker labels | No | starts by default in the main stack because it has no profile |
-| **Bazarr** | `https://bazarr.${DOMAIN}` | `apps`, `all` | Docker labels on `bazarr` | No | subtitle management for the shared media library |
+| **Bazarr** | `https://bazarr.${DOMAIN}` | `apps`, `dev`, `prod` | Docker labels on `bazarr` | No | subtitle management for the shared media library |
 
 Current caveat:
 
@@ -160,7 +160,7 @@ Current caveat:
 
 | Service | Access | Profile(s) | Routing source | Sleep | Notes |
 |---|---|---|---|---|---|
-| **ha** | `https://ha.${DOMAIN}` | `apps`, `all`, `service` | `config/traefik/dyn/ha.yml` | No | host networking for LAN discovery; files live under `home-assistant/` |
+| **ha** | `https://ha.${DOMAIN}` | `apps`, `service`, `dev`, `prod` | `config/traefik/dyn/ha.yml` | No | host networking for LAN discovery; files live under `home-assistant/` |
 
 Narrow start command:
 
@@ -202,11 +202,11 @@ Bootstrap behavior:
 - `.env.example` already provides local RustFS defaults.
 - `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, and `DUMBASSETS_SESSION_SECRET` when they are missing.
 - `setup-dev.sh` writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values for local config rendering. Real Gluetun use still needs real VPN credentials.
-- `GLUETUN_HEALTHCHECK_DISABLED=true` is the local default so `docker compose --profile all up --wait` can start the media UI routes with dummy VPN credentials. Set it to `false` when real VPN credentials should gate the stack.
+- `GLUETUN_HEALTHCHECK_DISABLED=true` is the local default so `docker compose --profile dev up --wait` can start the media UI routes with dummy VPN credentials. Set it to `false` when real VPN credentials should gate the stack.
 - `setup-dev.sh` creates mkcert-backed local TLS files for `https://*.localhost.me` and writes Traefik's generated certificate dynamic config.
 - In CI only, `setup-dev.sh` also writes a dummy `PAPERLESS_ADMIN_PASSWORD` value so local config rendering works without real secrets.
 - For local full-stack runs, set `PAPERLESS_ADMIN_PASSWORD` yourself unless you already provide it through the environment.
-- For production ACME certificates, use `docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all up -d` and set `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
+- For production ACME certificates, use `docker compose --profile prod up -d` and set `DOMAIN`, `ACME_EMAIL`, and `CF_DNS_API_TOKEN`.
 
 ---
 

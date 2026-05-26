@@ -26,7 +26,7 @@ $ cat > services/custom-demo.yml <<'EOF'
 ---
 services:
   demo:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: nginx:alpine
     networks: [traefik_public]
     labels:
@@ -97,7 +97,7 @@ $ bash -n setup-dev.sh
 $ ./setup-dev.sh
 
 # 3. Validate the combined main stack with local HTTPS defaults
-$ DOMAIN=localhost.me docker compose --profile all config > /dev/null
+$ DOMAIN=localhost.me docker compose --profile dev config > /dev/null
 
 # 4. Start the new app
 $ docker compose --profile apps up -d demo
@@ -159,7 +159,7 @@ Copy this when you want the same behavior as `keep`, `home`, or `ittools`.
 ```yaml title="services/myapp.yml"
 services:
   myapp:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: myapp:latest
     networks: [traefik_public]
     labels:
@@ -286,16 +286,16 @@ $ bash -n setup-dev.sh
 $ ./setup-dev.sh
 
 # Main stack render with local HTTPS defaults
-$ DOMAIN=localhost.me docker compose --profile all config > /dev/null
+$ DOMAIN=localhost.me docker compose --profile dev config > /dev/null
 
 # Production HTTPS render with Cloudflare DNS-01 ACME
-$ DOMAIN=lab.example.test ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile all config > /dev/null
+$ DOMAIN=lab.example.test ACME_EMAIL=ci@example.test CF_DNS_API_TOKEN=ci-dummy-cloudflare-token docker compose --profile prod config > /dev/null
 
 # Bootstrap stack render
 $ DOMAIN=localhost.me docker compose -f docker-compose.pods.yml config > /dev/null
 
 # Image reference checks, matching CI
-$ DOMAIN=localhost.me docker compose --profile all pull --dry-run
+$ DOMAIN=localhost.me docker compose --profile dev pull --dry-run
 $ DOMAIN=localhost.me docker compose -f docker-compose.pods.yml pull --dry-run
 
 # Repo hooks

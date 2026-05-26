@@ -1,7 +1,7 @@
 ---
 services:
   listmonk-postgres:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: postgres:17.9-alpine3.23
     environment:
       - POSTGRES_USER=${LISTMONK_db__user:-listmonk}
@@ -19,7 +19,7 @@ services:
     networks: [listmonk]
     restart: unless-stopped
   listmonk:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: listmonk/listmonk:v6.1.0
     depends_on:
       listmonk-postgres:

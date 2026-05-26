@@ -36,7 +36,7 @@ During bootstrap, `https://docker.${DOMAIN}` does not exist yet because the main
 
 ## Step 1: Prepare The Stack Variables
 
-Local development and the main Dockhand stack use the HTTPS defaults from `.env.example` (mkcert-backed on `localhost.me`) through `docker-compose.yml`. For production ACME HTTPS, deploy with `docker-compose.yml` plus `docker-compose.prod.yml` so the production file overrides **Traefik** for Cloudflare DNS-01. Set the production values:
+Local development and the main Dockhand stack use the HTTPS defaults from `.env.example` (mkcert-backed on `localhost.me`) through `docker-compose.yml` and `--profile dev`. For production ACME HTTPS, deploy the same compose file with `--profile prod` so **Traefik** uses Cloudflare DNS-01. Set the production values:
 
 - `DOMAIN`
 - `ACME_EMAIL`
@@ -96,7 +96,7 @@ DUMBASSETS_APPRISE_URL=...
 
 ### Current media caveat
 
-The active media stack requires these for `--profile apps` and `--profile all`:
+The active media stack requires these for `--profile apps` and `--profile dev`:
 
 ```text
 OPENVPN_USER=...
@@ -121,7 +121,7 @@ Use a real host path for `DOCKHAND_DATA_DIR`, such as `/opt/dockhand`. That matt
 
 ## Step 3: Create The Git-Managed Stack In Dockhand
 
-Use `docker-compose.yml` as the compose entrypoint for local/main-stack HTTPS defaults. If this Dockhand stack should deploy production ACME HTTPS, configure both `docker-compose.yml` and `docker-compose.prod.yml` so the production override is merged with the base stack.
+Use `docker-compose.yml` as the compose entrypoint. Select `dev` for local/main-stack HTTPS defaults or `prod` for production ACME HTTPS.
 
 Recommended settings:
 
@@ -130,7 +130,8 @@ Recommended settings:
 | **Name** | `homelab` |
 | **Repository URL** | your fork or this repo URL |
 | **Reference** | `refs/heads/main` |
-| **Compose path** | `docker-compose.yml` for local/main-stack defaults; `docker-compose.yml` plus `docker-compose.prod.yml` for production ACME |
+| **Compose path** | `docker-compose.yml` |
+| **Compose profile** | `dev` for local/main-stack defaults; `prod` for production ACME |
 
 Pass the same variables from the previous step into the Dockhand-managed stack.
 

@@ -1,11 +1,15 @@
 ---
 services:
   rustfs:
-    profiles: [infra, all]
+    profiles: [infra, dev, prod]
     image: rustfs/rustfs:1.0.0-alpha.92
     depends_on:
       traefik:
         condition: service_healthy
+        required: false
+      traefik-prod:
+        condition: service_healthy
+        required: false
     volumes: [rustfs_data:/data]
     environment:
       - RUSTFS_VOLUMES=/data

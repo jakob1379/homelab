@@ -1,7 +1,7 @@
 ---
 services:
   anythingllm:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: mintplexlabs/anythingllm:1.11.1
     restart: unless-stopped
     cap_add: [SYS_ADMIN]

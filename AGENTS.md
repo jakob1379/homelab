@@ -46,7 +46,7 @@ Treat these as likely to break routing or deployment:
 - Use lowercase, hyphenated YAML filenames
 - Use uppercase snake case for env vars
 - Prefer stack-local changes over repo-wide refactors
-- Compose profiles are feature flags: `infra`, `apps`, `all`, `experimental`, `tunnel`
+- Compose profiles are feature flags: `dev`, `prod`, `infra`, `apps`, `service`, `tunnel`
 
 ## Traefik footgun
 - For the minimum Docker-label Traefik exposure without file-provider routing or Sablier, copy the pattern from `services/immich.yml`: join `traefik_public`, set `traefik.enable=true`, add a router rule, set `entrypoints=websecure`, and set the internal service port with `traefik.http.services.<name>.loadbalancer.server.port=<port>`

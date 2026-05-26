@@ -1,7 +1,7 @@
 ---
 services:
   speedtest-tracker:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: lscr.io/linuxserver/speedtest-tracker:v1.13.12-ls144
     restart: unless-stopped
     environment:
@@ -44,7 +44,7 @@ services:
           cpus: '0.25'
           memory: 256M
   speedtest-trigger:
-    profiles: [apps, all]
+    profiles: [apps, dev, prod]
     image: bash:5.2-alpine3.22
     depends_on:
       speedtest-tracker:

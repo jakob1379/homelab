@@ -81,9 +81,10 @@ include:
 
 | Profile | Used for |
 |---|---|
+| `dev` | Full main stack with local mkcert-backed Traefik HTTPS |
+| `prod` | Full main stack with Cloudflare DNS-01 ACME Traefik HTTPS |
 | `infra` | **Traefik**, **Sablier**, **RustFS**, **AdGuard**, **NetAlertX**, **whoami** |
 | `apps` | Most application services |
-| `all` | Convenience profile for the full main stack |
 | `tunnel` | `cftunnel` in `services/listmonk.yml` |
 | `service` | Narrow profile currently used by **Home Assistant** |
 
@@ -94,9 +95,11 @@ $ docker compose --profile service up -d ha
 ```
 
 !!! note
-    `ha` is also in `profiles: [apps, all, service]`, so `docker compose --profile apps up -d ha` still works. `service` is just the narrower switch.
+    `ha` is also in `profiles: [apps, service, dev, prod]`, so `docker compose --profile apps up -d ha` still works. `service` is just the narrower switch.
 
 ### Important profile footgun
+
+Use exactly one full-stack profile at a time: `dev` or `prod`. `dev` starts the mkcert-backed `traefik` service, while `prod` starts `traefik-prod`, which applies the production Traefik override block for Cloudflare DNS-01 ACME.
 
 `prowlarr` in `services/media.yml` currently has **no profile**. In Compose, that means it is part of the default service set for the main stack.
 
