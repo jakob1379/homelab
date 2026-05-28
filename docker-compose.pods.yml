@@ -2,4 +2,4 @@
 # Separate bootstrap stack for Dockhand
 name: homelab-pods
 include:
-  - services/pods.yml  # Dockhand bootstrap control plane
+  - services/compose-pods.yml  # Dockhand bootstrap control plane

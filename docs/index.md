@@ -113,4 +113,4 @@ This starts only the Dockhand bootstrap stack. Before rendering or running the m
 └── home-assistant/              # Home Assistant files, included from the main stack
 ```
 
-There are also parked service definitions under `services/` that are not currently included from `docker-compose.yml`, including `hermes.yml` and `teable*.yml`.
+There are also parked service definitions under `services/` that are not currently included from `docker-compose.yml`, including `compose-hermes.yml` and `compose-teable*.yml`.

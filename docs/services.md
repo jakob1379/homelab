@@ -37,7 +37,7 @@ $ curl https://speed.localhost.me
 
 | Service | Access | Compose file | Sleep | Notes |
 |---|---|---|---|---|
-| **Dockhand** | `http://localhost:3000` during bootstrap, `https://docker.${DOMAIN}` after the main stack is up | `services/pods.yml` via `docker-compose.pods.yml` | No | separate stack on shared `traefik_public` |
+| **Dockhand** | `http://localhost:3000` during bootstrap, `https://docker.${DOMAIN}` after the main stack is up | `services/compose-pods.yml` via `docker-compose.pods.yml` | No | separate stack on shared `traefik_public` |
 
 ---
 
@@ -107,7 +107,7 @@ Required var: `LISTMONK_db__password`
 
 | Service | Access | Profile(s) | Sleep | Notes |
 |---|---|---|---|---|
-| **immich-server** | `https://photos.${DOMAIN}` | `apps`, `dev`, `prod` | No | Docker-label route in `services/immich.yml` |
+| **immich-server** | `https://photos.${DOMAIN}` | `apps`, `dev`, `prod` | No | Docker-label route in `services/compose-immich.yml` |
 | `immich-microservices` | internal only | `apps`, `dev`, `prod` | No | background workers |
 | `immich-machine-learning` | internal only | `apps`, `dev`, `prod` | No | ML service |
 | `redis` | internal only | `apps`, `dev`, `prod` | No | queue/cache |
@@ -214,6 +214,6 @@ Bootstrap behavior:
 
 These service files exist but are not active because the root include list does not reference them:
 
-- `services/hermes.yml`
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+- `services/compose-hermes.yml`
+- `services/compose-teable.yml`
+- `services/compose-teable-migrate.yml`

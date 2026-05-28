@@ -47,20 +47,20 @@ This is the runtime stack. It includes the active definitions under `services/` 
 
 ```yaml title="docker-compose.yml"
 include:
-  - services/networking.yml
-  - services/rustfs.yml
-  - services/tools.yml
-  - services/omni-tools.yml
-  - services/speedtest-tracker.yml
-  - services/vert.yml
-  - services/anythingllm.yml
-  - services/listmonk.yml
-  - services/karakeep.yml
-  - services/immich.yml
-  - services/paperless-ngx.yml
-  - services/dumbassets.yml
-  - services/media.yml
-  - services/homepage.yml
+  - services/compose-networking.yml
+  - services/compose-rustfs.yml
+  - services/compose-tools.yml
+  - services/compose-omni-tools.yml
+  - services/compose-speedtest-tracker.yml
+  - services/compose-vert.yml
+  - services/compose-anythingllm.yml
+  - services/compose-listmonk.yml
+  - services/compose-karakeep.yml
+  - services/compose-immich.yml
+  - services/compose-paperless-ngx.yml
+  - services/compose-dumbassets.yml
+  - services/compose-media.yml
+  - services/compose-homepage.yml
   - home-assistant/docker-compose.yml
 ```
 
@@ -70,10 +70,10 @@ This is intentionally small.
 
 ```yaml title="docker-compose.pods.yml"
 include:
-  - services/pods.yml
+  - services/compose-pods.yml
 ```
 
-`services/pods.yml` defines only **Dockhand**.
+`services/compose-pods.yml` defines only **Dockhand**.
 
 ---
 
@@ -85,7 +85,7 @@ include:
 | `prod` | Full main stack with Cloudflare DNS-01 ACME Traefik HTTPS |
 | `infra` | **Traefik**, **Sablier**, **RustFS**, **AdGuard**, **NetAlertX**, **whoami** |
 | `apps` | Most application services |
-| `tunnel` | `cftunnel` in `services/listmonk.yml` |
+| `tunnel` | `cftunnel` in `services/compose-listmonk.yml` |
 | `service` | Narrow profile currently used by **Home Assistant** |
 
 ```bash title="Start only Home Assistant with its narrow profile"
@@ -101,7 +101,7 @@ $ docker compose --profile service up -d ha
 
 Use exactly one full-stack profile at a time: `dev` or `prod`. `dev` starts the mkcert-backed `traefik-dev` service, while `prod` starts the stable public `traefik` service with the production override block for Cloudflare DNS-01 ACME.
 
-`prowlarr` in `services/media.yml` currently has **no profile**. In Compose, that means it is part of the default service set for the main stack.
+`prowlarr` in `services/compose-media.yml` currently has **no profile**. In Compose, that means it is part of the default service set for the main stack.
 
 Treat that as current behavior, not a clean design choice.
 
@@ -137,9 +137,9 @@ That route lives in the file provider because it needs both:
 
 ### Docker-label route example
 
-`services/immich.yml` is the direct-label pattern.
+`services/compose-immich.yml` is the direct-label pattern.
 
-```yaml title="services/immich.yml"
+```yaml title="services/compose-immich.yml"
 labels:
   - traefik.enable=true
   - traefik.docker.network=traefik_public
@@ -175,11 +175,11 @@ That is the simpler option when you do not need a file-provider middleware chain
 
 #### Direct Docker-label routes
 
-- `traefik` dashboard from `services/networking.yml`
-- `adguard` from `services/networking.yml`
-- `dockhand` from `services/pods.yml`
-- `immich` from `services/immich.yml`
-- `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr` from `services/media.yml`
+- `traefik` dashboard from `services/compose-networking.yml`
+- `adguard` from `services/compose-networking.yml`
+- `dockhand` from `services/compose-pods.yml`
+- `immich` from `services/compose-immich.yml`
+- `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr` from `services/compose-media.yml`
 
 ---
 
@@ -226,7 +226,7 @@ This repo does **not** put every routed app behind **Sablier**.
 
 ### Current exception: Listmonk
 
-`services/listmonk.yml` still sets:
+`services/compose-listmonk.yml` still sets:
 
 ```yaml
 labels:
@@ -251,7 +251,7 @@ but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That
 
 ### Current media-stack reality
 
-`services/media.yml` runs **Gluetun** for the download-automation path.
+`services/compose-media.yml` runs **Gluetun** for the download-automation path.
 
 That means:
 
@@ -282,8 +282,8 @@ The service runs in `network_mode: host` for LAN discovery, and **Traefik** reac
 
 These files exist under `services/` but are not included from `docker-compose.yml`:
 
-- `services/hermes.yml`
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+- `services/compose-hermes.yml`
+- `services/compose-teable.yml`
+- `services/compose-teable-migrate.yml`
 
 Do not document them as part of the active stack unless they are added to the root include list.
