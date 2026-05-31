@@ -9,7 +9,7 @@ services:
     volumes:
       - ha_config:/config
       - ./configuration.yaml:/config/configuration.yaml:ro
-      - ./automations.yaml:/config/automations.yaml:ro
+      - ./automations.yaml:/config/automations.yaml
       - ./scripts.yaml:/config/scripts.yaml:ro
       - ./scenes.yaml:/config/scenes.yaml:ro
       - /etc/localtime:/etc/localtime:ro

@@ -1,23 +1,12 @@
 ---
 version: 2
 updates:
-  - package-ecosystem: docker
-    directory: /
+  - package-ecosystem: docker-compose
+    directories: [/, /services, /home-assistant]
     schedule:
-      interval: monthly
+      interval: weekly
     groups:
-      docker-images:
-        patterns: ['*']
-    commit-message:
-      prefix: chore(deps)
-    labels: [dependencies, docker]
-    open-pull-requests-limit: 10
-  - package-ecosystem: docker
-    directory: /services
-    schedule:
-      interval: monthly
-    groups:
-      docker-images-services:
+      docker-compose-images:
         patterns: ['*']
     commit-message:
       prefix: chore(deps)

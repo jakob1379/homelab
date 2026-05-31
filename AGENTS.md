@@ -38,6 +38,7 @@ Treat these as likely to break routing or deployment:
 - `home-assistant/docker-compose.yml`
 
 ## Change map
+
 - Add a main-stack service in `services/<name>.yml`, then include it from `docker-compose.yml`
 - Keep Dockhand/bootstrap changes in `docker-compose.pods.yml` and `services/pods.yml`
 - Put static Traefik config in `config/traefik/traefik.yml`

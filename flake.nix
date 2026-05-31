@@ -7,6 +7,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             expect
+            dependabot-cli
             gitleaks
             mkcert
             nssTools
