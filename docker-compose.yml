@@ -4,24 +4,24 @@
 name: homelab
 include:
   # Core infrastructure
-  - services/compose-networking.yml  # Traefik, Sablier, Whoami, AdGuard
-  - services/compose-rustfs.yml  # RustFS S3-compatible storage
+  - services/networking.yml  # Traefik, Sablier, Whoami, AdGuard
+  - services/rustfs.yml  # RustFS S3-compatible storage
 
   # Developer tools
-  - services/compose-tools.yml  # IT Tools, CloudBeaver, BentoPDF
-  - services/compose-omni-tools.yml  # Omni Tools - self-hosted utilities
-  - services/compose-speedtest-tracker.yml  # Speedtest Tracker internet monitoring
-  - services/compose-vert.yml  # VERT local file converter
+  - services/tools.yml  # IT Tools, CloudBeaver, BentoPDF
+  - services/omni-tools.yml  # Omni Tools - self-hosted utilities
+  - services/speedtest-tracker.yml  # Speedtest Tracker internet monitoring
+  - services/vert.yml  # VERT local file converter
 
   # Applications with their dependencies
-  - services/compose-anythingllm.yml  # AnythingLLM private AI workspace
-  - services/compose-listmonk.yml  # Listmonk with Cloudflare tunnel
-  - services/compose-karakeep.yml  # Karakeep (formerly Hoarder) with Chrome and Meilisearch
-  - services/compose-immich.yml  # Immich photo management
-  - services/compose-paperless-ngx.yml  # Paperless-ngx document management
-  - services/compose-dumbassets.yml  # DumbAssets asset and warranty tracking
-  - services/compose-media.yml  # Jellyfin + media automation stack
-  - services/compose-homepage.yml  # Homepage dashboard
+  - services/anythingllm.yml  # AnythingLLM private AI workspace
+  - services/listmonk.yml  # Listmonk with Cloudflare tunnel
+  - services/karakeep.yml  # Karakeep (formerly Hoarder) with Chrome and Meilisearch
+  - services/immich.yml  # Immich photo management
+  - services/paperless-ngx.yml  # Paperless-ngx document management
+  - services/dumbassets.yml  # DumbAssets asset and warranty tracking
+  - services/media.yml  # Jellyfin + media automation stack
+  - services/homepage.yml  # Homepage dashboard
   - home-assistant/docker-compose.yml  # Home Assistant smart home stack
 # Log rotation configuration to prevent disk fill
 # Reference in services with: <<: *x-logging

@@ -30,7 +30,7 @@ $ curl https://photos.localhost.me
 
 That matches the current source files:
 
-- `services/compose-immich.yml` exposes `immich-server` directly with Docker labels
+- `services/immich.yml` exposes `immich-server` directly with Docker labels
 - `immich-microservices` stays running
 - `immich-machine-learning` stays running
 - there is no `immich-queue-monitor` service
@@ -42,7 +42,7 @@ That matches the current source files:
 
 The active source of truth for **Immich** is:
 
-- `services/compose-immich.yml` for **Immich** and **Immich Power Tools**
+- `services/immich.yml` for **Immich** and **Immich Power Tools**
 - [Service Reference](services.md)
 
 If you want queue-driven wake behavior again, that is a new design task. Do not assume it already exists.

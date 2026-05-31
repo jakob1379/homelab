@@ -1,6 +1,6 @@
 # Agent Guide
 
-This repo is a Docker Compose homelab. The main stack is `docker-compose.yml`, which includes `services/compose-*.yml` plus `home-assistant/docker-compose.yml`. The Dockhand bootstrap stack is `docker-compose.pods.yml` + `services/compose-pods.yml`.
+This repo is a Docker Compose homelab. The main stack is `docker-compose.yml`, which includes `services/*.yml` plus `home-assistant/docker-compose.yml`. The Dockhand bootstrap stack is `docker-compose.pods.yml` + `services/pods.yml`.
 
 ## Source of truth
 - Local bootstrap / required env behavior: `setup-dev.sh`
@@ -32,15 +32,15 @@ This repo is a Docker Compose homelab. The main stack is `docker-compose.yml`, w
 Treat these as likely to break routing or deployment:
 - `docker-compose.yml`
 - `docker-compose.pods.yml`
-- `services/compose-networking.yml`
+- `services/networking.yml`
 - `config/traefik/traefik.yml`
 - `config/traefik/dyn/*.yml`
 - `home-assistant/docker-compose.yml`
 
 ## Change map
 
-- Add a main-stack service in `services/compose-<name>.yml`, then include it from `docker-compose.yml`
-- Keep Dockhand/bootstrap changes in `docker-compose.pods.yml` and `services/compose-pods.yml`
+- Add a main-stack service in `services/<name>.yml`, then include it from `docker-compose.yml`
+- Keep Dockhand/bootstrap changes in `docker-compose.pods.yml` and `services/pods.yml`
 - Put static Traefik config in `config/traefik/traefik.yml`
 - Put routes, middleware, and Sablier config in `config/traefik/dyn/*.yml`
 - Home Assistant lives under `home-assistant/` but is included from the main `docker-compose.yml`
@@ -50,7 +50,7 @@ Treat these as likely to break routing or deployment:
 - Compose profiles are feature flags: `dev`, `prod`, `infra`, `apps`, `service`, `tunnel`
 
 ## Traefik footgun
-- For the minimum Docker-label Traefik exposure without file-provider routing or Sablier, copy the pattern from `services/compose-immich.yml`: join `traefik_public`, set `traefik.enable=true`, add a router rule, set `entrypoints=websecure`, and set the internal service port with `traefik.http.services.<name>.loadbalancer.server.port=<port>`
+- For the minimum Docker-label Traefik exposure without file-provider routing or Sablier, copy the pattern from `services/immich.yml`: join `traefik_public`, set `traefik.enable=true`, add a router rule, set `entrypoints=websecure`, and set the internal service port with `traefik.http.services.<name>.loadbalancer.server.port=<port>`
 - For file-provider routing, keep normal services on `traefik_public` and target the service name; for host-networked services such as Home Assistant and NetAlertX, target `host.docker.internal:<port>` as in `config/traefik/dyn/ha.yml` and `config/traefik/dyn/netalertx.yml`
 - If Traefik cannot reach the container, check network attachment for normal services and the file-provider target for host-networked services
 
@@ -63,7 +63,7 @@ Treat these as likely to break routing or deployment:
 ## Sablier footgun
 - To enable Sablier, add `sablier.enable=true`, `sablier.group=<name>`, and a matching `sablier-<name>@file` middleware / router reference
 - To disable it, remove both the service labels and the router middleware reference
-- For the queue-driven wake special case, see `services/compose-immich.yml` and `docs/queue-driven-sleep.md`
+- For the queue-driven wake special case, see `services/immich.yml` and `docs/queue-driven-sleep.md`
 
 ## Validation
 - Run the checks defined in `.github/workflows/test-docker-compose.yml`

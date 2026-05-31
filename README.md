@@ -94,30 +94,30 @@ This file includes the active stack definitions under `services/` plus `home-ass
 
 ```yaml title="docker-compose.yml"
 include:
-  - services/compose-networking.yml
-  - services/compose-rustfs.yml
-  - services/compose-tools.yml
-  - services/compose-omni-tools.yml
-  - services/compose-speedtest-tracker.yml
-  - services/compose-vert.yml
-  - services/compose-anythingllm.yml
-  - services/compose-listmonk.yml
-  - services/compose-karakeep.yml
-  - services/compose-immich.yml
-  - services/compose-paperless-ngx.yml
-  - services/compose-dumbassets.yml
-  - services/compose-media.yml
-  - services/compose-homepage.yml
+  - services/networking.yml
+  - services/rustfs.yml
+  - services/tools.yml
+  - services/omni-tools.yml
+  - services/speedtest-tracker.yml
+  - services/vert.yml
+  - services/anythingllm.yml
+  - services/listmonk.yml
+  - services/karakeep.yml
+  - services/immich.yml
+  - services/paperless-ngx.yml
+  - services/dumbassets.yml
+  - services/media.yml
+  - services/homepage.yml
   - home-assistant/docker-compose.yml
 ```
 
 ### `docker-compose.pods.yml`: bootstrap stack
 
-This file includes only `services/compose-pods.yml`.
+This file includes only `services/pods.yml`.
 
 ```yaml title="docker-compose.pods.yml"
 include:
-  - services/compose-pods.yml
+  - services/pods.yml
 ```
 
 ### Active profiles
@@ -242,7 +242,7 @@ For production ACME certificates, start the stack with the production profile:
 
 ### 2. The media stack still depends on Gluetun
 
-`services/compose-media.yml` runs **Gluetun** as the shared network namespace for:
+`services/media.yml` runs **Gluetun** as the shared network namespace for:
 
 - `torrent`
 - `sonarr`
@@ -258,9 +258,9 @@ The active compose config requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for Glu
 
 These files exist but are **not** included from `docker-compose.yml`:
 
-- `services/compose-hermes.yml`
-- `services/compose-teable.yml`
-- `services/compose-teable-migrate.yml`
+- `services/hermes.yml`
+- `services/teable.yml`
+- `services/teable-migrate.yml`
 
 ---
 
