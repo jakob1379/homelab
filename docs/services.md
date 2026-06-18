@@ -67,7 +67,7 @@ $ curl https://speed.localhost.me
 | **VERT** | `https://vert.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/vert.yml` | Yes, `30m` | browser-side file conversion |
 | **Speedtest Tracker** | `https://speed.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/speedtest-tracker.yml` | Yes, `15m` | stores SQLite data under `/config`; `speedtest-trigger` wakes it hourly through the API |
 | **DumbAssets** | `https://assets.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/dumbassets.yml` | Yes, `30m` | tracks assets, warranties, receipts, manuals, and maintenance |
-| **Hermes** | `https://hermes.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/hermes.yml` | No | always-on agent gateway; dashboard route is NetBird-only and uses Hermes dashboard auth |
+| **Hermes** | `https://hermes.${DOMAIN}` | `apps`, `dev`, `prod` | Docker labels | No | always-on agent gateway; dashboard route is NetBird-only and uses Hermes dashboard auth |
 
 ---
 

@@ -16,6 +16,11 @@ services:
     volumes: [hermes_data:/opt/data]
     networks: [traefik_public]
     labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_public
+      - traefik.http.routers.hermes.entrypoints=websecure
+      - traefik.http.routers.hermes.middlewares=netbird-users-only@file,startup-retry@file
+      - traefik.http.services.hermes.loadbalancer.server.port=9119
       - homepage.group=Utilities
       - homepage.name=Hermes
       - homepage.icon=si-hermes

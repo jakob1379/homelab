@@ -160,7 +160,6 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `cbeaver.yml`
 - `dumbassets.yml`
 - `ha.yml`
-- `hermes.yml`
 - `home.yml`
 - `immich-power-tools.yml`
 - `ittools.yml`
@@ -180,6 +179,7 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `traefik` dashboard from `services/networking.yml`
 - `adguard` from `services/networking.yml`
 - `dockhand` from `services/pods.yml`
+- `hermes` from `services/hermes.yml`
 - `immich` from `services/immich.yml`
 - `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr` from `services/media.yml`
 
@@ -271,7 +271,7 @@ That means:
 
 **Hermes** runs as one always-on container with the built-in dashboard enabled. It is not behind **Sablier** because the Slack Socket Mode gateway needs to stay connected.
 
-Traefik reaches the dashboard through `config/traefik/dyn/hermes.yml` at `http://hermes:9119/`. That route attaches `netbird-users-only@file`, so dashboard access is limited to NetBird/VPN source ranges before Hermes' own dashboard authentication runs.
+Traefik reaches the dashboard through Docker labels on `services/hermes.yml`. The Docker provider infers the `hermes.{{ env "DOMAIN" }}` host rule from the Compose service name; the labels only enable Traefik, select `websecure`, attach `netbird-users-only@file` and `startup-retry@file`, and set the dashboard port to `9119`. Dashboard access is limited to NetBird/VPN source ranges before Hermes' own dashboard authentication runs.
 
 That network boundary does not protect Slack. Slack access must stay constrained with Hermes' Slack configuration, especially `SLACK_ALLOWED_USERS` and `SLACK_ALLOWED_CHANNELS` in the `ops` profile's `.env`.
 

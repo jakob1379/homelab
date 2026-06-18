@@ -152,7 +152,6 @@ These are the routes that currently use explicit **Traefik** file-provider confi
 - **DumbAssets**
 - **Homepage**
 - **Home Assistant**
-- **Hermes**
 - **Immich Power Tools**
 - **IT Tools**
 - **Jellyfin**
@@ -173,6 +172,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 
 - **AdGuard**
 - **Dockhand**
+- **Hermes**
 - **Immich**
 - **Prowlarr**
 - **Bazarr**
