@@ -3,11 +3,11 @@ x-traefik-local-env: &traefik-local-env
   DOMAIN: ${DOMAIN:-localhost.me}
 x-traefik-common: &traefik-common
   image: traefik:3.6.9
-  ports: [80:80, 443:443]
+  ports: ['80:80', '443:443']
   networks:
     traefik_public:
       aliases: [traefik]
-  extra_hosts: [host.docker.internal:host-gateway]
+  extra_hosts: ['host.docker.internal:host-gateway']
   labels:
     - traefik.enable=true
     # Traefik dashboard
@@ -114,7 +114,7 @@ services:
       traefik:
         condition: service_healthy
         required: false
-    volumes: [/var/run/docker.sock:/var/run/docker.sock]
+    volumes: ['/var/run/docker.sock:/var/run/docker.sock']
     networks: [traefik_public]
     restart: unless-stopped
     deploy:
@@ -202,7 +202,7 @@ services:
       traefik:
         condition: service_healthy
         required: false
-    volumes: [netalertx_data:/data, /etc/localtime:/etc/localtime:ro]
+    volumes: ['netalertx_data:/data', '/etc/localtime:/etc/localtime:ro']
     tmpfs: ['/tmp:uid=20211,gid=20211,mode=1700']
     read_only: true
     environment:

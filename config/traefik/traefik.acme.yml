@@ -31,7 +31,7 @@ certificatesResolvers:
       storage: /letsencrypt/acme.json
       dnsChallenge:
         provider: cloudflare
-        resolvers: [1.1.1.1:53, 1.0.0.1:53]
+        resolvers: ['1.1.1.1:53', '1.0.0.1:53']
 providers:
   docker:
     # Use Docker Compose service label for clean service name extraction

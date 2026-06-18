@@ -5,10 +5,10 @@ services:
     image: mintplexlabs/anythingllm:1.11.1
     restart: unless-stopped
     cap_add: [SYS_ADMIN]
-    extra_hosts: [host.docker.internal:host-gateway]
+    extra_hosts: ['host.docker.internal:host-gateway']
     environment: [STORAGE_DIR=/app/server/storage, DISABLE_TELEMETRY=true]
     networks: [traefik_public]
-    volumes: [anythingllm_storage:/app/server/storage]
+    volumes: ['anythingllm_storage:/app/server/storage']
     labels:
       - sablier.enable=true
       - sablier.group=anythingllm

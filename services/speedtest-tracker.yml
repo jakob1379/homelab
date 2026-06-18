@@ -13,7 +13,7 @@ services:
       - APP_URL=https://speed.${DOMAIN:-localhost.me}
       - ASSET_URL=https://speed.${DOMAIN:-localhost.me}
       - DB_CONNECTION=sqlite
-    volumes: [speedtest_tracker_data:/config]
+    volumes: ['speedtest_tracker_data:/config']
     networks: [traefik_public]
     labels:
       - sablier.enable=true

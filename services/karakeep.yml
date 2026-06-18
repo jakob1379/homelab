@@ -75,9 +75,9 @@ services:
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?Generate a key using `openssl rand -hex
         32 2>/dev/null`}
       MEILI_NO_ANALYTICS: 'true'
-    volumes: [meilisearch_data:/meili_data]
+    volumes: ['meilisearch_data:/meili_data']
     healthcheck:
-      test: [CMD, curl, -f, http://127.0.0.1:7700/health]
+      test: [CMD, curl, -f, 'http://127.0.0.1:7700/health']
       interval: 10s
       timeout: 5s
       retries: 5
