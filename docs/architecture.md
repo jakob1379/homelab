@@ -60,6 +60,7 @@ include:
   - services/paperless-ngx.yml
   - services/dumbassets.yml
   - services/media.yml
+  - services/hermes.yml
   - services/homepage.yml
   - home-assistant/docker-compose.yml
 ```
@@ -159,6 +160,7 @@ That is the simpler option when you do not need a file-provider middleware chain
 - `cbeaver.yml`
 - `dumbassets.yml`
 - `ha.yml`
+- `hermes.yml`
 - `home.yml`
 - `immich-power-tools.yml`
 - `ittools.yml`
@@ -216,6 +218,7 @@ This repo does **not** put every routed app behind **Sablier**.
 - **Dockhand**
 - **Immich**
 - **Home Assistant**
+- **Hermes**
 - **Jellyfin**
 - **torrent**
 - **Sonarr**
@@ -264,6 +267,18 @@ That means:
 
 ---
 
+## Hermes Placement
+
+**Hermes** runs as one always-on container with the built-in dashboard enabled. It is not behind **Sablier** because the Slack Socket Mode gateway needs to stay connected.
+
+Traefik reaches the dashboard through `config/traefik/dyn/hermes.yml` at `http://hermes:9119/`. That route attaches `netbird-users-only@file`, so dashboard access is limited to NetBird/VPN source ranges before Hermes' own dashboard authentication runs.
+
+That network boundary does not protect Slack. Slack access must stay constrained with Hermes' Slack configuration, especially `SLACK_ALLOWED_USERS` and `SLACK_ALLOWED_CHANNELS` in the `ops` profile's `.env`.
+
+Hermes profiles isolate config, secrets, memory, sessions, skills, cron jobs, and gateway state. They do not sandbox CPU, memory, network access, or filesystem access granted to the container. Do not mount `/var/run/docker.sock` into Hermes unless host-level Docker control is intentional.
+
+---
+
 ## Home Assistant Placement
 
 **Home Assistant** lives under `home-assistant/`, but the service is included from the root `docker-compose.yml`.
@@ -282,7 +297,6 @@ The service runs in `network_mode: host` for LAN discovery, and **Traefik** reac
 
 These files exist under `services/` but are not included from `docker-compose.yml`:
 
-- `services/hermes.yml`
 - `services/teable.yml`
 - `services/teable-migrate.yml`
 

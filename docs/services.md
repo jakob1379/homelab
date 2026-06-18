@@ -67,6 +67,7 @@ $ curl https://speed.localhost.me
 | **VERT** | `https://vert.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/vert.yml` | Yes, `30m` | browser-side file conversion |
 | **Speedtest Tracker** | `https://speed.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/speedtest-tracker.yml` | Yes, `15m` | stores SQLite data under `/config`; `speedtest-trigger` wakes it hourly through the API |
 | **DumbAssets** | `https://assets.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/dumbassets.yml` | Yes, `30m` | tracks assets, warranties, receipts, manuals, and maintenance |
+| **Hermes** | `https://hermes.${DOMAIN}` | `apps`, `dev`, `prod` | `config/traefik/dyn/hermes.yml` | No | always-on agent gateway; dashboard route is NetBird-only and uses Hermes dashboard auth |
 
 ---
 
@@ -192,15 +193,19 @@ These are the compose-required variables that matter for the active stack.
 | `OPENVPN_PASSWORD` | **Gluetun** ProtonVPN OpenVPN password |
 | `DUMBASSETS_PIN` | **DumbAssets** |
 | `DUMBASSETS_SESSION_SECRET` | **DumbAssets** |
+| `HERMES_DASHBOARD_BASIC_AUTH_PASSWORD` | **Hermes** dashboard auth |
+| `HERMES_DASHBOARD_BASIC_AUTH_SECRET` | **Hermes** dashboard auth session secret |
 
 Optional vars:
 
 - `SPEEDTEST_API_TOKEN` is used by the **Speedtest Trigger** sidecar; create it in Speedtest Tracker with `Read Results` and `Run Speedtest` abilities. When unset, the sidecar logs `skipped_no_token` and skips the trigger.
+- `HERMES_DASHBOARD_BASIC_AUTH_USERNAME` overrides the **Hermes** dashboard username and defaults to `admin`.
+- Slack bot credentials belong in the Hermes `ops` profile `.env`, not the repo root `.env`: `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_ALLOWED_USERS`, and `SLACK_ALLOWED_CHANNELS`.
 
 Bootstrap behavior:
 
 - `.env.example` already provides local RustFS defaults.
-- `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, and `DUMBASSETS_SESSION_SECRET` when they are missing.
+- `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, `DUMBASSETS_SESSION_SECRET`, `HERMES_DASHBOARD_BASIC_AUTH_PASSWORD`, and `HERMES_DASHBOARD_BASIC_AUTH_SECRET` when they are missing.
 - `setup-dev.sh` writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values for local config rendering. Real Gluetun use still needs real VPN credentials.
 - `GLUETUN_HEALTHCHECK_DISABLED=true` is the local default so `docker compose --profile dev up --wait` can start the media UI routes with dummy VPN credentials. Set it to `false` when real VPN credentials should gate the stack.
 - `setup-dev.sh` creates mkcert-backed local TLS files for `https://*.localhost.me` and writes Traefik's generated certificate dynamic config.
@@ -214,6 +219,5 @@ Bootstrap behavior:
 
 These service files exist but are not active because the root include list does not reference them:
 
-- `services/hermes.yml`
 - `services/teable.yml`
 - `services/teable-migrate.yml`

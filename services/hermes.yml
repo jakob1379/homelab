@@ -1,42 +1,38 @@
 ---
 services:
   hermes:
-    image: nousresearch/hermes-agent:latest
-    container_name: hermes
+    profiles: [apps, dev, prod]
+    image: nousresearch/hermes-agent@sha256:5f07a3d01c7d6c4a6b2c98df634f580a6d12748bfe105cc875835051679cc527
     restart: unless-stopped
     command: gateway run
-    # ports:
-    #   - "8642:8642"
+    environment:
+      - TZ=${TZ:-Europe/Copenhagen}
+      - HERMES_DASHBOARD=1
+      - HERMES_DASHBOARD_BASIC_AUTH_USERNAME=${HERMES_DASHBOARD_BASIC_AUTH_USERNAME:-admin}
+      - HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${HERMES_DASHBOARD_BASIC_AUTH_PASSWORD:?Set
+        HERMES_DASHBOARD_BASIC_AUTH_PASSWORD in .env, direnv, or Dockhand}
+      - HERMES_DASHBOARD_BASIC_AUTH_SECRET=${HERMES_DASHBOARD_BASIC_AUTH_SECRET:?Set
+        HERMES_DASHBOARD_BASIC_AUTH_SECRET in .env, direnv, or Dockhand}
     volumes: [hermes_data:/opt/data]
-    networks:
-      - hermes-net
-    # uncomment to forward specific env vars instead of using .env file:
-    # environment:
-    #   - anthropic_api_key=${anthropic_api_key}
-    #   - openai_api_key=${openai_api_key}
-    #   - telegram_bot_token=${telegram_bot_token}
+    networks: [traefik_public]
+    labels:
+      - homepage.group=Utilities
+      - homepage.name=Hermes
+      - homepage.icon=si-hermes
+      - homepage.href=https://hermes.${DOMAIN:-localhost.me}
+      - homepage.description=Self-hosted AI agent gateway and dashboard
     deploy:
       resources:
         limits:
-          memory: 4g
+          memory: 4G
           cpus: '2.0'
-  dashboard:
-    image: nousresearch/hermes-agent:latest
-    container_name: hermes-dashboard
-    restart: unless-stopped
-    command: dashboard --host 0.0.0.0 --insecure
-    ports: [127.0.0.1:9119:9119]
-    volumes: [hermes_data:/opt/data]
-    environment: [gateway_health_url=http://hermes:8642]
-    networks: [hermes-net]
-    depends_on: [hermes]
-    deploy:
-      resources:
-        limits:
-          memory: 512m
+        reservations:
+          memory: 1G
           cpus: '0.5'
 networks:
-  hermes-net:
+  traefik_public:
+    name: traefik_public
     driver: bridge
+    attachable: true
 volumes:
   hermes_data:

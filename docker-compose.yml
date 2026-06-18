@@ -21,6 +21,7 @@ include:
   - services/paperless-ngx.yml  # Paperless-ngx document management
   - services/dumbassets.yml  # DumbAssets asset and warranty tracking
   - services/media.yml  # Jellyfin + media automation stack
+  - services/hermes.yml  # Hermes AI agent gateway and dashboard
   - services/homepage.yml  # Homepage dashboard
   - home-assistant/docker-compose.yml  # Home Assistant smart home stack
 # Log rotation configuration to prevent disk fill

@@ -107,6 +107,7 @@ include:
   - services/paperless-ngx.yml
   - services/dumbassets.yml
   - services/media.yml
+  - services/hermes.yml
   - services/homepage.yml
   - home-assistant/docker-compose.yml
 ```
@@ -151,6 +152,7 @@ These are the routes that currently use explicit **Traefik** file-provider confi
 - **DumbAssets**
 - **Homepage**
 - **Home Assistant**
+- **Hermes**
 - **Immich Power Tools**
 - **IT Tools**
 - **Jellyfin**
@@ -182,7 +184,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 ### Sleep behavior right now
 
 - **Sablier-managed**: `anythingllm`, `bentopdf`, `cbeaver`, `dumbassets`, `home`, `immich-power-tools`, `ittools`, `keep`, `omni-tools`, `paperless`, `seerr`, `speedtest-tracker`, `vert`, `whoami`
-- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
+- **Always on / not wired to Sablier middleware**: `traefik`, `sablier`, `rustfs`, `adguard`, `netalertx`, `dockhand`, `immich`, `home-assistant`, `hermes`, `jellyfin`, `torrent`, `sonarr`, `radarr`, `prowlarr`, `bazarr`
 - **Important exception**: `listmonk` still has `sablier.*` labels, but `config/traefik/dyn/listmonk.yml` does **not** attach a Sablier middleware. Treat it as not sleeping on request in the current repo.
 
 ---
@@ -209,6 +211,7 @@ These are currently routed with service labels instead of `config/traefik/dyn/*.
 - **Omni Tools**
 - **VERT**
 - **Speedtest Tracker**
+- **Hermes**
 
 ### App stacks
 
@@ -258,7 +261,6 @@ The active compose config requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for Glu
 
 These files exist but are **not** included from `docker-compose.yml`:
 
-- `services/hermes.yml`
 - `services/teable.yml`
 - `services/teable-migrate.yml`
 
