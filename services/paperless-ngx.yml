@@ -5,7 +5,7 @@ services:
     image: postgres:17.9-alpine3.23
     restart: unless-stopped
     networks: [paperless]
-    volumes: [paperless_postgres_data:/var/lib/postgresql/data]
+    volumes: ['paperless_postgres_data:/var/lib/postgresql/data']
     environment:
       - POSTGRES_DB=${PAPERLESS_DBNAME:-paperless}
       - POSTGRES_USER=${PAPERLESS_DBUSER:-paperless}
@@ -72,7 +72,7 @@ services:
       - homepage.href=https://paper.${DOMAIN:-localhost.me}
       - homepage.description=Scan, store, and search all your documents
     healthcheck:
-      test: [CMD, curl, -fs, http://localhost:8000/api/health/]
+      test: [CMD, curl, -fs, 'http://localhost:8000/api/health/']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -131,7 +131,7 @@ services:
     image: redis:7.4.8-alpine3.21
     restart: unless-stopped
     networks: [paperless]
-    volumes: [paperless_redis:/data]
+    volumes: ['paperless_redis:/data']
     healthcheck:
       test: [CMD, redis-cli, ping]
       interval: 10s

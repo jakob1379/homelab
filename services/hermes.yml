@@ -13,7 +13,7 @@ services:
         HERMES_DASHBOARD_BASIC_AUTH_PASSWORD in .env, direnv, or Dockhand}
       - HERMES_DASHBOARD_BASIC_AUTH_SECRET=${HERMES_DASHBOARD_BASIC_AUTH_SECRET:?Set
         HERMES_DASHBOARD_BASIC_AUTH_SECRET in .env, direnv, or Dockhand}
-    volumes: [hermes_data:/opt/data]
+    volumes: ['hermes_data:/opt/data']
     networks: [traefik_public]
     labels:
       - traefik.enable=true

@@ -17,7 +17,7 @@ services:
       - CURRENCY_CODE=${DUMBASSETS_CURRENCY_CODE:-DKK}
       - CURRENCY_LOCALE=${DUMBASSETS_CURRENCY_LOCALE:-da-DK}
       - APPRISE_URL=${DUMBASSETS_APPRISE_URL:-}
-    volumes: [dumbassets_data:/app/data]
+    volumes: ['dumbassets_data:/app/data']
     networks: [traefik_public]
     labels:
       - sablier.enable=true

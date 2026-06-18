@@ -10,7 +10,7 @@ services:
       traefik:
         condition: service_healthy
         required: false
-    volumes: [rustfs_data:/data]
+    volumes: ['rustfs_data:/data']
     environment:
       - RUSTFS_VOLUMES=/data
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:?Set RUSTFS_ACCESS_KEY in .env, direnv,
@@ -20,7 +20,7 @@ services:
       - RUSTFS_CONSOLE_ENABLE=true
       - RUSTFS_CONSOLE_ADDRESS=:9001
     networks: [traefik_public]
-    security_opt: [no-new-privileges:true]
+    security_opt: ['no-new-privileges:true']
     labels:
       - homepage.group=Admin Tools
       - homepage.name=RustFS
