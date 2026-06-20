@@ -4,7 +4,7 @@ volumes:
 services:
   ha:
     profiles: [apps, service, dev, prod]
-    image: homeassistant/home-assistant:2026.6.3
+    image: homeassistant/home-assistant:2026.6.4
     network_mode: host
     volumes:
       - ha_config:/config
