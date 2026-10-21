@@ -8,6 +8,7 @@ updates:
     groups:
       docker-compose-images:
         patterns: ['*']
+        update-types: [minor, patch]
     commit-message:
       prefix: chore(deps)
     labels: [dependencies, docker]
