@@ -134,7 +134,7 @@ Sources: [Quad9 docs, Services](https://docs.quad9.net/services/), [service addr
 - This stack already runs AdGuard Home ([services](../services.md)). Set any of these as its upstream. Prefer DoH/DoT so your ISP cannot see or tamper with upstream queries.
 - Pick one block format and learn its signature. `0.0.0.0` (Cloudflare) can look like a broken service. `NXDOMAIN` with `AUTHORITY: 0` (Quad9) can look like a typo.
 - Don't mix 1.1.1.2 and 9.9.9.9 as "primary/secondary" in one forwarder: they use different block lists and different block formats, so results become non-deterministic.
-- Traefik's ACME DNS-01 propagation check uses `1.1.1.1:53` (`config/traefik/traefik.acme.yml`). That is the unfiltered resolver, which is correct for that job. Leave it alone.
+- Traefik's ACME DNS-01 propagation check uses `9.9.9.9:53` and `149.112.112.112:53` (`config/traefik/traefik.acme.yml`), matching the AdGuard upstream. It only needs to find the zone's authoritative nameservers, which Quad9 does not filter unless the domain itself is flagged as a threat.
 - Quad9 users in France lose service from 2026-11-24 ([Quad9 blog](https://quad9.net/news/blog/au-revoir-france/)).
 
 ---

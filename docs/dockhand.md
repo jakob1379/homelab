@@ -190,7 +190,7 @@ AdGuard forwards everything else to **Quad9**. The setting lives in the `adguard
 | Fallback DNS servers | empty, or Quad9 only |
 | EDNS Client Subnet | off |
 
-Do not mix Quad9 and Cloudflare upstreams; they block different domains and answer blocks differently. Leave the `1.1.1.1` resolvers in `config/traefik/traefik.acme.yml` alone: Traefik uses them for DNS-01 propagation checks against the Cloudflare-hosted zone.
+Do not mix Quad9 and Cloudflare upstreams; they block different domains and answer blocks differently. Traefik uses Quad9 too, for its DNS-01 propagation checks in `config/traefik/traefik.acme.yml`.
 
 ```bash title="Verify Quad9 blocking"
 $ dig @<adguard-host> -p 1053 isitblocked.org
