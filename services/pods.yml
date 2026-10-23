@@ -9,7 +9,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${DOCKHAND_DATA_DIR:-dockhand_data}:${DOCKHAND_DATA_DIR:-/opt/dockhand}
     networks: [traefik_public]
-    ports: [3000:3000]
+    ports: ['3000:3000']
     labels:
       - traefik.enable=true
       - traefik.http.routers.dockhand.rule=Host(`docker.${DOMAIN:-localhost.me}`)

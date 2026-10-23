@@ -6,7 +6,7 @@ This repo is a Docker Compose homelab. The main stack is `docker-compose.yml`, w
 - Local bootstrap / required env behavior: `setup-dev.sh`
 - Example env values: `.env.example`
 - Validation contract: `.github/workflows/test-docker-compose.yml`
-- Lint / formatting rules: `.pre-commit-config.yaml`
+- Lint / formatting rules: `flake.nix` (`git-hooks.nix`; `nix develop` generates `.pre-commit-config.yaml`)
 - Operator overview: `README.md`
 - Architecture / profiles / routing model: `docs/architecture.md`
 - Service inventory / required vars: `docs/services.md`
