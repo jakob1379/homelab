@@ -179,6 +179,25 @@ A  *.lab.example.com  100.90.12.34
 A  lab.example.com    100.90.12.34
 ```
 
+### AdGuard upstream resolver
+
+AdGuard forwards everything else to **Quad9**. The setting lives in the `adguard_conf` volume, not in this repo, so set it under **Settings → DNS settings**:
+
+| Field | Value |
+| --- | --- |
+| Upstream DNS servers | `https://dns.quad9.net/dns-query` |
+| Bootstrap DNS servers | `9.9.9.9`, `149.112.112.112` |
+| Fallback DNS servers | empty, or Quad9 only |
+| EDNS Client Subnet | off |
+
+Do not mix Quad9 and Cloudflare upstreams; they block different domains and answer blocks differently. Leave the `1.1.1.1` resolvers in `config/traefik/traefik.acme.yml` alone: Traefik uses them for DNS-01 propagation checks against the Cloudflare-hosted zone.
+
+```bash title="Verify Quad9 blocking"
+$ dig @<adguard-host> -p 1053 isitblocked.org
+```
+
+A Quad9 block is `NXDOMAIN` with `AUTHORITY: 0`; a real missing domain has `AUTHORITY: 1`. See [the resolver comparison](research/dns-resolvers-cloudflare-vs-quad9.md) for the reasoning.
+
 ### Verify the certificate path
 
 ```bash title="Verify DNS, routing, and TLS"
