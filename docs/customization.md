@@ -331,7 +331,7 @@ The `loadBalancer.server.port` or URL must match the port the app actually liste
 
 ### Sablier labels without a matching middleware
 
-This is exactly the kind of partial wiring that currently exists for **Listmonk**. Do not copy it unless you want the same behavior.
+Labels alone do not make a route sleep on request: the router also needs the matching `sablier-<group>@file` middleware.
 
 ### Documenting parked files as active services
 
