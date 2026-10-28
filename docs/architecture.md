@@ -295,9 +295,9 @@ The service runs in `network_mode: host` for LAN discovery, and **Traefik** reac
 
 ## Parked Definitions
 
-These files exist under `services/` but are not included from `docker-compose.yml`:
+Historical Teable Swarm fragments are kept as examples outside the active include list:
 
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+- `docs/examples/teable.yml`
+- `docs/examples/teable-migrate.yml`
 
 Do not document them as part of the active stack unless they are added to the root include list.

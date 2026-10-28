@@ -5,21 +5,23 @@ services:
     env_file: [./.env-teable]
     entrypoint: >
       /bin/sh -c "
+      set -eu;
       /usr/bin/mc alias set teable-storage https://s3.jgalabs.dk $$MINIO_ACCESS_KEY
       $$MINIO_SECRET_KEY;
-      /usr/bin/mc mb teable-storage/public;
+      /usr/bin/mc mb --ignore-existing teable-storage/public;
       /usr/bin/mc anonymous set public teable-storage/public;
-      /usr/bin/mc mb teable-storage/private;
-      exit 0;
+      /usr/bin/mc mb --ignore-existing teable-storage/private;
       "
+    # One-shot Swarm task: create buckets once and do not restart.
     deploy:
-      replicas: 1  # Ensures only one instance runs
+      replicas: 1
       restart_policy:
-        condition: none  # Ensures the service does not restart
+        condition: none
   teable-db-migrate:
     image: ghcr.io/teableio/teable-db-migrate@sha256:f046bef9c10888af0fc3e78c92dda8d47fe8ffdc09b3fb77cc2c298253dd3e2d
     env_file: [./.env-teable]
+    # One-shot Swarm task: run database migrations once and do not restart.
     deploy:
-      replicas: 1  # Ensures only one instance runs
+      replicas: 1
       restart_policy:
-        condition: none  # Ensures the service does not restart
+        condition: none
