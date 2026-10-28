@@ -335,4 +335,5 @@ This is exactly the kind of partial wiring that currently exists for **Listmonk*
 
 ### Documenting parked files as active services
 
-`services/teable*.yml` is not active until it is added to `docker-compose.yml`.
+Teable fragments under `docs/examples/` are historical examples, not active service definitions.
+`docs/examples/template-stack.yml` is a generic Swarm template, not a Compose include.

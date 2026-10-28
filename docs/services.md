@@ -217,7 +217,7 @@ Bootstrap behavior:
 
 ## Parked Definitions
 
-These service files exist but are not active because the root include list does not reference them:
+Historical Teable Swarm fragments are retained as examples:
 
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+- `docs/examples/teable.yml`
+- `docs/examples/teable-migrate.yml`

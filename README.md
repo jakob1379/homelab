@@ -259,10 +259,10 @@ The active compose config requires `OPENVPN_USER` and `OPENVPN_PASSWORD` for Glu
 
 ### 3. There are parked service definitions
 
-These files exist but are **not** included from `docker-compose.yml`:
+Historical Teable Swarm fragments are kept as examples instead of active service definitions:
 
-- `services/teable.yml`
-- `services/teable-migrate.yml`
+- `docs/examples/teable.yml`
+- `docs/examples/teable-migrate.yml`
 
 ---
 
