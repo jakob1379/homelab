@@ -227,18 +227,6 @@ This repo does **not** put every routed app behind **Sablier**.
 - **Bazarr**
 - **Listmonk**
 
-### Current exception: Listmonk
-
-`services/apps/listmonk.yml` still sets:
-
-```yaml
-labels:
-  - sablier.enable=true
-  - sablier.group=listmonk
-```
-
-but `config/traefik/dyn/listmonk.yml` does not attach a Sablier middleware. That means the route is not currently using sleep-on-request behavior.
-
 ---
 
 ## Networks
