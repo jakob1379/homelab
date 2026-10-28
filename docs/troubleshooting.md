@@ -227,7 +227,6 @@ Current facts:
 - `torrent`, `sonarr`, and `radarr` route through Docker labels on `gluetun`
 - `bazarr` is directly attached to `media` and `traefik_public`
 - `prowlarr` is directly attached to `media` and `traefik_public`
-- `prowlarr` has no profile
 - **Seerr** is still routed through a file-provider **Sablier** route
 - `setup-dev.sh` writes local placeholders for `OPENVPN_USER` and `OPENVPN_PASSWORD`
 

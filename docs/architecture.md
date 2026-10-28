@@ -102,10 +102,6 @@ $ docker compose --profile service up -d ha
 
 Use exactly one full-stack profile at a time: `dev` or `prod`. `dev` starts the mkcert-backed `traefik-dev` service, while `prod` starts the stable public `traefik` service with the production override block for Cloudflare DNS-01 ACME.
 
-`prowlarr` in `services/apps/media.yml` currently has **no profile**. In Compose, that means it is part of the default service set for the main stack.
-
-Treat that as current behavior, not a clean design choice.
-
 ---
 
 ## Routing Model

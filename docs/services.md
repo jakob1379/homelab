@@ -145,7 +145,7 @@ Required vars:
 | **Radarr** | `https://radarr.${DOMAIN}` | `apps`, `dev`, `prod` | Docker labels on `gluetun` | No | shares `gluetun` network namespace |
 | **FlareSolverr** | internal only, `http://flaresolverr:8191` from `media` | `apps`, `dev`, `prod` | None | No | shares `gluetun` network namespace |
 | **Byparr** | internal only, `http://byparr:8192` from `media` | `apps`, `dev`, `prod` | None | No | FlareSolverr-compatible helper; shares `gluetun` network namespace |
-| **Prowlarr** | `https://prowlarr.${DOMAIN}` | no explicit profile | Docker labels | No | starts by default in the main stack because it has no profile |
+| **Prowlarr** | `https://prowlarr.${DOMAIN}` | `apps`, `dev`, `prod` | Docker labels | No | indexer management for the media stack |
 | **Bazarr** | `https://bazarr.${DOMAIN}` | `apps`, `dev`, `prod` | Docker labels on `bazarr` | No | subtitle management for the shared media library |
 
 Current caveat:
