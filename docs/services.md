@@ -102,7 +102,7 @@ Optional vars:
 | `listmonk-postgres` | internal only | `apps`, `dev`, `prod` | No | app-local PostgreSQL |
 | `cftunnel` | internal only | `tunnel` | No | optional sidecar |
 
-Required var: `LISTMONK_db__password`
+Required var: `LISTMONK_DB_PASSWORD`
 
 ### Immich stack
 
@@ -182,7 +182,7 @@ These are the compose-required variables that matter for the active stack.
 | `RUSTFS_ACCESS_KEY` | **RustFS** |
 | `RUSTFS_SECRET_KEY` | **RustFS** |
 | `IMMICH_DB_PASSWORD` | **Immich**, **Immich Power Tools** |
-| `LISTMONK_db__password` | **Listmonk** |
+| `LISTMONK_DB_PASSWORD` | **Listmonk** |
 | `PAPERLESS_DBPASS` | **Paperless-ngx** |
 | `PAPERLESS_ADMIN_PASSWORD` | **Paperless-ngx** |
 | `PAPERLESS_SECRET_KEY` | **Paperless-ngx** |
@@ -205,7 +205,7 @@ Optional vars:
 Bootstrap behavior:
 
 - `.env.example` already provides local RustFS defaults.
-- `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_db__password`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, `DUMBASSETS_SESSION_SECRET`, `HERMES_DASHBOARD_BASIC_AUTH_PASSWORD`, and `HERMES_DASHBOARD_BASIC_AUTH_SECRET` when they are missing.
+- `setup-dev.sh` auto-generates `IMMICH_DB_PASSWORD`, `LISTMONK_DB_PASSWORD`, `PAPERLESS_DBPASS`, `PAPERLESS_SECRET_KEY`, `NEXTAUTH_SECRET`, `MEILI_MASTER_KEY`, `SPEEDTEST_APP_KEY`, `DUMBASSETS_SESSION_SECRET`, `HERMES_DASHBOARD_BASIC_AUTH_PASSWORD`, and `HERMES_DASHBOARD_BASIC_AUTH_SECRET` when they are missing.
 - `setup-dev.sh` writes dummy `OPENVPN_USER`, `OPENVPN_PASSWORD`, and `DUMBASSETS_PIN` values for local config rendering. Real Gluetun use still needs real VPN credentials.
 - `GLUETUN_HEALTHCHECK_DISABLED=true` is the local default so `docker compose --profile dev up --wait` can start the media UI routes with dummy VPN credentials. Set it to `false` when real VPN credentials should gate the stack.
 - `setup-dev.sh` creates mkcert-backed local TLS files for `https://*.localhost.me` and writes Traefik's generated certificate dynamic config.
