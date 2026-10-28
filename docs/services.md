@@ -37,7 +37,7 @@ $ curl https://speed.localhost.me
 
 | Service | Access | Compose file | Sleep | Notes |
 |---|---|---|---|---|
-| **Dockhand** | `http://localhost:3000` during bootstrap, `https://docker.${DOMAIN}` after the main stack is up | `services/pods.yml` via `docker-compose.pods.yml` | No | separate stack on shared `traefik_public` |
+| **Dockhand** | `http://localhost:3000` during bootstrap, `https://docker.${DOMAIN}` after the main stack is up | `services/bootstrap/pods.yml` via `docker-compose.pods.yml` | No | separate stack on shared `traefik_public` |
 
 ---
 
@@ -108,7 +108,7 @@ Required var: `LISTMONK_db__password`
 
 | Service | Access | Profile(s) | Sleep | Notes |
 |---|---|---|---|---|
-| **immich-server** | `https://photos.${DOMAIN}` | `apps`, `dev`, `prod` | No | Docker-label route in `services/immich.yml` |
+| **immich-server** | `https://photos.${DOMAIN}` | `apps`, `dev`, `prod` | No | Docker-label route in `services/apps/immich.yml` |
 | `immich-microservices` | internal only | `apps`, `dev`, `prod` | No | background workers |
 | `immich-machine-learning` | internal only | `apps`, `dev`, `prod` | No | ML service |
 | `redis` | internal only | `apps`, `dev`, `prod` | No | queue/cache |

@@ -49,15 +49,15 @@ x-traefik-dev-overrides: &traefik-dev-overrides
   command: [--configFile=/etc/traefik/traefik.yml]
   volumes:
     - type: bind
-      source: ../config/traefik/traefik.yml
+      source: ../../config/traefik/traefik.yml
       target: /etc/traefik/traefik.yml
       read_only: true
       bind:
         create_host_path: false
     - letsencrypt:/letsencrypt
     - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ../config/traefik/dyn:/etc/traefik/dyn:ro
-    - ../config/traefik/certs:/etc/traefik/certs:ro
+    - ../../config/traefik/dyn:/etc/traefik/dyn:ro
+    - ../../config/traefik/certs:/etc/traefik/certs:ro
 x-traefik-prod-overrides: &traefik-prod-overrides
   profiles: [prod]
   environment:
@@ -67,15 +67,15 @@ x-traefik-prod-overrides: &traefik-prod-overrides
   command: [--configFile=/etc/traefik/traefik.yml]
   volumes:
     - type: bind
-      source: ../config/traefik/traefik.acme.yml
+      source: ../../config/traefik/traefik.acme.yml
       target: /etc/traefik/traefik.yml
       read_only: true
       bind:
         create_host_path: false
     - letsencrypt:/letsencrypt
     - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ../config/traefik/dyn:/etc/traefik/dyn:ro
-    - ../config/traefik/certs:/etc/traefik/certs:ro
+    - ../../config/traefik/dyn:/etc/traefik/dyn:ro
+    - ../../config/traefik/certs:/etc/traefik/certs:ro
   depends_on:
     prod-check:
       condition: service_completed_successfully

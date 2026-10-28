@@ -2,7 +2,12 @@
 version: 2
 updates:
   - package-ecosystem: docker-compose
-    directories: [/, /services, /home-assistant]
+    directories:
+      - /
+      - /services/apps
+      - /services/infra
+      - /services/bootstrap
+      - /home-assistant
     schedule:
       interval: weekly
     groups:
