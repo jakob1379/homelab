@@ -178,7 +178,7 @@ services:
   flaresolverr:
     profiles: [apps, dev, prod]
     # DockerHub mirror flaresolverr/flaresolverr:latest
-    image: ghcr.io/flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr@sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767
     network_mode: service:gluetun
     depends_on: [gluetun]
     environment:
@@ -192,13 +192,13 @@ services:
     restart: unless-stopped
   byparr:
     profiles: [apps, dev, prod]
-    image: ghcr.io/thephaseless/byparr:latest
+    image: ghcr.io/thephaseless/byparr@sha256:874f719518f617d03a60e03411fc5d090647e1a877041e81f8dc965927c7deb6
     network_mode: service:gluetun
     depends_on: [gluetun]
     environment: [HOST=0.0.0.0, PORT=8192, LOG_LEVEL=INFO]
     restart: unless-stopped
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
+    image: lscr.io/linuxserver/prowlarr@sha256:04be30163fbaf48d6aeee7b5893c9f6614ffbad6d853971df0d6dcdf01c7f104
     networks: [traefik_public, media]
     environment: [PUID=1000, PGID=1000, TZ=Etc/UTC]
     labels:
@@ -215,7 +215,7 @@ services:
     restart: unless-stopped
   bazarr:
     profiles: [apps, dev, prod]
-    image: lscr.io/linuxserver/bazarr:latest
+    image: lscr.io/linuxserver/bazarr@sha256:9a625883f054e722795affe5e3ca71057e6ed817ecdf99f4a99624346fcc509c
     networks: [traefik_public, media]
     environment:
       - PUID=${PUID:-1000}

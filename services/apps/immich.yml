@@ -28,7 +28,7 @@ services:
           memory: 512M
   immich-power-tools:
     profiles: [apps, dev, prod]
-    image: ghcr.io/immich-power-tools/immich-power-tools:latest
+    image: ghcr.io/immich-power-tools/immich-power-tools@sha256:85af8a9f116cfb626dcda491a49616baf90108fe428a885df5ab68bd7cddb291
     depends_on:
       immich-postgres:
         condition: service_healthy
