@@ -210,7 +210,7 @@ has_active_speedtest() {
             return 2
         fi
 
-        if [[ ! $response_body =~ "data"[[:space:]]*:[[:space:]]*\[\] ]]; then
+        if [[ ! $response_body =~ \"data\"[[:space:]]*:[[:space:]]*\[\] ]]; then
             log "found active speedtest result (status=${status})"
             return 0
         fi
