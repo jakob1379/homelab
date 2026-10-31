@@ -13,7 +13,7 @@ services:
     networks: [traefik_public, keep]
     volumes:
       - karakeep_data:/data
-      - ../config/karakeep/entrypoint.sh:/usr/local/bin/karakeep-entrypoint.sh:ro
+      - ../../config/karakeep/entrypoint.sh:/usr/local/bin/karakeep-entrypoint.sh:ro
     environment:
       OPENAI_SERVICE_TIER: flex
       INFERENCE_TEXT_MODEL: gpt-5.4-nano

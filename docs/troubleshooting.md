@@ -103,7 +103,7 @@ $ docker compose logs keep --tail 50
 
 Then compare:
 
-- `sablier.group=keep` in `services/karakeep.yml`
+- `sablier.group=keep` in `services/apps/karakeep.yml`
 - `group: keep` in `config/traefik/dyn/keep.yml`
 
 If those do not match, the wake flow is broken.
