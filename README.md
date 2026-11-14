@@ -94,31 +94,31 @@ This file includes the active stack definitions under `services/` plus `home-ass
 
 ```yaml title="docker-compose.yml"
 include:
-  - services/networking.yml
-  - services/rustfs.yml
-  - services/tools.yml
-  - services/omni-tools.yml
-  - services/speedtest-tracker.yml
-  - services/vert.yml
-  - services/anythingllm.yml
-  - services/listmonk.yml
-  - services/karakeep.yml
-  - services/immich.yml
-  - services/paperless-ngx.yml
-  - services/dumbassets.yml
-  - services/media.yml
-  - services/hermes.yml
-  - services/homepage.yml
+  - services/infra/networking.yml
+  - services/infra/rustfs.yml
+  - services/apps/tools.yml
+  - services/apps/omni-tools.yml
+  - services/apps/speedtest-tracker.yml
+  - services/apps/vert.yml
+  - services/apps/anythingllm.yml
+  - services/apps/listmonk.yml
+  - services/apps/karakeep.yml
+  - services/apps/immich.yml
+  - services/apps/paperless-ngx.yml
+  - services/apps/dumbassets.yml
+  - services/apps/media.yml
+  - services/apps/hermes.yml
+  - services/apps/homepage.yml
   - home-assistant/docker-compose.yml
 ```
 
 ### `docker-compose.pods.yml`: bootstrap stack
 
-This file includes only `services/pods.yml`.
+This file includes only `services/bootstrap/pods.yml`.
 
 ```yaml title="docker-compose.pods.yml"
 include:
-  - services/pods.yml
+  - services/bootstrap/pods.yml
 ```
 
 ### Active profiles
@@ -245,7 +245,7 @@ For production ACME certificates, start the stack with the production profile:
 
 ### 2. The media stack still depends on Gluetun
 
-`services/media.yml` runs **Gluetun** as the shared network namespace for:
+`services/apps/media.yml` runs **Gluetun** as the shared network namespace for:
 
 - `torrent`
 - `sonarr`
