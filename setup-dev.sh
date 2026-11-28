@@ -285,14 +285,12 @@ done
 log_info "Setting up the homelab development environment..."
 log_info "setup-dev.sh generates local TLS files and app keys, sets local OpenVPN and DumbAssets placeholders, and leaves optional service env overrides optional"
 
-ENV_FILES_DIR="services"
-
 # Verify that all env_file references used by the root compose include set exist.
 missing_env_files=()
 while IFS= read -r included_file; do
     while IFS= read -r env_ref; do
         env_name=${env_ref#./}
-        env_path="$ENV_FILES_DIR/$env_name"
+        env_path="$(dirname "$included_file")/$env_name"
         if [[ ! -f "$env_path" ]]; then
             missing_env_files+=("$env_path")
         fi
